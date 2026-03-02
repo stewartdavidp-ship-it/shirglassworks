@@ -879,6 +879,43 @@
       border-color: #555;
       color: #999;
     }
+    body.dark-mode .btn-icon {
+      color: #ccc;
+      border-color: #555;
+    }
+    body.dark-mode .btn-icon:hover {
+      background: #444;
+      color: #fff;
+    }
+    body.dark-mode .btn-icon:disabled {
+      color: #555;
+      border-color: #444;
+    }
+    body.dark-mode .btn-icon.danger:hover {
+      background: #4a2020;
+      border-color: #c0392b;
+      color: #e74c3c;
+    }
+    body.dark-mode .visibility-toggle {
+      color: #ccc;
+    }
+    body.dark-mode .visibility-toggle:hover {
+      background: #444;
+    }
+    body.dark-mode .visibility-toggle.hidden {
+      opacity: 0.4;
+    }
+    body.dark-mode .section-panel-header button {
+      color: #ccc;
+      border-color: #555;
+    }
+    body.dark-mode .section-panel-header button:hover {
+      background: #444;
+      color: #fff;
+    }
+    body.dark-mode .order-num { color: #888; }
+    body.dark-mode .btn-primary { background: #d4a053; color: #1a1a1a; }
+    body.dark-mode .btn-primary:hover { background: #c4903f; }
   </style>
 </head>
 <body>
@@ -1491,6 +1528,7 @@ function attachListeners() {
   if (!galleryListener) {
     galleryListener = db.ref(GALLERY_PATH).on('value', function(snap) {
       gallery = snap.val() || {};
+      autoReindexIfNeeded();
       renderGallery();
     }, function(err) {
       showToast('Error loading gallery: ' + err.message, true);
@@ -1699,8 +1737,11 @@ function renderGallery() {
         var isFirst = idx === 0;
         var isLast = idx === items.length - 1;
 
-        html += '<div class="gallery-card">' +
-          '<img class="gallery-card-img" src="' + esc(img.url) + '" alt="' + esc(img.alt) + '" onerror="this.style.display=\'none\'">' +
+        html += '<div class="gallery-card">';
+        if (img.url) {
+          html += '<img class="gallery-card-img" src="' + esc(img.url) + '" alt="' + esc(img.alt || '') + '" onerror="this.style.display=\'none\'">';
+        }
+        html +=
           '<div class="gallery-card-body">' +
             '<div class="gallery-card-caption">' + esc(img.caption || img.alt || img.productName || '') + '</div>' +
             '<div class="gallery-card-meta">';
@@ -2280,6 +2321,54 @@ async function toggleImageVisibility(imageId) {
   }
 }
 
+var reindexDone = false;
+function autoReindexIfNeeded() {
+  if (reindexDone) return;
+  reindexDone = true;
+  // Check each section for duplicate orders and fix them
+  SECTIONS.forEach(function(sec) {
+    var entries = Object.entries(gallery).filter(function(e) {
+      return (e[1].section || 'gallery') === sec.id;
+    });
+    entries.sort(function(a, b) { return (a[1].order || 0) - (b[1].order || 0); });
+    var hasDups = false;
+    for (var i = 1; i < entries.length; i++) {
+      if ((entries[i][1].order || 0) === (entries[i - 1][1].order || 0)) {
+        hasDups = true;
+        break;
+      }
+    }
+    if (hasDups) {
+      reindexSection(sec.id).catch(function(err) {
+        console.error('Reindex error for ' + sec.id + ':', err);
+      });
+    }
+  });
+}
+
+async function reindexSection(section) {
+  // Assign clean sequential order values (0, 1, 2, ...) to all items in a section
+  var entries = Object.entries(gallery).filter(function(e) {
+    return (e[1].section || 'gallery') === section;
+  });
+  entries.sort(function(a, b) {
+    return (a[1].order || 0) - (b[1].order || 0);
+  });
+
+  var updates = {};
+  var needsUpdate = false;
+  entries.forEach(function(entry, i) {
+    if ((entry[1].order || 0) !== i) {
+      updates[GALLERY_PATH + '/' + entry[0] + '/order'] = i;
+      needsUpdate = true;
+    }
+  });
+
+  if (needsUpdate) {
+    await db.ref().update(updates);
+  }
+}
+
 async function moveImage(imageId, direction) {
   var img = gallery[imageId];
   if (!img) return;
@@ -2293,6 +2382,25 @@ async function moveImage(imageId, direction) {
     return (a[1].order || 0) - (b[1].order || 0);
   });
 
+  // Check for duplicate orders — reindex first if needed
+  var hasDuplicates = false;
+  for (var i = 1; i < entries.length; i++) {
+    if ((entries[i][1].order || 0) === (entries[i - 1][1].order || 0)) {
+      hasDuplicates = true;
+      break;
+    }
+  }
+  if (hasDuplicates) {
+    await reindexSection(section);
+    // Re-fetch after reindex
+    entries = Object.entries(gallery).filter(function(e) {
+      return (e[1].section || 'gallery') === section;
+    });
+    entries.sort(function(a, b) {
+      return (a[1].order || 0) - (b[1].order || 0);
+    });
+  }
+
   var idx = entries.findIndex(function(e) { return e[0] === imageId; });
   if (idx === -1) return;
 
@@ -2301,10 +2409,10 @@ async function moveImage(imageId, direction) {
 
   var currentId = entries[idx][0];
   var swapId = entries[swapIdx][0];
-  var currentOrder = entries[idx][1].order || 0;
-  var swapOrder = entries[swapIdx][1].order || 0;
+  var currentOrder = entries[idx][1].order;
+  var swapOrder = entries[swapIdx][1].order;
 
-  // Atomic update: swap order values
+  // Swap order values
   var updates = {};
   updates[GALLERY_PATH + '/' + currentId + '/order'] = swapOrder;
   updates[GALLERY_PATH + '/' + currentId + '/updatedAt'] = firebase.database.ServerValue.TIMESTAMP;
