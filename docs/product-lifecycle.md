@@ -1,7 +1,7 @@
 # Shir Glassworks — End-to-End Product Lifecycle
 
 **Last Updated:** 2026-03-02
-**Purpose:** Living reference document covering the full product lifecycle, what's built, and what's next.
+**Purpose:** Living reference document covering the full product lifecycle, production system, and what's next.
 
 ---
 
@@ -9,9 +9,13 @@
 
 ```
 CATALOG → BROWSE → DETAIL → CART → CHECKOUT → PAYMENT → ORDER → CONFIRM → [BUILD] → PACK → SHIP → DELIVER
+                                                                             ↕
+                                                          PRODUCTION SYSTEM (Jobs → Builds → Stories)
 ```
 
 **Dual-channel model:** Orders enter from two sources — the custom website (direct) and Etsy. Both feed into a single unified admin pipeline.
+
+**Production system:** Independent production tracking for all glasswork — order fulfillment, inventory building, custom pieces, and experimental work. Includes photo capture, story curation, and customer-facing "How It Was Made" narratives.
 
 ---
 
@@ -177,6 +181,74 @@ CATALOG → BROWSE → DETAIL → CART → CHECKOUT → PAYMENT → ORDER → CO
 
 ---
 
+## Production System — Phase 1: Jobs & Builds (BUILT)
+
+**What exists:**
+- Production jobs at `shirglassworks/admin/jobs/{jobId}` — independent from order build jobs
+- 6 job purposes: `fulfillment`, `custom`, `inventory-general`, `wholesale`, `experimental`, `inventory-event`
+- Work types: `flamework`, `fusing`, `coldwork`, `mixed`
+- Priority levels: `urgent`, `high`, `normal`, `low`
+- Job lifecycle: `draft` → `active` → `completed` (or `cancelled`)
+- Multi-build tracking: each job has multiple builds (production sessions) at `jobs/{jobId}/builds/{buildId}`
+- Build lifecycle: `in-progress` → `completed`, with start/end timestamps, duration, operators
+- Line items with `targetQuantity` and per-build tally tracking (`completedQuantity`, `lossQuantity`)
+- Aggregate tallies computed across all builds per line item
+- Production requests at `shirglassworks/admin/productionRequests/{requestId}` — messages from Orders system
+- Production requests link orders to jobs via `orderId`, `orderItemKey`, `jobId`
+- Admin Production section with jobs list (filter by status/purpose), job detail, build management
+- "Start Build" / "Complete Build" modals with operator selection and per-item quantity entry
+
+**Key decision:** Production jobs are separate from order build jobs. Order confirmation creates production requests, not jobs directly. Jobs can exist independently for inventory or experimental work.
+
+---
+
+## Production System — Phase 2: Photo Capture & Story Curation (BUILT)
+
+**What exists:**
+- Photo capture during builds: operators take photos, images compressed to 1600px max, uploaded to Firebase Storage
+- Build photos stored at `jobs/{jobId}/builds/{buildId}/photos/{photoId}` with `url`, `caption`, `timestamp`
+- Story curation UI: select photos from builds, add captions, create milestone text entries
+- Stories at `shirglassworks/public/stories/{storyId}` with `jobId`, `status` (draft/published), entries array
+- Story entries: `type` (milestone/photo), `content`/`url`, `caption`, `order` for sequencing
+- Publish/unpublish stories with status tracking
+- Story status visible in job detail view
+- Operators tracked per build (name list) — copied to published story record for credit
+
+---
+
+## Production System — Phase 3: Customer Stories & Pipeline Automation (BUILT)
+
+**What exists:**
+
+**Customer-facing "How It Was Made":**
+- Product pages (`product.html`) display stories when product has a `storyId`
+- `loadProductStory()` reads from `shirglassworks/public/stories/{storyId}`
+- Renders milestone text, photos with lazy-loaded images, captions, operator credit
+- Dark mode support, responsive layout
+- storyId synced across 3 code paths: `publishStory()`, `unpublishStory()`, `linkProductToBuild()`
+
+**Fulfillment auto-advance:**
+- When completing a build on `fulfillment` or `custom` jobs, linked production requests auto-fulfill
+- Calls existing `fulfillProductionRequest(requestId, orderId, operatorName)`
+- `requestFulfilled` guard flag on line item prevents double-push
+
+**Inventory auto-push:**
+- When completing a build on `inventory-general` jobs, stock auto-increments
+- Firebase transaction for atomic `available` stock increment
+- `inventoryPushed` guard flag on build prevents double-push
+
+**Completion feedback:**
+- `showCompletionSummary()` displays pipeline results after build completion
+- Shows target-met items, fulfillment actions, inventory pushes
+- Single item = toast, multiple = modal
+
+**Pipeline indicators in job detail:**
+- Fulfillment/custom jobs: order status badge per line item
+- Inventory-general: push state per completed build
+- Other purposes: "Manual handling required" note
+
+---
+
 ## Order Status Lifecycle
 
 ```
@@ -239,6 +311,10 @@ payment_failed → cancelled
 | `shirEtsyOAuthCallback` | Firebase Functions (HTTP) | Deployed |
 | `shirEtsyOrderSync` | Firebase Functions (callable) | Deployed |
 | `shirValidateCoupon` | Firebase Functions (callable) | Deployed |
+| Production jobs | Firebase RTDB: `shirglassworks/admin/jobs/` | Live |
+| Production requests | Firebase RTDB: `shirglassworks/admin/productionRequests/` | Live |
+| Stories (public) | Firebase RTDB: `shirglassworks/public/stories/` | Live |
+| Build photos | Firebase Storage | Live |
 | Firebase rules | `database.rules.json` | Deployed |
 
 ---
@@ -265,11 +341,22 @@ payment_failed → cancelled
 | Etsy bidirectional sync (inbound orders, outbound tracking) | Etsy | Built |
 | Etsy orders enter as prepaid at `placed` status | Etsy | Built |
 | Image migration from Weebly to local repo | Images | Built |
+| Production job data model (6 purposes, multi-build, line items with targets) | Production | Built |
+| Build data model (sequential builds, operator tracking, tallies) | Production | Built |
+| Expected vs Actual tracking (per-build counts at line item level) | Production | Built |
+| Build-to-inventory/order pipeline (auto-push vs manual by purpose) | Production | Built |
+| Build media and storytelling (capture private, curate selectively) | Production | Built |
+| Firebase RTDB structure for production system | Production | Built |
+| Admin UI for Production (own top-level section in admin nav) | Production | Built |
+| Production Request model (messages from Orders to Production) | Production | Built |
 
 ---
 
 ## Deferred / Future Work
 
+- **Studio Companion App:** Camera-first PWA for in-studio production management — QR scanning, photo recognition, contextual actions based on job state
+- **Photo Recognition:** Hybrid TensorFlow.js + Claude Vision model for identifying products from photos
+- **QR Code System:** URL-based QR codes for jobs, products, and shelves with LabelKeeper printing
 - **Abandoned checkout cleanup:** Scheduled function to auto-cancel `pending_payment` orders older than 48h
 - **Auto Etsy sync:** Scheduled function to pull Etsy orders every 15 minutes (currently manual trigger)
 - **Etsy refund/cancellation sync:** Pull cancellation events from Etsy back into Firebase
