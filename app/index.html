@@ -1070,6 +1070,107 @@
       font-family: monospace;
     }
 
+    /* ========== PRODUCTS CATALOG ========== */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .product-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .product-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .product-card-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: var(--cream-dark);
+    }
+    .product-card-body {
+      padding: 14px 16px;
+    }
+    .product-card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--charcoal);
+    }
+    .product-card-price {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--amber);
+      margin-bottom: 8px;
+    }
+    .product-card-price.no-price {
+      color: var(--warm-gray-light);
+      font-style: italic;
+      font-weight: 400;
+    }
+    .product-card-cats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .product-cat-tag {
+      font-size: 0.7rem;
+      background: var(--cream-dark);
+      color: var(--warm-gray);
+      padding: 2px 8px;
+      border-radius: 10px;
+      text-transform: capitalize;
+    }
+    .product-card-options {
+      font-size: 0.8rem;
+      color: var(--warm-gray);
+    }
+    .product-card-options span {
+      font-weight: 500;
+      color: var(--charcoal);
+    }
+    .product-card-images-count {
+      font-size: 0.75rem;
+      color: var(--warm-gray-light);
+      margin-top: 6px;
+    }
+    .products-filter-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .products-filter-bar select {
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      font-size: 0.85rem;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .products-stat {
+      font-size: 0.85rem;
+      color: var(--warm-gray);
+      margin-left: auto;
+    }
+
+    /* Products dark mode */
+    body.dark-mode .product-card { background: #2a2a2a; }
+    body.dark-mode .product-card-name { color: #e0e0e0; }
+    body.dark-mode .product-cat-tag { background: #333; color: #aaa; }
+    body.dark-mode .product-card-options { color: #888; }
+    body.dark-mode .product-card-options span { color: #ccc; }
+    body.dark-mode .product-card-images-count { color: #666; }
+    body.dark-mode .product-card-img { background: #222; }
+    body.dark-mode .products-filter-bar select { background: #333; color: #ccc; border-color: #555; }
+    body.dark-mode .products-stat { color: #888; }
+
     /* Analytics dark mode */
     body.dark-mode .stat-card { background: #2a2a2a; }
     body.dark-mode .stat-card-label { color: #888; }
@@ -1099,6 +1200,7 @@
     <div class="header-tabs">
       <button class="header-tab active" data-tab="schedule" onclick="switchTab('schedule')">Schedule</button>
       <button class="header-tab" data-tab="gallery" onclick="switchTab('gallery')">Gallery</button>
+      <button class="header-tab" data-tab="products" onclick="switchTab('products')">Products</button>
       <button class="header-tab" data-tab="analytics" onclick="switchTab('analytics')">Analytics</button>
       <button class="header-tab" data-tab="settings" onclick="switchTab('settings')">Settings</button>
     </div>
@@ -1210,6 +1312,27 @@
         <h3 class="analytics-section-title">Recent Activity</h3>
         <div id="analyticsRecent"></div>
       </div>
+    </div>
+
+    <!-- Admin: Products Tab -->
+    <div id="productsTab" style="display:none;">
+      <div class="section-header">
+        <h2>Product Catalog</h2>
+        <div class="products-filter-bar">
+          <select id="productsCategory" onchange="renderProducts()">
+            <option value="all">All Categories</option>
+            <option value="figurines">Figurines</option>
+            <option value="jewelry">Jewelry</option>
+            <option value="drinkware">Drinkware</option>
+            <option value="vases">Vases</option>
+            <option value="decoration">Decoration</option>
+            <option value="sculpture">Sculpture</option>
+          </select>
+          <span class="products-stat" id="productsCount"></span>
+        </div>
+      </div>
+      <div id="productsLoading" class="loading" style="display:none;padding:40px;text-align:center;">Loading products...</div>
+      <div id="productsGrid" class="products-grid"></div>
     </div>
 
     <!-- Admin: Settings Tab -->
@@ -1527,15 +1650,18 @@ function switchTab(tab) {
   });
   document.getElementById('scheduleTab').style.display = tab === 'schedule' ? '' : 'none';
   document.getElementById('galleryTab').style.display = tab === 'gallery' ? '' : 'none';
+  document.getElementById('productsTab').style.display = tab === 'products' ? '' : 'none';
   document.getElementById('analyticsTab').style.display = tab === 'analytics' ? '' : 'none';
   document.getElementById('settingsTab').style.display = tab === 'settings' ? '' : 'none';
   if (tab === 'settings') updateGitHubTokenStatus();
   if (tab === 'analytics' && !analyticsLoaded) loadAnalytics();
+  if (tab === 'products' && !productsLoaded) loadProducts();
 }
 
 function hideAdminTabs() {
   document.getElementById('scheduleTab').style.display = 'none';
   document.getElementById('galleryTab').style.display = 'none';
+  document.getElementById('productsTab').style.display = 'none';
   document.getElementById('analyticsTab').style.display = 'none';
   document.getElementById('settingsTab').style.display = 'none';
 }
@@ -2005,6 +2131,76 @@ async function seedProductCatalog() {
   updates[flag] = true;
   await db.ref().update(updates);
   console.log('Seeded product catalog: ' + Object.keys(updates).length + ' entries.');
+}
+
+// ============================================================
+// Products Catalog
+// ============================================================
+
+var productsLoaded = false;
+var productsData = [];
+
+async function loadProducts() {
+  var loading = document.getElementById('productsLoading');
+  loading.style.display = '';
+  try {
+    var snap = await db.ref('shirglassworks/public/products').once('value');
+    var val = snap.val();
+    productsData = val ? Object.values(val) : [];
+    productsData.sort(function(a, b) { return a.name.localeCompare(b.name); });
+    productsLoaded = true;
+    renderProducts();
+  } catch (err) {
+    console.error('Error loading products:', err);
+    document.getElementById('productsGrid').innerHTML = '<p style="color:var(--danger);padding:20px;">Error loading products.</p>';
+  } finally {
+    loading.style.display = 'none';
+  }
+}
+
+function renderProducts() {
+  var cat = document.getElementById('productsCategory').value;
+  var filtered = cat === 'all' ? productsData : productsData.filter(function(p) {
+    return p.categories && p.categories.indexOf(cat) !== -1;
+  });
+
+  document.getElementById('productsCount').textContent = filtered.length + ' of ' + productsData.length + ' products';
+
+  var html = '';
+  filtered.forEach(function(p) {
+    var imgSrc = (p.images && p.images.length) ? p.images[0] : '';
+    var priceHtml = p.price
+      ? '<div class="product-card-price">' + esc(p.price) + '</div>'
+      : '<div class="product-card-price no-price">Price on request</div>';
+
+    var catsHtml = '';
+    if (p.categories && p.categories.length) {
+      catsHtml = '<div class="product-card-cats">' + p.categories.map(function(c) {
+        return '<span class="product-cat-tag">' + esc(c) + '</span>';
+      }).join('') + '</div>';
+    }
+
+    var optionsHtml = '';
+    if (p.options && p.options.length) {
+      optionsHtml = p.options.map(function(opt) {
+        return '<div class="product-card-options"><span>' + esc(opt.label) + ':</span> ' + opt.choices.length + ' options</div>';
+      }).join('');
+    }
+
+    var imgCount = (p.images && p.images.length) ? p.images.length : 0;
+
+    html += '<div class="product-card">'
+      + (imgSrc ? '<img class="product-card-img" src="' + esc(imgSrc) + '" alt="' + esc(p.name) + '" loading="lazy">' : '<div class="product-card-img"></div>')
+      + '<div class="product-card-body">'
+      + '<div class="product-card-name">' + esc(p.name) + '</div>'
+      + priceHtml
+      + catsHtml
+      + optionsHtml
+      + '<div class="product-card-images-count">' + imgCount + ' image' + (imgCount !== 1 ? 's' : '') + '</div>'
+      + '</div></div>';
+  });
+
+  document.getElementById('productsGrid').innerHTML = html || '<p class="empty-state">No products found.</p>';
 }
 
 // ============================================================
