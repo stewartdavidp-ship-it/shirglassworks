@@ -1282,6 +1282,10 @@ auth.onAuthStateChanged(function(user) {
   migrateSectionsV2().catch(function(err) {
     console.error('Migration v2 error:', err);
   });
+  // V3: remove records with broken/missing URLs
+  cleanupBrokenRecords().catch(function(err) {
+    console.error('Cleanup error:', err);
+  });
 });
 
 // ============================================================
@@ -1516,6 +1520,31 @@ async function migrateSectionsV2() {
     await db.ref(v2Flag).set(true);
     console.log('Section migration v2: no fixes needed.');
   }
+}
+
+async function cleanupBrokenRecords() {
+  var v3Flag = 'shirglassworks/admin/cleanupBrokenV3';
+  var flagSnap = await db.ref(v3Flag).once('value');
+  if (flagSnap.val()) return;
+
+  console.log('Running broken records cleanup...');
+  var snap = await db.ref(GALLERY_PATH).once('value');
+  var data = snap.val() || {};
+  var updates = {};
+  var count = 0;
+
+  Object.keys(data).forEach(function(id) {
+    var img = data[id];
+    // Delete records with no URL or non-http URLs (bad seed data)
+    if (!img.url || (typeof img.url === 'string' && img.url.indexOf('http') !== 0)) {
+      updates[GALLERY_PATH + '/' + id] = null;
+      count++;
+    }
+  });
+
+  updates[v3Flag] = true;
+  await db.ref().update(updates);
+  console.log('Cleanup complete — removed ' + count + ' broken records.');
 }
 
 // ============================================================
