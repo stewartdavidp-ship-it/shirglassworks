@@ -1157,6 +1157,10 @@ auth.onAuthStateChanged(function(user) {
   migrateAndSeedSections().catch(function(err) {
     console.error('Migration error:', err);
   });
+  // V2 fix: correct section assignments
+  migrateSectionsV2().catch(function(err) {
+    console.error('Migration v2 error:', err);
+  });
 });
 
 // ============================================================
@@ -1310,6 +1314,43 @@ async function migrateAndSeedSections() {
   } else {
     await db.ref(MIGRATION_FLAG_PATH).set(true);
     console.log('No migration needed.');
+  }
+}
+
+// V2 migration: fix section assignments (hero→schedule, Madeline about→gallery, shop→gallery)
+async function migrateSectionsV2() {
+  var v2Flag = 'shirglassworks/admin/sectionsMigratedV2';
+  var flagSnap = await db.ref(v2Flag).once('value');
+  if (flagSnap.val()) return;
+
+  console.log('Running section migration v2...');
+  var snap = await db.ref(GALLERY_PATH).once('value');
+  var data = snap.val() || {};
+  var updates = {};
+
+  Object.keys(data).forEach(function(id) {
+    var img = data[id];
+    // Move hero record to schedule
+    if (img.section === 'hero') {
+      updates[GALLERY_PATH + '/' + id + '/section'] = 'schedule';
+    }
+    // Move Madeline from about to gallery
+    if (img.section === 'about' && img.alt && img.alt.toLowerCase().indexOf('madeline') !== -1) {
+      updates[GALLERY_PATH + '/' + id + '/section'] = 'gallery';
+    }
+    // Move all shop items to gallery
+    if (img.section === 'shop') {
+      updates[GALLERY_PATH + '/' + id + '/section'] = 'gallery';
+    }
+  });
+
+  updates[v2Flag] = true;
+  if (Object.keys(updates).length > 1) {
+    await db.ref().update(updates);
+    console.log('Section migration v2 complete — fixed ' + (Object.keys(updates).length - 1) + ' records.');
+  } else {
+    await db.ref(v2Flag).set(true);
+    console.log('Section migration v2: no fixes needed.');
   }
 }
 
