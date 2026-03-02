@@ -673,6 +673,46 @@
   </div>
 </footer>
 
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+  // Firebase — load about images dynamically
+  (function() {
+    var app = firebase.initializeApp({
+      apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
+      databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
+      projectId: "word-boxing"
+    }, 'public-about');
+    var db = app.database();
+
+    db.ref('shirglassworks/public/gallery').orderByChild('order').once('value').then(function(snap) {
+      var data = snap.val();
+      if (!data) return;
+      var aboutImages = Object.values(data)
+        .filter(function(i) { return i.section === 'about' && i.visible !== false; })
+        .sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
+
+      if (aboutImages.length >= 1) {
+        var portraitImg = document.querySelector('.about-image img');
+        if (portraitImg) {
+          portraitImg.src = aboutImages[0].url;
+          portraitImg.alt = aboutImages[0].alt || '';
+        }
+      }
+      if (aboutImages.length >= 2) {
+        var studioImg = document.querySelector('.studio-photo img');
+        if (studioImg) {
+          studioImg.src = aboutImages[1].url;
+          studioImg.alt = aboutImages[1].alt || '';
+        }
+        var studioCaption = document.querySelector('.studio-photo .caption');
+        if (studioCaption && aboutImages[1].caption) {
+          studioCaption.textContent = aboutImages[1].caption;
+        }
+      }
+    }).catch(function() { /* keep hardcoded fallback */ });
+  })();
+</script>
 <script>
   // Nav scroll effect
   const nav = document.getElementById('mainNav');

@@ -351,6 +351,77 @@
     }
 
     /* ========== GALLERY GRID ========== */
+    .section-panel {
+      margin-bottom: 20px;
+      border: 1px solid #e0dcd6;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .section-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: white;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section-panel-header:hover {
+      background: var(--cream-dark);
+    }
+
+    .section-panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-panel-title h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .section-panel-count {
+      font-size: 0.78rem;
+      color: var(--warm-gray-light);
+      background: var(--cream-dark);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .section-panel-desc {
+      font-size: 0.8rem;
+      color: var(--warm-gray-light);
+    }
+
+    .section-panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-panel-toggle {
+      font-size: 0.9rem;
+      color: var(--warm-gray-light);
+      transition: transform 0.2s;
+    }
+
+    .section-panel.collapsed .section-panel-toggle {
+      transform: rotate(-90deg);
+    }
+
+    .section-panel-body {
+      padding: 12px 16px;
+      background: var(--cream);
+    }
+
+    .section-panel.collapsed .section-panel-body {
+      display: none;
+    }
+
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -829,14 +900,10 @@
     <!-- Admin: Gallery Tab -->
     <div id="galleryTab" style="display:none;">
       <div class="section-header">
-        <h2>Gallery</h2>
-        <button class="btn btn-primary" onclick="openImageModal()">+ Add Image</button>
+        <h2>Images</h2>
       </div>
       <div id="galleryLoading" class="loading">Loading...</div>
-      <div id="galleryEmpty" class="empty-state" style="display:none;">
-        <p>No images yet. Click "Add Image" to create one.</p>
-      </div>
-      <div class="gallery-grid" id="galleryGrid"></div>
+      <div id="gallerySections"></div>
     </div>
 
     <!-- Admin: Settings Tab -->
@@ -857,15 +924,6 @@
             <button class="btn btn-secondary" onclick="testGitHubToken()">Test</button>
           </div>
           <div id="githubTokenStatus" style="margin-top:8px;font-size:0.85rem;"></div>
-        </div>
-        <hr style="margin:24px 0;border:none;border-top:1px solid #ddd;">
-        <div class="form-group">
-          <label>Seed Initial Data</label>
-          <p style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:8px;">
-            One-time import of schedule events and gallery images. Skips if data already exists.
-          </p>
-          <button class="btn btn-secondary" onclick="seedData()">Seed Data</button>
-          <div id="seedStatus" style="margin-top:8px;font-size:0.85rem;"></div>
         </div>
       </div>
     </div>
@@ -899,6 +957,13 @@ const EVENTS_PATH = 'shirglassworks/public/events';
 const GALLERY_PATH = 'shirglassworks/public/gallery';
 
 const CATEGORIES = ['figurines', 'jewelry', 'drinkware', 'sculptures', 'vases', 'decorations', 'studio', 'other'];
+const SECTIONS = [
+  { id: 'hero', label: 'Hero', description: 'Homepage banner video & poster image' },
+  { id: 'about', label: 'About', description: 'About page images' },
+  { id: 'gallery', label: 'Gallery', description: 'Homepage gallery grid' },
+  { id: 'shop', label: 'Shop', description: 'Shop page products' }
+];
+const MIGRATION_FLAG_PATH = 'shirglassworks/admin/sectionsMigrated';
 
 // GitHub image upload
 const GITHUB_REPO = 'stewartdavidp-ship-it/shirglassworks';
@@ -1086,6 +1151,11 @@ auth.onAuthStateChanged(function(user) {
   db.ref(GITHUB_TOKEN_PATH).once('value').then(function(snap) {
     githubToken = snap.val();
   });
+
+  // One-time migration: add section field to existing images + seed hero/about/shop
+  migrateAndSeedSections().catch(function(err) {
+    console.error('Migration error:', err);
+  });
 });
 
 // ============================================================
@@ -1152,68 +1222,97 @@ function updateGitHubTokenStatus() {
 }
 
 // ============================================================
-// Seed Data (one-time import)
+// One-time migration: add section field + seed hero/about/shop
 // ============================================================
-async function seedData() {
-  var statusEl = document.getElementById('seedStatus');
-  statusEl.innerHTML = '<span style="color:var(--warm-gray);">Seeding...</span>';
+async function migrateAndSeedSections() {
+  var flagSnap = await db.ref(MIGRATION_FLAG_PATH).once('value');
+  if (flagSnap.val()) return; // Already migrated
 
-  var scheduleEvents = [
-    { name: 'Northampton Spring Arts Festival', date: '2026-03-15', dateEnd: null, location: 'Downtown Northampton, MA', description: 'Annual spring arts festival featuring local artists and craftspeople.', visible: true },
-    { name: 'Greenfield Makers Market', date: '2026-04-05', dateEnd: null, location: 'Greenfield Community Center, Greenfield, MA', description: 'Monthly makers market with handcrafted goods from Western Mass artisans.', visible: true },
-    { name: 'Paradise City Arts Festival', date: '2026-05-22', dateEnd: '2026-05-24', location: 'Three County Fairgrounds, Northampton, MA', description: 'Premier fine arts and craft festival showcasing hundreds of juried artists.', visible: true },
-    { name: 'Shelburne Falls Art Walk', date: '2026-06-14', dateEnd: null, location: 'Bridge of Flowers, Shelburne Falls, MA', description: 'Open studios and gallery walk through the charming village of Shelburne Falls.', visible: true },
-    { name: 'Northampton Sidewalk Sale', date: '2026-07-18', dateEnd: null, location: 'Main Street, Northampton, MA', description: 'Summer sidewalk sale with local businesses and artisan vendors.', visible: true },
-    { name: "Martha's Vineyard Artisan Fair", date: '2026-08-09', dateEnd: '2026-08-10', location: "Grange Hall, West Tisbury, Martha's Vineyard, MA", description: 'Two-day artisan fair featuring fine crafts and artwork on the island.', visible: true },
-    { name: 'Eastern States Exposition', date: '2026-09-18', dateEnd: '2026-10-04', location: 'West Springfield, MA', description: "The Big E — New England's great state fair with artisan exhibitions.", visible: true },
-    { name: 'Deerfield Craft Fair', date: '2026-10-10', dateEnd: '2026-10-11', location: 'Historic Deerfield, MA', description: 'Traditional craft fair set among the historic homes of Old Deerfield.', visible: true },
-    { name: 'Northampton Holiday Market', date: '2026-11-28', dateEnd: null, location: 'Academy of Music, Northampton, MA', description: 'Holiday gift market featuring local artisans and unique handmade gifts.', visible: true },
-    { name: 'First Night Northampton', date: '2026-12-31', dateEnd: null, location: 'Various venues, Northampton, MA', description: "New Year's Eve arts celebration with performances and artisan showcases.", visible: true }
-  ];
+  console.log('Running section migration...');
+  var snap = await db.ref(GALLERY_PATH).once('value');
+  var data = snap.val() || {};
 
-  var galleryImages = [
-    { url: 'https://shirglassworks.com/uploads/1/4/6/0/146018125/img-5405_orig.jpg', alt: 'Ori glassblowing in the studio', caption: 'Ori at work in the hot shop', category: 'studio', visible: true, order: 1 },
-    { url: 'https://shirglassworks.com/uploads/1/4/6/0/146018125/c5-i1-w3000_orig.jpeg', alt: 'Handcrafted glass octopus sculpture', caption: 'Glass Octopus', category: 'sculpture', visible: true, order: 2 },
-    { url: 'https://shirglassworks.com/uploads/1/4/6/0/146018125/c4-i3-w900_orig.jpeg', alt: 'Sea turtle glass pendant', caption: 'Sea Turtle Pendant', category: 'jewelry', visible: true, order: 3 },
-    { url: 'https://shirglassworks.com/uploads/1/4/6/0/146018125/madeline-glassblowing-tate-photo_orig.jpg', alt: 'Madeline glassblowing', caption: 'Madeline at the torch', category: 'studio', visible: true, order: 4 },
-    { url: 'https://shirglassworks.com/uploads/1/4/6/0/146018125/c3-i1-w3300_orig.jpeg', alt: 'Hand-blown glass drinkware collection', caption: 'Drinkware Collection', category: 'functional', visible: true, order: 5 },
-    { url: 'https://shirglassworks.com/uploads/1/4/6/0/146018125/c8-i2-w4939_orig.jpeg', alt: 'Delicate glass lotus flower', caption: 'Glass Lotus', category: 'sculpture', visible: true, order: 6 },
-    { url: 'https://shirglassworks.com/uploads/1/4/6/0/146018125/c6-i2-w1938_orig.jpeg', alt: 'Colorful blown glass vases', caption: 'Glass Vases', category: 'functional', visible: true, order: 7 }
-  ];
-
-  var results = [];
-  try {
-    var existingEvents = await db.ref(EVENTS_PATH).once('value');
-    if (existingEvents.exists()) {
-      results.push('Events: skipped (' + Object.keys(existingEvents.val()).length + ' already exist)');
-    } else {
-      for (var i = 0; i < scheduleEvents.length; i++) {
-        var ev = scheduleEvents[i];
-        ev.createdAt = firebase.database.ServerValue.TIMESTAMP;
-        ev.updatedAt = firebase.database.ServerValue.TIMESTAMP;
-        await db.ref(EVENTS_PATH).push(ev);
-      }
-      results.push('Events: ' + scheduleEvents.length + ' seeded');
+  // 1. Add section:'gallery' to existing records that lack it
+  var updates = {};
+  Object.keys(data).forEach(function(id) {
+    if (!data[id].section) {
+      updates[GALLERY_PATH + '/' + id + '/section'] = 'gallery';
     }
+  });
 
-    var existingGallery = await db.ref(GALLERY_PATH).once('value');
-    if (existingGallery.exists()) {
-      results.push('Gallery: skipped (' + Object.keys(existingGallery.val()).length + ' already exist)');
-    } else {
-      for (var j = 0; j < galleryImages.length; j++) {
-        var img = galleryImages[j];
-        img.createdAt = firebase.database.ServerValue.TIMESTAMP;
-        img.updatedAt = firebase.database.ServerValue.TIMESTAMP;
-        await db.ref(GALLERY_PATH).push(img);
-      }
-      results.push('Gallery: ' + galleryImages.length + ' seeded');
-    }
+  // 2. Check which sections already have records
+  var existingSections = {};
+  Object.values(data).forEach(function(img) {
+    if (img.section) existingSections[img.section] = true;
+  });
 
-    statusEl.innerHTML = '<span style="color:var(--teal);">&#10003; ' + results.join(' | ') + '</span>';
-    showToast('Seed complete: ' + results.join(' | '));
-  } catch (err) {
-    statusEl.innerHTML = '<span style="color:var(--danger);">Error: ' + err.message + '</span>';
-    showToast('Seed failed: ' + err.message, true);
+  // 3. Seed hero (if missing)
+  if (!existingSections['hero']) {
+    var heroKey = db.ref(GALLERY_PATH).push().key;
+    updates[GALLERY_PATH + '/' + heroKey] = {
+      url: 'https://www.shirglassworks.com/uploads/3/7/0/8/37080241/background-images/1126466848.jpg',
+      alt: 'Glassblowing workshop with molten glass',
+      caption: 'Hero Background',
+      section: 'hero',
+      category: '',
+      videoUrl: 'https://assets.mixkit.co/videos/20977/20977-720.mp4',
+      visible: true, order: 1,
+      createdAt: firebase.database.ServerValue.TIMESTAMP,
+      updatedAt: firebase.database.ServerValue.TIMESTAMP
+    };
+  }
+
+  // 4. Seed about (if missing)
+  if (!existingSections['about']) {
+    var aboutKey1 = db.ref(GALLERY_PATH).push().key;
+    updates[GALLERY_PATH + '/' + aboutKey1] = {
+      url: 'https://www.shirglassworks.com/uploads/3/7/0/8/37080241/published/img-5405.jpg?1634656577',
+      alt: 'Ori glassblowing at the furnace', caption: 'Ori at work',
+      section: 'about', category: '', visible: true, order: 1,
+      createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP
+    };
+    var aboutKey2 = db.ref(GALLERY_PATH).push().key;
+    updates[GALLERY_PATH + '/' + aboutKey2] = {
+      url: 'https://www.shirglassworks.com/uploads/3/7/0/8/37080241/madeline-glassblowing-tate-photo_orig.jpg',
+      alt: 'Madeline at work in the studio', caption: 'Madeline at the torch',
+      section: 'about', category: '', visible: true, order: 2,
+      createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP
+    };
+  }
+
+  // 5. Seed shop (if missing)
+  if (!existingSections['shop']) {
+    var shopItems = [
+      { url: 'https://www.shirglassworks.com/uploads/3/7/0/8/37080241/s595745330179078127_c5_i1_w3000.jpeg', alt: 'Octopus Figurine', productName: 'Octopus Figurine', category: 'figurines' },
+      { url: 'https://www.shirglassworks.com/uploads/3/7/0/8/37080241/s595745330179078127_c4_i3_w900.jpeg', alt: 'Sea Turtle Pendant', productName: 'Sea Turtle Pendant', category: 'jewelry' },
+      { url: 'https://www.shirglassworks.com/uploads/3/7/0/8/37080241/s595745330179078127_c3_i1_w3300.jpeg', alt: 'Handblown Cups', productName: 'Handblown Cups', category: 'drinkware' },
+      { url: 'https://www.shirglassworks.com/uploads/3/7/0/8/37080241/s595745330179078127_c8_i2_w4939.jpeg', alt: 'Glass Lotus', productName: 'Glass Lotus', category: 'sculptures' },
+      { url: 'https://www.shirglassworks.com/uploads/3/7/0/8/37080241/s595745330179078127_c6_i2_w1938.jpeg', alt: 'Flower Vases', productName: 'Flower Vases', category: 'vases' },
+      { url: 'https://www.shirglassworks.com/uploads/3/7/0/8/37080241/s595745330179078127_c7_i1_w3024.jpeg', alt: 'Glass Ornaments', productName: 'Glass Ornaments', category: 'decorations' },
+      { url: 'https://www.shirglassworks.com/uploads/3/7/0/8/37080241/s595745330179078127_c1_i1_w2000.jpg', alt: 'Glass Snakes', productName: 'Glass Snakes', category: 'figurines' },
+      { url: 'https://www.shirglassworks.com/uploads/3/7/0/8/37080241/s595745330179078127_c4_i2_w900.jpeg', alt: 'Jellyfish Pendant', productName: 'Jellyfish Pendant', category: 'jewelry' }
+    ];
+    shopItems.forEach(function(item, i) {
+      var key = db.ref(GALLERY_PATH).push().key;
+      updates[GALLERY_PATH + '/' + key] = {
+        url: item.url, alt: item.alt, caption: '', section: 'shop',
+        category: item.category, productName: item.productName,
+        productLink: 'https://www.etsy.com/shop/ShirGlassworks',
+        visible: true, order: i + 1,
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+      };
+    });
+  }
+
+  // 6. Apply all updates atomically + set migration flag
+  if (Object.keys(updates).length > 0) {
+    updates[MIGRATION_FLAG_PATH] = true;
+    await db.ref().update(updates);
+    console.log('Section migration complete.');
+  } else {
+    await db.ref(MIGRATION_FLAG_PATH).set(true);
+    console.log('No migration needed.');
   }
 }
 
@@ -1388,53 +1487,104 @@ function renderEvents() {
 // ============================================================
 function renderGallery() {
   var loading = document.getElementById('galleryLoading');
-  var empty = document.getElementById('galleryEmpty');
-  var grid = document.getElementById('galleryGrid');
+  var container = document.getElementById('gallerySections');
 
   loading.style.display = 'none';
 
   var entries = Object.entries(gallery);
-  if (entries.length === 0) {
-    empty.style.display = '';
-    grid.innerHTML = '';
-    return;
-  }
 
-  empty.style.display = 'none';
+  // Group by section
+  var grouped = {};
+  SECTIONS.forEach(function(s) { grouped[s.id] = []; });
+  entries.forEach(function(entry) {
+    var section = entry[1].section || 'gallery';
+    if (!grouped[section]) grouped[section] = [];
+    grouped[section].push(entry);
+  });
 
-  // Sort by order ascending
-  entries.sort(function(a, b) {
-    return (a[1].order || 0) - (b[1].order || 0);
+  // Sort each group by order
+  Object.keys(grouped).forEach(function(key) {
+    grouped[key].sort(function(a, b) {
+      return (a[1].order || 0) - (b[1].order || 0);
+    });
   });
 
   var html = '';
-  entries.forEach(function(entry, idx) {
-    var id = entry[0];
-    var img = entry[1];
-    var isFirst = idx === 0;
-    var isLast = idx === entries.length - 1;
+  SECTIONS.forEach(function(sec) {
+    var items = grouped[sec.id] || [];
+    var isCollapsed = container.querySelector('[data-section="' + sec.id + '"]');
+    var collapsed = isCollapsed && isCollapsed.classList.contains('collapsed');
 
-    html += '<div class="gallery-card">' +
-      '<img class="gallery-card-img" src="' + esc(img.url) + '" alt="' + esc(img.alt) + '" onerror="this.style.display=\'none\'">' +
-      '<div class="gallery-card-body">' +
-        '<div class="gallery-card-caption">' + esc(img.caption || img.alt) + '</div>' +
-        '<div class="gallery-card-meta">' +
-          '<span class="category-badge">' + esc(img.category || 'other') + '</span>' +
-          '<span class="order-num">#' + (img.order || 0) + '</span>' +
+    html += '<div class="section-panel' + (collapsed ? ' collapsed' : '') + '" data-section="' + sec.id + '">' +
+      '<div class="section-panel-header" onclick="toggleSectionPanel(\'' + sec.id + '\')">' +
+        '<div class="section-panel-title">' +
+          '<h3>' + sec.label + '</h3>' +
+          '<span class="section-panel-count">' + items.length + '</span>' +
+          '<span class="section-panel-desc">' + sec.description + '</span>' +
         '</div>' +
-        '<div class="gallery-card-actions">' +
-          '<button class="btn-icon" onclick="moveImage(\'' + id + '\', \'up\')" title="Move up"' + (isFirst ? ' disabled' : '') + '>\u2191</button>' +
-          '<button class="btn-icon" onclick="moveImage(\'' + id + '\', \'down\')" title="Move down"' + (isLast ? ' disabled' : '') + '>\u2193</button>' +
-          '<button class="visibility-toggle' + (img.visible !== false ? '' : ' hidden') + '" onclick="toggleImageVisibility(\'' + id + '\')" title="Toggle visibility">' +
-            (img.visible !== false ? '\u{1F441}' : '\u{1F6AB}') +
-          '</button>' +
-          '<button class="btn-icon" onclick="openImageModal(\'' + id + '\')" title="Edit">\u270E</button>' +
-          '<button class="btn-icon danger" onclick="confirmDeleteImage(\'' + id + '\')" title="Delete">\u2716</button>' +
+        '<div class="section-panel-actions">' +
+          '<button class="btn btn-primary" onclick="event.stopPropagation();openImageModal(null, \'' + sec.id + '\')" style="font-size:0.8rem;padding:4px 12px;">+ Add</button>' +
+          '<span class="section-panel-toggle">\u25BC</span>' +
         '</div>' +
       '</div>' +
-    '</div>';
+      '<div class="section-panel-body">';
+
+    if (items.length === 0) {
+      html += '<div class="empty-state" style="padding:20px;"><p>No ' + sec.label.toLowerCase() + ' images yet.</p></div>';
+    } else {
+      html += '<div class="gallery-grid">';
+      items.forEach(function(entry, idx) {
+        var id = entry[0];
+        var img = entry[1];
+        var isFirst = idx === 0;
+        var isLast = idx === items.length - 1;
+
+        html += '<div class="gallery-card">' +
+          '<img class="gallery-card-img" src="' + esc(img.url) + '" alt="' + esc(img.alt) + '" onerror="this.style.display=\'none\'">' +
+          '<div class="gallery-card-body">' +
+            '<div class="gallery-card-caption">' + esc(img.caption || img.alt || img.productName || '') + '</div>' +
+            '<div class="gallery-card-meta">';
+
+        // Show relevant metadata per section
+        if (sec.id === 'shop' && img.productName) {
+          html += '<span class="category-badge">' + esc(img.category || '') + '</span>';
+        } else if (sec.id === 'gallery') {
+          html += '<span class="category-badge">' + esc(img.category || 'other') + '</span>';
+        } else if (sec.id === 'hero' && img.videoUrl) {
+          html += '<span class="category-badge" style="font-size:0.68rem;">video + poster</span>';
+        }
+
+        html += '<span class="order-num">#' + (img.order || 0) + '</span>' +
+            '</div>' +
+            '<div class="gallery-card-actions">';
+
+        // Only show reorder for sections with multiple items
+        if (items.length > 1) {
+          html += '<button class="btn-icon" onclick="moveImage(\'' + id + '\', \'up\')" title="Move up"' + (isFirst ? ' disabled' : '') + '>\u2191</button>' +
+            '<button class="btn-icon" onclick="moveImage(\'' + id + '\', \'down\')" title="Move down"' + (isLast ? ' disabled' : '') + '>\u2193</button>';
+        }
+
+        html += '<button class="visibility-toggle' + (img.visible !== false ? '' : ' hidden') + '" onclick="toggleImageVisibility(\'' + id + '\')" title="Toggle visibility">' +
+              (img.visible !== false ? '\u{1F441}' : '\u{1F6AB}') +
+            '</button>' +
+            '<button class="btn-icon" onclick="openImageModal(\'' + id + '\')" title="Edit">\u270E</button>' +
+            '<button class="btn-icon danger" onclick="confirmDeleteImage(\'' + id + '\')" title="Delete">\u2716</button>' +
+          '</div>' +
+        '</div>' +
+        '</div>';
+      });
+      html += '</div>';
+    }
+
+    html += '</div></div>';
   });
-  grid.innerHTML = html;
+
+  container.innerHTML = html;
+}
+
+function toggleSectionPanel(sectionId) {
+  var panel = document.querySelector('[data-section="' + sectionId + '"]');
+  if (panel) panel.classList.toggle('collapsed');
 }
 
 // ============================================================
@@ -1593,10 +1743,11 @@ async function deleteEvent(eventId) {
 // ============================================================
 // Image Modal (Add / Edit)
 // ============================================================
-function openImageModal(imageId) {
+function openImageModal(imageId, defaultSection) {
   var isEdit = !!imageId;
   var img = isEdit ? gallery[imageId] : {};
   var title = isEdit ? 'Edit Image' : 'Add Image';
+  var section = isEdit ? (img.section || 'gallery') : (defaultSection || 'gallery');
   // Default: upload mode for new, URL mode for edit
   var defaultUpload = !isEdit;
 
@@ -1605,10 +1756,19 @@ function openImageModal(imageId) {
   pendingBase64 = null;
   pendingFilename = null;
 
+  var sectionOptions = SECTIONS.map(function(s) {
+    var selected = (s.id === section) ? ' selected' : '';
+    return '<option value="' + s.id + '"' + selected + '>' + s.label + ' \u2014 ' + s.description + '</option>';
+  }).join('');
+
   var categoryOptions = CATEGORIES.map(function(cat) {
     var selected = (img.category === cat) ? ' selected' : '';
     return '<option value="' + cat + '"' + selected + '>' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</option>';
   }).join('');
+
+  var showCategory = (section === 'gallery' || section === 'shop');
+  var showVideoUrl = (section === 'hero');
+  var showProductFields = (section === 'shop');
 
   var html = '' +
     '<div class="modal-header">' +
@@ -1616,6 +1776,11 @@ function openImageModal(imageId) {
       '<button class="modal-close" onclick="closeModal()">&times;</button>' +
     '</div>' +
     '<div class="modal-body">' +
+      // Section selector
+      '<div class="form-group">' +
+        '<label for="imgSection">Section</label>' +
+        '<select id="imgSection" onchange="onSectionChange()">' + sectionOptions + '</select>' +
+      '</div>' +
       // Image source toggle
       '<div class="form-group">' +
         '<label>Image Source</label>' +
@@ -1655,6 +1820,12 @@ function openImageModal(imageId) {
           '<div id="imgProgressStatus" style="font-size:0.8rem;color:var(--warm-gray);margin-top:4px;"></div>' +
         '</div>' +
       '</div>' +
+      // Hero: video URL
+      '<div class="form-group" id="imgVideoUrlGroup"' + (!showVideoUrl ? ' style="display:none;"' : '') + '>' +
+        '<label for="imgVideoUrl">Video URL</label>' +
+        '<input type="text" id="imgVideoUrl" value="' + esc(img.videoUrl || '') + '" placeholder="https://...video.mp4">' +
+        '<p style="font-size:0.8rem;color:var(--warm-gray);margin-top:4px;">Looping background video for the hero section</p>' +
+      '</div>' +
       '<div class="form-group">' +
         '<label for="imgAlt">Alt Text *</label>' +
         '<input type="text" id="imgAlt" value="' + esc(img.alt || '') + '" placeholder="Describe the image">' +
@@ -1663,9 +1834,21 @@ function openImageModal(imageId) {
         '<label for="imgCaption">Caption</label>' +
         '<input type="text" id="imgCaption" value="' + esc(img.caption || '') + '">' +
       '</div>' +
-      '<div class="form-group">' +
+      // Category (gallery + shop)
+      '<div class="form-group" id="imgCategoryGroup"' + (!showCategory ? ' style="display:none;"' : '') + '>' +
         '<label for="imgCategory">Category</label>' +
         '<select id="imgCategory">' + categoryOptions + '</select>' +
+      '</div>' +
+      // Shop: product fields
+      '<div id="imgProductFields"' + (!showProductFields ? ' style="display:none;"' : '') + '>' +
+        '<div class="form-group">' +
+          '<label for="imgProductName">Product Name</label>' +
+          '<input type="text" id="imgProductName" value="' + esc(img.productName || '') + '" placeholder="e.g. Octopus Figurine">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label for="imgProductLink">Product Link</label>' +
+          '<input type="text" id="imgProductLink" value="' + esc(img.productLink || '') + '" placeholder="https://www.etsy.com/...">' +
+        '</div>' +
       '</div>' +
       '<div class="form-group">' +
         '<div class="form-check">' +
@@ -1705,12 +1888,21 @@ function openImageModal(imageId) {
         }
       });
     }
-    // Focus alt text if editing, otherwise leave on drop zone
     if (isEdit) {
       var el = document.getElementById('imgAlt');
       if (el) el.focus();
     }
   }, 100);
+}
+
+function onSectionChange() {
+  var sec = document.getElementById('imgSection').value;
+  var videoGroup = document.getElementById('imgVideoUrlGroup');
+  var categoryGroup = document.getElementById('imgCategoryGroup');
+  var productFields = document.getElementById('imgProductFields');
+  videoGroup.style.display = sec === 'hero' ? '' : 'none';
+  categoryGroup.style.display = (sec === 'gallery' || sec === 'shop') ? '' : 'none';
+  productFields.style.display = sec === 'shop' ? '' : 'none';
 }
 
 function setImageMode(mode) {
@@ -1779,15 +1971,16 @@ function previewImageUrl() {
   container.innerHTML = '<img src="' + esc(url) + '" onerror="this.parentNode.innerHTML=\'<span class=error-msg>Invalid image URL</span>\'">';
 }
 
-function getNextOrder() {
+function getNextOrder(section) {
   var maxOrder = 0;
   Object.values(gallery).forEach(function(img) {
-    if ((img.order || 0) > maxOrder) maxOrder = img.order;
+    if ((img.section || 'gallery') === section && (img.order || 0) > maxOrder) maxOrder = img.order;
   });
   return maxOrder + 1;
 }
 
 async function saveImage(imageId) {
+  var section = document.getElementById('imgSection').value;
   var alt = document.getElementById('imgAlt').value.trim();
   var caption = document.getElementById('imgCaption').value.trim();
   var category = document.getElementById('imgCategory').value;
@@ -1801,8 +1994,8 @@ async function saveImage(imageId) {
   var url;
 
   // Determine image source mode
-  var uploadSection = document.getElementById('imgUploadSection');
-  var isUploadMode = uploadSection && uploadSection.style.display !== 'none';
+  var uploadSectionEl = document.getElementById('imgUploadSection');
+  var isUploadMode = uploadSectionEl && uploadSectionEl.style.display !== 'none';
 
   if (isUploadMode && pendingBase64) {
     // Upload mode — push to GitHub first
@@ -1831,7 +2024,7 @@ async function saveImage(imageId) {
       await uploadImageToGitHub(
         pendingFilename,
         pendingBase64,
-        'Add gallery image: ' + (caption || alt)
+        'Add ' + section + ' image: ' + (caption || alt)
       );
 
       progressBar.style.width = '80%';
@@ -1867,17 +2060,32 @@ async function saveImage(imageId) {
     url: url,
     alt: alt,
     caption: caption,
-    category: category,
+    section: section,
+    category: (section === 'gallery' || section === 'shop') ? category : '',
     visible: visible,
     updatedAt: firebase.database.ServerValue.TIMESTAMP
   };
+
+  // Hero: video URL
+  if (section === 'hero') {
+    var videoUrl = document.getElementById('imgVideoUrl').value.trim();
+    if (videoUrl) data.videoUrl = videoUrl;
+  }
+
+  // Shop: product fields
+  if (section === 'shop') {
+    var productName = document.getElementById('imgProductName').value.trim();
+    var productLink = document.getElementById('imgProductLink').value.trim();
+    if (productName) data.productName = productName;
+    if (productLink) data.productLink = productLink;
+  }
 
   try {
     if (imageId) {
       await db.ref(GALLERY_PATH + '/' + imageId).update(data);
       showToast('Image updated.');
     } else {
-      data.order = getNextOrder();
+      data.order = getNextOrder(section);
       data.createdAt = firebase.database.ServerValue.TIMESTAMP;
       await db.ref(GALLERY_PATH).push(data);
       showToast('Image added.');
@@ -1913,7 +2121,14 @@ async function toggleImageVisibility(imageId) {
 }
 
 async function moveImage(imageId, direction) {
-  var entries = Object.entries(gallery);
+  var img = gallery[imageId];
+  if (!img) return;
+  var section = img.section || 'gallery';
+
+  // Filter to same section, then sort by order
+  var entries = Object.entries(gallery).filter(function(e) {
+    return (e[1].section || 'gallery') === section;
+  });
   entries.sort(function(a, b) {
     return (a[1].order || 0) - (b[1].order || 0);
   });

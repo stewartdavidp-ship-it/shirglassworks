@@ -1476,19 +1476,49 @@
     return d.getDate().toString();
   }
 
-  // ---- GALLERY ----
+  // ---- IMAGES (all sections from one query) ----
   db.ref('shirglassworks/public/gallery').orderByChild('order').once('value').then(function(snap) {
     const data = snap.val();
     if (!data) return; // keep hardcoded fallback
-    const items = Object.values(data).filter(function(i) { return i.visible !== false; });
-    items.sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
-    if (items.length === 0) return;
+    const allItems = Object.values(data).filter(function(i) { return i.visible !== false; });
+
+    // Hero: update video + poster
+    var heroItems = allItems.filter(function(i) { return i.section === 'hero'; });
+    if (heroItems.length > 0) {
+      var hero = heroItems[0];
+      var video = document.getElementById('heroVideo');
+      var poster = document.getElementById('heroPoster');
+      if (video && hero.videoUrl) {
+        video.querySelector('source').src = hero.videoUrl;
+        video.poster = hero.url;
+        video.load();
+      }
+      if (poster && hero.url) {
+        poster.style.backgroundImage = "url('" + hero.url + "')";
+      }
+    }
+
+    // About preview: update image
+    var aboutItems = allItems.filter(function(i) { return i.section === 'about'; });
+    aboutItems.sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
+    if (aboutItems.length > 0) {
+      var aboutImg = document.querySelector('.about-image img');
+      if (aboutImg) {
+        aboutImg.src = aboutItems[0].url;
+        aboutImg.alt = aboutItems[0].alt || '';
+      }
+    }
+
+    // Gallery grid: filter to gallery section only
+    var galleryItems = allItems.filter(function(i) { return i.section === 'gallery' || !i.section; });
+    galleryItems.sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
+    if (galleryItems.length === 0) return;
 
     const grid = document.querySelector('.gallery-grid');
     if (!grid) return;
 
     var html = '';
-    items.forEach(function(item, idx) {
+    galleryItems.forEach(function(item, idx) {
       var cls = 'gallery-item fade-up';
       if (idx === 0) cls += ' featured';
       html += '<div class="' + cls + '" style="opacity:1;transform:translateY(0)">';

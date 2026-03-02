@@ -705,6 +705,46 @@
   </div>
 </footer>
 
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+  // Firebase — load shop products dynamically
+  (function() {
+    var app = firebase.initializeApp({
+      apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
+      databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
+      projectId: "word-boxing"
+    }, 'public-shop');
+    var db = app.database();
+
+    db.ref('shirglassworks/public/gallery').orderByChild('order').once('value').then(function(snap) {
+      var data = snap.val();
+      if (!data) return;
+      var shopItems = Object.values(data)
+        .filter(function(i) { return i.section === 'shop' && i.visible !== false; })
+        .sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
+      if (shopItems.length === 0) return;
+
+      var grid = document.querySelector('.product-grid');
+      if (!grid) return;
+
+      var html = '';
+      shopItems.forEach(function(item) {
+        var catLabel = (item.category || '').charAt(0).toUpperCase() + (item.category || '').slice(1);
+        var name = item.productName || item.caption || item.alt || '';
+        var link = item.productLink || 'https://www.etsy.com/shop/ShirGlassworks';
+        html += '<div class="product-card fade-up" style="opacity:1;transform:translateY(0)">' +
+          '<div class="product-image"><img src="' + item.url + '" alt="' + (item.alt || '') + '" /></div>' +
+          '<div class="product-info">' +
+            '<span class="product-category">' + catLabel + '</span>' +
+            '<h3>' + name + '</h3>' +
+            '<a href="' + link + '" class="product-link" target="_blank" rel="noopener">View on Etsy</a>' +
+          '</div></div>';
+      });
+      grid.innerHTML = html;
+    }).catch(function() { /* keep hardcoded fallback */ });
+  })();
+</script>
 <script>
   // Nav scroll effect
   const nav = document.getElementById('mainNav');
