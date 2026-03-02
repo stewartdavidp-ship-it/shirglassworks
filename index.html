@@ -167,8 +167,7 @@
     position: absolute;
     inset: 0;
     z-index: 1;
-    background:
-      url('https://www.shirglassworks.com/uploads/3/7/0/8/37080241/background-images/1126466848.jpg') center/cover no-repeat;
+    background: #0a0a0a center/cover no-repeat;
     transition: opacity 1s ease;
   }
 
@@ -1095,8 +1094,7 @@
     For production, host the video or use their own file.
   -->
   <div class="hero-video-wrap">
-    <video autoplay muted loop playsinline id="heroVideo"
-           poster="https://www.shirglassworks.com/uploads/3/7/0/8/37080241/background-images/1126466848.jpg">
+    <video autoplay muted loop playsinline id="heroVideo">
       <!-- PLACEHOLDER VIDEO: Replace with Shir Glassworks own glassblowing footage for production -->
       <source src="https://assets.mixkit.co/videos/20977/20977-720.mp4" type="video/mp4">
     </video>
@@ -1403,6 +1401,18 @@
   if (video) {
     video.addEventListener('playing', () => {
       if (poster) poster.classList.add('loaded');
+    });
+
+    // Resume video when returning to page (back button, tab switch)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && video.paused) {
+        video.play().catch(() => {});
+      }
+    });
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted && video.paused) {
+        video.play().catch(() => {});
+      }
     });
   }
 
