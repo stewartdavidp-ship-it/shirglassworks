@@ -361,9 +361,20 @@
   /* ========= PAGE HEADER ========= */
   .page-header {
     background: var(--charcoal);
+    background-size: cover;
+    background-position: center;
     padding: 10rem 3rem 5rem;
     text-align: center;
+    position: relative;
   }
+  .page-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(26,26,26,0.7);
+    z-index: 0;
+  }
+  .page-header > * { position: relative; z-index: 1; }
 
   .page-header .section-label { color: var(--amber-light); }
   .page-header .section-title { color: #fff; font-size: clamp(2.5rem, 5vw, 3.8rem); }
@@ -755,6 +766,18 @@
     return d.getDate().toString();
   }
 
+  // Load schedule background image
+  db.ref('shirglassworks/public/gallery').orderByChild('section').equalTo('schedule').once('value').then(function(snap) {
+    var data = snap.val();
+    if (!data) return;
+    var items = Object.values(data).filter(function(i) { return i.visible !== false && i.url; });
+    if (items.length > 0) {
+      var header = document.querySelector('.page-header');
+      if (header) header.style.backgroundImage = "url('" + items[0].url + "')";
+    }
+  }).catch(function() {});
+
+  // Load events
   db.ref('shirglassworks/public/events').orderByChild('date').once('value').then(function(snap) {
     const data = snap.val();
     if (!data) return;

@@ -1529,15 +1529,17 @@
     grid.innerHTML = html;
   }).catch(function() { /* keep hardcoded fallback */ });
 
-  // ---- EVENTS (next 3 upcoming) ----
-  db.ref('shirglassworks/public/events').orderByChild('date').once('value').then(function(snap) {
-    const data = snap.val();
-    if (!data) return;
-    const today = new Date().toISOString().split('T')[0];
-    const events = Object.values(data)
-      .filter(function(e) { return e.visible !== false && e.date >= today; })
-      .sort(function(a, b) { return a.date.localeCompare(b.date); })
-      .slice(0, 3);
+  // ---- EVENTS (configurable count, default 3) ----
+  db.ref('shirglassworks/public/settings/homepageEventsCount').once('value').then(function(countSnap) {
+    var eventsCount = countSnap.val() || 3;
+    return db.ref('shirglassworks/public/events').orderByChild('date').once('value').then(function(snap) {
+      var data = snap.val();
+      if (!data) return;
+      var today = new Date().toISOString().split('T')[0];
+      var events = Object.values(data)
+        .filter(function(e) { return e.visible !== false && e.date >= today; })
+        .sort(function(a, b) { return a.date.localeCompare(b.date); })
+        .slice(0, eventsCount);
     if (events.length === 0) return;
 
     const list = document.querySelector('.events-list');
@@ -1560,6 +1562,7 @@
       html += '</div>';
     });
     list.innerHTML = html;
+    });
   }).catch(function() { /* keep hardcoded fallback */ });
 })();
 </script>
