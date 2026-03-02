@@ -1587,15 +1587,21 @@
   var d = now.getFullYear() + '-' +
     String(now.getMonth() + 1).padStart(2, '0') + '-' +
     String(now.getDate()).padStart(2, '0');
+  var visitorIp = '';
 
   function track(type, action) {
     var hit = { t: type, p: page, ts: Date.now(), d: d };
     if (action) hit.a = action;
+    if (visitorIp) hit.ip = visitorIp;
     db.ref(HITS).push(hit).catch(function() {});
   }
 
-  // Page view
-  setTimeout(function() { track('pv'); }, 100);
+  // Fetch visitor IP then fire page view
+  fetch('https://api.ipify.org?format=json').then(function(r) { return r.json(); }).then(function(data) {
+    visitorIp = data.ip || '';
+  }).catch(function() {}).finally(function() {
+    track('pv');
+  });
 
   // Click tracking via event delegation
   document.addEventListener('click', function(e) {

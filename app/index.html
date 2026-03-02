@@ -1037,6 +1037,38 @@
       color: var(--warm-gray-light);
       font-style: italic;
     }
+    .analytics-visitors-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .analytics-visitors-table th {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 2px solid #e0e0e0;
+      font-weight: 600;
+      color: var(--charcoal);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .analytics-visitors-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f0f0f0;
+      color: var(--charcoal);
+    }
+    .analytics-visitors-table code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.82rem;
+    }
+    .analytics-ip {
+      font-size: 0.75rem;
+      color: #999;
+      margin-left: 6px;
+      font-family: monospace;
+    }
 
     /* Analytics dark mode */
     body.dark-mode .stat-card { background: #2a2a2a; }
@@ -1053,6 +1085,10 @@
     body.dark-mode .analytics-feed-page { color: #ccc; }
     body.dark-mode .analytics-feed-action { color: #888; }
     body.dark-mode .analytics-empty { color: #666; }
+    body.dark-mode .analytics-visitors-table th { color: #ccc; border-bottom-color: #444; }
+    body.dark-mode .analytics-visitors-table td { color: #bbb; border-bottom-color: #333; }
+    body.dark-mode .analytics-visitors-table code { background: #333; color: #ddd; }
+    body.dark-mode .analytics-ip { color: #666; }
   </style>
 </head>
 <body>
@@ -1161,6 +1197,12 @@
           <h3 class="analytics-section-title">Top Interactions</h3>
           <div id="analyticsInteractions"></div>
         </div>
+      </div>
+
+      <!-- Visitors -->
+      <div style="margin-top:24px;">
+        <h3 class="analytics-section-title">Visitors</h3>
+        <div id="analyticsVisitors"></div>
       </div>
 
       <!-- Recent Activity -->
@@ -1882,9 +1924,15 @@ async function loadAnalytics() {
     var rangeEV = rangeHits.filter(function(h) { return h.t === 'ev'; }).length;
     var totalHits = hits.length;
 
-    renderAnalyticsSummary(todayPV, rangePV, rangeEV, totalHits, rangeDays);
+    // Unique visitors by IP
+    var rangeIPs = {};
+    rangeHits.forEach(function(h) { if (h.ip) rangeIPs[h.ip] = true; });
+    var uniqueVisitors = Object.keys(rangeIPs).length;
+
+    renderAnalyticsSummary(todayPV, rangePV, rangeEV, totalHits, rangeDays, uniqueVisitors);
     renderAnalyticsPages(rangeHits);
     renderAnalyticsInteractions(rangeHits);
+    renderAnalyticsVisitors(rangeHits);
     renderAnalyticsRecent(hits.slice(0, 30));
   } catch (err) {
     showToast('Error loading analytics: ' + err.message, true);
@@ -1893,11 +1941,12 @@ async function loadAnalytics() {
   }
 }
 
-function renderAnalyticsSummary(todayPV, rangePV, rangeEV, total, days) {
+function renderAnalyticsSummary(todayPV, rangePV, rangeEV, total, days, uniqueVisitors) {
   var html = '' +
     '<div class="stat-card"><div class="stat-card-value">' + todayPV + '</div><div class="stat-card-label">Today</div></div>' +
     '<div class="stat-card"><div class="stat-card-value">' + rangePV + '</div><div class="stat-card-label">Views (' + days + 'd)</div></div>' +
     '<div class="stat-card"><div class="stat-card-value">' + rangeEV + '</div><div class="stat-card-label">Clicks (' + days + 'd)</div></div>' +
+    '<div class="stat-card"><div class="stat-card-value">' + uniqueVisitors + '</div><div class="stat-card-label">Visitors (' + days + 'd)</div></div>' +
     '<div class="stat-card"><div class="stat-card-value">' + total + '</div><div class="stat-card-label">All Time</div></div>';
   document.getElementById('analyticsSummary').innerHTML = html;
 }
@@ -1952,6 +2001,41 @@ function renderAnalyticsInteractions(hits) {
   document.getElementById('analyticsInteractions').innerHTML = html;
 }
 
+function renderAnalyticsVisitors(hits) {
+  var visitors = {};
+  hits.forEach(function(h) {
+    if (!h.ip) return;
+    if (!visitors[h.ip]) visitors[h.ip] = { views: 0, clicks: 0, pages: {}, lastSeen: 0 };
+    var v = visitors[h.ip];
+    if (h.t === 'pv') v.views++;
+    if (h.t === 'ev') v.clicks++;
+    v.pages[h.p] = true;
+    if (h.ts > v.lastSeen) v.lastSeen = h.ts;
+  });
+  var sorted = Object.entries(visitors).sort(function(a, b) { return b[1].lastSeen - a[1].lastSeen; });
+  var html = '';
+  if (sorted.length === 0) {
+    html = '<div class="analytics-empty">No visitor IPs recorded yet. New hits will include IPs.</div>';
+  } else {
+    html = '<table class="analytics-visitors-table"><thead><tr>' +
+      '<th>IP Address</th><th>Views</th><th>Clicks</th><th>Pages</th><th>Last Seen</th>' +
+      '</tr></thead><tbody>';
+    sorted.forEach(function(entry) {
+      var ip = entry[0], v = entry[1];
+      var pages = Object.keys(v.pages).map(function(p) { return PAGE_LABELS[p] || p; }).join(', ');
+      html += '<tr>' +
+        '<td><code>' + esc(ip) + '</code></td>' +
+        '<td>' + v.views + '</td>' +
+        '<td>' + v.clicks + '</td>' +
+        '<td>' + esc(pages) + '</td>' +
+        '<td>' + formatTimeAgo(v.lastSeen) + '</td>' +
+        '</tr>';
+    });
+    html += '</tbody></table>';
+  }
+  document.getElementById('analyticsVisitors').innerHTML = html;
+}
+
 function renderAnalyticsRecent(hits) {
   var html = '';
   if (hits.length === 0) {
@@ -1963,12 +2047,13 @@ function renderAnalyticsRecent(hits) {
       var pageLabel = PAGE_LABELS[h.p] || h.p;
       var desc = h.t === 'pv' ? 'Page view' : (ACTION_LABELS[h.a] || h.a || 'Click');
       var time = formatTimeAgo(h.ts);
+      var ipStr = h.ip ? ' <span class="analytics-ip">' + esc(h.ip) + '</span>' : '';
 
       html += '<div class="analytics-feed-item">' +
         '<div class="analytics-feed-icon ' + icon + '">' + iconText + '</div>' +
         '<div class="analytics-feed-time">' + time + '</div>' +
         '<div class="analytics-feed-page">' + esc(pageLabel) + '</div>' +
-        '<div class="analytics-feed-action">' + esc(desc) + '</div>' +
+        '<div class="analytics-feed-action">' + esc(desc) + ipStr + '</div>' +
         '</div>';
     });
   }
