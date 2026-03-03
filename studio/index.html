@@ -288,7 +288,7 @@
   <!-- Menu Screen -->
   <div class="screen" id="menuScreen">
     <div class="menu-header">
-      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v10</span></h1>
+      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v11</span></h1>
       <img class="menu-avatar" id="userAvatar" src="" alt="" onclick="signOut()">
     </div>
     <div class="menu-grid">
@@ -306,6 +306,11 @@
         <div class="card-icon">&#128202;</div>
         <h2>Results</h2>
         <p>View recognition accuracy and comparison history</p>
+      </div>
+      <div class="menu-card" onclick="scanCatalog()">
+        <div class="card-icon">&#128270;</div>
+        <h2>Scan Catalog</h2>
+        <p id="scanStatus">Generate visual descriptions from product thumbnails (one-time)</p>
       </div>
     </div>
   </div>
@@ -438,6 +443,7 @@ var PRODUCTS_PATH = 'shirglassworks/public/products';
 var TRAINING_IMAGES_PATH = 'shirglassworks/admin/training-images';
 var CLASSIFY_FUNCTION_URL = 'https://us-central1-word-boxing.cloudfunctions.net/shirClassifyImage';
 var UPLOAD_FUNCTION_URL = 'https://us-central1-word-boxing.cloudfunctions.net/shirUploadTrainingImage';
+var SCAN_FUNCTION_URL = 'https://us-central1-word-boxing.cloudfunctions.net/shirScanCatalog';
 
 // ============================================================
 // State
@@ -541,6 +547,39 @@ function updateTrainingCountDisplay() {
   }
   var c = trainingCounts[selectedProductId] || 0;
   el.textContent = c + ' photo' + (c !== 1 ? 's' : '') + ' captured';
+}
+
+function scanCatalog() {
+  if (!currentUser) { showToast('Sign in first', true); return; }
+  var statusEl = document.getElementById('scanStatus');
+  statusEl.textContent = 'Scanning product thumbnails...';
+
+  var catalog = Object.keys(products).map(function(pid) {
+    var p = products[pid];
+    var entry = { id: pid, name: p.name, categories: p.categories || [] };
+    if (p.images && p.images.length) entry.imageUrl = p.images[0];
+    return entry;
+  });
+
+  currentUser.getIdToken().then(function(token) {
+    return fetch(SCAN_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ catalog: catalog })
+    });
+  }).then(function(res) {
+    if (!res.ok) return res.json().then(function(e) { throw new Error(e.error); });
+    return res.json();
+  }).then(function(data) {
+    statusEl.textContent = 'Done! ' + data.count + ' products described';
+    showToast('Catalog scanned: ' + data.count + ' descriptions saved');
+  }).catch(function(err) {
+    statusEl.textContent = 'Error: ' + err.message;
+    showToast('Scan failed: ' + err.message, true);
+  });
 }
 
 // ============================================================
@@ -872,12 +911,10 @@ function runClaudeVision(blob) {
     reader.onload = function() {
       var base64 = reader.result.split(',')[1];
 
-      // Build product catalog context with thumbnail URLs
+      // Build product catalog context
       var catalog = Object.keys(products).map(function(pid) {
         var p = products[pid];
-        var entry = { id: pid, name: p.name, categories: p.categories || [] };
-        if (p.images && p.images.length) entry.imageUrl = p.images[0];
-        return entry;
+        return { id: pid, name: p.name, categories: p.categories || [] };
       });
 
       currentUser.getIdToken().then(function(token) {
