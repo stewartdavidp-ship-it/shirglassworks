@@ -288,7 +288,7 @@
   <!-- Menu Screen -->
   <div class="screen" id="menuScreen">
     <div class="menu-header">
-      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v5</span></h1>
+      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v6</span></h1>
       <img class="menu-avatar" id="userAvatar" src="" alt="" onclick="signOut()">
     </div>
     <div class="menu-grid">
@@ -671,11 +671,14 @@ function handleTrainingCapture(blob) {
 
   compressImage(blob).then(function(compressed) {
     console.log('[Studio] Compressed:', compressed.size, 'bytes');
+    console.log('[Studio] Auth state:', currentUser ? currentUser.uid : 'NOT SIGNED IN');
+    console.log('[Studio] Storage bucket:', storage.app.options.storageBucket);
     document.getElementById('uploadStatus').textContent = 'Uploading (' + Math.round(compressed.size/1024) + 'KB)...';
     var imageId = db.ref().push().key;
     var storagePath = 'shirglassworks/builds/training-' + selectedProductId + '/' + imageId + '.jpg';
     console.log('[Studio] Uploading to:', storagePath);
     var storageRef = storage.ref(storagePath);
+    var metadata = { contentType: 'image/jpeg' };
 
     // Use promise-based upload with timeout
     var uploadTimeout = setTimeout(function() {
@@ -685,7 +688,8 @@ function handleTrainingCapture(blob) {
       showToast('Upload timed out — check connection & auth', true);
     }, 30000);
 
-    storageRef.put(compressed).then(function(snapshot) {
+    console.log('[Studio] Calling put()...');
+    storageRef.put(compressed, metadata).then(function(snapshot) {
       clearTimeout(uploadTimeout);
       console.log('[Studio] Upload complete, getting URL...');
       document.getElementById('uploadProgress').style.width = '100%';
