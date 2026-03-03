@@ -6020,6 +6020,12 @@ function renderProductionJobs() {
     '</div>';
   });
   listEl.innerHTML = html;
+  console.log('[PROD DEBUG] RENDER COMPLETE. Cards in DOM:', listEl.children.length,
+    '| jobsView.display:', document.getElementById('productionJobsView').style.display,
+    '| queueView.display:', document.getElementById('productionQueueView').style.display,
+    '| detailView.display:', document.getElementById('productionJobDetail').style.display,
+    '| buildView.display:', document.getElementById('productionBuildView').style.display,
+    '| productionTab.display:', document.getElementById('productionTab').style.display);
 }
 
 function getJobProgress(job) {
