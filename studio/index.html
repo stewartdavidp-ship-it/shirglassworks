@@ -288,7 +288,7 @@
   <!-- Menu Screen -->
   <div class="screen" id="menuScreen">
     <div class="menu-header">
-      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v11</span></h1>
+      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v12</span></h1>
       <img class="menu-avatar" id="userAvatar" src="" alt="" onclick="signOut()">
     </div>
     <div class="menu-grid">
@@ -552,7 +552,11 @@ function updateTrainingCountDisplay() {
 function scanCatalog() {
   if (!currentUser) { showToast('Sign in first', true); return; }
   var statusEl = document.getElementById('scanStatus');
-  statusEl.textContent = 'Scanning product thumbnails...';
+  var numProducts = Object.keys(products).filter(function(pid) {
+    return products[pid].images && products[pid].images.length;
+  }).length;
+  var batches = Math.ceil(numProducts / 5);
+  statusEl.textContent = 'Scanning ' + numProducts + ' products in ' + batches + ' batches (~2 min)...';
 
   var catalog = Object.keys(products).map(function(pid) {
     var p = products[pid];
@@ -561,22 +565,34 @@ function scanCatalog() {
     return entry;
   });
 
+  // Countdown timer
+  var elapsed = 0;
+  var timer = setInterval(function() {
+    elapsed++;
+    statusEl.textContent = 'Scanning... ' + elapsed + 's elapsed (~2 min total)';
+  }, 1000);
+
   currentUser.getIdToken().then(function(token) {
+    var controller = new AbortController();
+    var timeout = setTimeout(function() { controller.abort(); }, 300000); // 5 min timeout
     return fetch(SCAN_FUNCTION_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + token
       },
-      body: JSON.stringify({ catalog: catalog })
-    });
+      body: JSON.stringify({ catalog: catalog }),
+      signal: controller.signal
+    }).finally(function() { clearTimeout(timeout); });
   }).then(function(res) {
     if (!res.ok) return res.json().then(function(e) { throw new Error(e.error); });
     return res.json();
   }).then(function(data) {
+    clearInterval(timer);
     statusEl.textContent = 'Done! ' + data.count + ' products described';
     showToast('Catalog scanned: ' + data.count + ' descriptions saved');
   }).catch(function(err) {
+    clearInterval(timer);
     statusEl.textContent = 'Error: ' + err.message;
     showToast('Scan failed: ' + err.message, true);
   });
