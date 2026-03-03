@@ -7014,10 +7014,11 @@ async function doEditJob(jobId) {
 function openAddLineItemModal(jobId) {
   // Build product picker from existing products
   var productOptions = '<option value="">-- Freeform (type below) --</option>';
-  if (typeof products === 'object' && products) {
-    Object.keys(products).forEach(function(pid) {
-      var p = products[pid];
-      productOptions += '<option value="' + esc(pid) + '">' + esc(p.name || pid) + '</option>';
+  if (productsData && productsData.length) {
+    productsData.forEach(function(p) {
+      if (p.pid) {
+        productOptions += '<option value="' + esc(p.pid) + '">' + esc(p.name || p.pid) + '</option>';
+      }
     });
   }
   var html = '<div style="max-width:400px;">' +
@@ -7037,8 +7038,9 @@ function openAddLineItemModal(jobId) {
 function onLineItemProductSelect() {
   var picker = document.getElementById('liProductPicker');
   var nameInput = document.getElementById('liProductName');
-  if (picker.value && typeof products === 'object' && products[picker.value]) {
-    nameInput.value = products[picker.value].name || '';
+  if (picker.value && productsData && productsData.length) {
+    var match = productsData.find(function(p) { return p.pid === picker.value; });
+    if (match) nameInput.value = match.name || '';
   }
 }
 

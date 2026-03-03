@@ -421,6 +421,51 @@ payment_failed → cancelled
 
 ---
 
+## E2E Simulation Findings (2026-03-03)
+
+Full end-to-end "day in the life" walkthrough covering: Production → Inventory → Orders → Fulfillment → Product Catalog → Public Shop.
+
+### Bugs Fixed
+
+| Bug | Severity | Fix |
+|-----|----------|-----|
+| Product picker in Add Line Item modal always empty | **Critical** | `openAddLineItemModal()` referenced undefined `products` variable instead of `productsData` array. Fixed to iterate `productsData.forEach()`. Also fixed `onLineItemProductSelect()` to use `productsData.find()`. Without this fix, all freeform line items get `productId: null`, which breaks `autoUpdateInventory()` (skips items without productId). |
+
+### Known Bugs (Not Yet Fixed)
+
+| Bug | Severity | Description |
+|-----|----------|-------------|
+| Variant-blind inventory check on order confirmation | **Critical** | `transitionOrder('confirmed')` only checks `stock._default.available`, not variant-specific stock. An order for an out-of-stock variant could show "in stock" if other variants have availability. |
+| Variant-blind inventory reservation | **Critical** | `reserveInventory()` only operates on `_default`. Variant-level available/reserved counts never updated by orders. |
+| Variant-blind `pullFromStock()` | **High** | Only decrements `_default.reserved`, never adjusts variant stock when shipping. |
+| Variant-blind `autoUpdateInventory()` | **High** | Always writes to `stock/_default/available`. Production output for varianted products never distributes to variant keys. |
+| `saveAdjustStock()` uses `set()` not transaction | **Medium** | Manual stock adjustment overwrites entire stock object. Concurrent `autoUpdateInventory()` transaction could be overwritten. |
+
+### Missing Features
+
+| Feature | Priority | Description |
+|---------|----------|-------------|
+| Product CRUD in admin | **Critical** | Cannot create, edit, or delete products. Only populated by one-time seed function. |
+| Shop/Products data disconnect | **Critical** | Public shop reads from `shirglassworks/public/gallery`, admin reads from `shirglassworks/public/products`. Completely separate data sets. Adding a product in admin doesn't make it appear on the website. |
+| Manual order creation | **High** | Admin cannot create orders — only Etsy sync or public shop checkout. No way to test order flow without external source. |
+| `inventory-event` automation | **Medium** | Event inventory jobs show "manual handling required" — no auto-push to inventory. |
+| No inventory audit trail | **Medium** | No history of stock changes beyond `inventoryPushed` flag on builds. |
+| No auto-assignment of production requests | **Medium** | Production requests sit in queue until manually assigned. |
+
+### Pipeline Verification
+
+| Pipeline | Status | Notes |
+|----------|--------|-------|
+| Job creation → line items → build → complete | ✅ Works | Full lifecycle tested live. Job auto-completes when targets met. |
+| Build completion → inventory auto-push | ❌ Broken (fixed) | Was broken because product picker bug caused null productId. Fixed locally, pending deploy. |
+| Build completion → completion summary | ✅ Works | Shows target met, duration, and pipeline status. |
+| Build completion → fulfillment auto-advance | ✅ Works (code trace) | Linked production requests auto-fulfill on build complete. |
+| Order confirm → reserve/build routing | ✅ Works (code trace) | In-stock items reserved, out-of-stock creates production requests. |
+| Production queue → assign → job creation | ✅ Works (code trace) | Both "new job" and "existing job" assignment paths functional. |
+| Shipping → pull from stock | ✅ Works (code trace) | Correctly decrements reserved (not available). |
+
+---
+
 ## Deferred / Future Work
 
 - **Studio Companion App:** Camera-first PWA for in-studio production management — QR scanning, photo recognition, contextual actions based on job state
