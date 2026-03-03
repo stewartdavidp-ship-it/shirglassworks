@@ -248,6 +248,29 @@ body {
   <div class="checkmark">&#10003;</div>
   <h2>Sale Recorded!</h2>
   <p id="successSummary"></p>
+  <div id="receiptSection" style="margin-top:16px;">
+    <button onclick="showReceiptForm()" style="background:none;border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">📧 Send Receipt?</button>
+    <div id="receiptForm" style="display:none;margin-top:16px;text-align:left;max-width:320px;margin-left:auto;margin-right:auto;">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:13px;color:var(--muted);display:block;margin-bottom:4px;">Email</label>
+        <input type="email" id="receiptEmail" placeholder="customer@email.com" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:'DM Sans',sans-serif;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:13px;color:var(--muted);display:block;margin-bottom:4px;">Phone (SMS)</label>
+        <input type="tel" id="receiptPhone" placeholder="+1 555-123-4567" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:'DM Sans',sans-serif;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--muted);">
+          <input type="checkbox" id="receiptOptIn" checked> OK to follow up with future offers
+        </label>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button id="sendReceiptBtn" onclick="sendReceipt()" style="flex:1;background:var(--primary);color:white;border:none;padding:10px;border-radius:6px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">Send</button>
+        <button onclick="skipReceipt()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:10px 16px;border-radius:6px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">Skip</button>
+      </div>
+      <div id="receiptStatus" style="margin-top:8px;font-size:13px;"></div>
+    </div>
+  </div>
   <button class="new-sale-btn" onclick="newSale()">New Sale</button>
 </div>
 
@@ -697,12 +720,28 @@ function saveSale() {
       return updateEventAllocations(saleItems);
     }
   }).then(function() {
+    // Store for receipt flow
+    lastSaleId = saleId;
+    lastSaleAmount = amountCents;
+    lastSaleItems = saleItems.slice();
+
     btn.disabled = false;
     btn.textContent = 'Complete Sale';
     var totalStr = '$' + (amountCents / 100).toFixed(2);
     var itemNames = saleItems.map(function(i) { return i.productName; }).join(', ');
     document.getElementById('successSummary').textContent = totalStr + ' ' + paymentType + ' — ' + itemNames;
+
+    // Reset receipt form for fresh state
+    document.getElementById('receiptForm').style.display = 'none';
+    document.getElementById('receiptEmail').value = '';
+    document.getElementById('receiptPhone').value = '';
+    document.getElementById('receiptOptIn').checked = true;
+    document.getElementById('receiptStatus').textContent = '';
+
     showScreen('successScreen');
+
+    // Auto-reconcile Square payment in background
+    autoReconcileSquare(saleId, now);
   }).catch(function(err) {
     btn.disabled = false;
     btn.textContent = 'Complete Sale';
@@ -810,6 +849,106 @@ function pickProduct(pid) {
 }
 
 // ============================================================
+// Receipt Flow
+// ============================================================
+
+var lastSaleId = null;
+var lastSaleAmount = 0;
+var lastSaleItems = [];
+
+function showReceiptForm() {
+  document.getElementById('receiptForm').style.display = '';
+  document.getElementById('receiptEmail').focus();
+}
+
+function skipReceipt() {
+  document.getElementById('receiptForm').style.display = 'none';
+}
+
+async function sendReceipt() {
+  var email = document.getElementById('receiptEmail').value.trim();
+  var phone = document.getElementById('receiptPhone').value.trim();
+  var optIn = document.getElementById('receiptOptIn').checked;
+
+  if (!email && !phone) { showToast('Enter email or phone', true); return; }
+
+  var btn = document.getElementById('sendReceiptBtn');
+  var statusEl = document.getElementById('receiptStatus');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  statusEl.textContent = '';
+
+  var token = authToken;
+  var base = 'https://us-central1-word-boxing.cloudfunctions.net';
+  var results = [];
+
+  try {
+    var receiptData = {
+      items: lastSaleItems.map(function(i) { return { productName: i.productName, quantity: i.quantity }; }),
+      amount: lastSaleAmount,
+      date: new Date().toISOString().split('T')[0],
+      saleId: lastSaleId
+    };
+
+    if (email) {
+      var emailResp = await fetch(base + '/shirSendReceipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(Object.assign({}, receiptData, { email: email }))
+      });
+      var emailResult = await emailResp.json();
+      results.push(emailResult.success ? '📧 Email sent' : '❌ Email failed');
+    }
+
+    if (phone) {
+      var smsResp = await fetch(base + '/shirSendSMS', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(Object.assign({}, receiptData, { phone: phone }))
+      });
+      var smsResult = await smsResp.json();
+      results.push(smsResult.success ? '📱 SMS sent' : '❌ SMS failed');
+    }
+
+    // Update sale record with customer contact
+    if (lastSaleId) {
+      var contactUpdate = { receiptSent: true, customerContact: {} };
+      if (email) contactUpdate.customerContact.email = email;
+      if (phone) contactUpdate.customerContact.phone = phone;
+      contactUpdate.customerContact.optIn = optIn;
+      db.ref(SALES_PATH + '/' + lastSaleId).update(contactUpdate);
+    }
+
+    statusEl.innerHTML = '<span style="color:#4CAF50;">' + results.join(' · ') + '</span>';
+    showToast(results.join(', '));
+  } catch (err) {
+    statusEl.innerHTML = '<span style="color:#f44336;">Error: ' + err.message + '</span>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send';
+  }
+}
+
+// Auto-reconcile Square payment after PoS sale
+async function autoReconcileSquare(saleId, saleTimestamp) {
+  if (paymentType !== 'square') return;
+  try {
+    var token = authToken;
+    var resp = await fetch('https://us-central1-word-boxing.cloudfunctions.net/shirReconcileSquarePayment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ saleId: saleId, saleTimestamp: saleTimestamp, toleranceMinutes: 5 })
+    });
+    var result = await resp.json();
+    if (result.matched) {
+      console.log('Square reconciled: payment ' + result.paymentId + ', delta ' + result.deltaSeconds + 's');
+    }
+  } catch (err) {
+    console.log('Square reconciliation skipped:', err.message);
+  }
+}
+
+// ============================================================
 // New Sale (reset)
 // ============================================================
 function newSale() {
@@ -817,6 +956,9 @@ function newSale() {
   capturedImageBase64 = null;
   capturedPreviewUrl = null;
   paymentType = 'cash';
+  lastSaleId = null;
+  lastSaleAmount = 0;
+  lastSaleItems = [];
   document.getElementById('amountInput').value = '';
   document.getElementById('saleNotes').value = '';
   document.getElementById('cashBtn').classList.add('selected');

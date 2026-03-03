@@ -2478,49 +2478,88 @@
     <div id="salesTab" style="display:none;">
       <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:12px;">
-          <h2 style="margin:0;">Sales</h2>
+          <h2 style="margin:0;" id="salesViewTitle">Sales</h2>
           <span class="products-stat" id="salesCount"></span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <input type="date" id="salesDateFilter" onchange="filterSalesByDate()" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
-          <select id="salesStatusFilter" onchange="renderSales()" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
-            <option value="all">All Status</option>
-            <option value="captured">Captured</option>
-            <option value="reconciled">Reconciled</option>
-            <option value="voided">Voided</option>
-          </select>
+          <button class="btn btn-small" id="squarePaymentsToggle" onclick="toggleSquarePayments()" style="font-size:0.8rem;padding:4px 12px;background:var(--teal);color:#fff;border:none;border-radius:6px;cursor:pointer;">💳 Square Payments</button>
+          <div id="salesFilterControls" style="display:flex;align-items:center;gap:8px;">
+            <input type="date" id="salesDateFilter" onchange="filterSalesByDate()" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
+            <select id="salesStatusFilter" onchange="renderSales()" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
+              <option value="all">All Status</option>
+              <option value="captured">Captured</option>
+              <option value="reconciled">Reconciled</option>
+              <option value="voided">Voided</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <!-- Daily Summary -->
-      <div id="salesSummary" style="display:flex;gap:16px;flex-wrap:wrap;margin:16px 0;"></div>
+      <!-- Sales List View -->
+      <div id="salesListView">
+        <!-- Daily Summary -->
+        <div id="salesSummary" style="display:flex;gap:16px;flex-wrap:wrap;margin:16px 0;"></div>
 
-      <!-- Sales Table -->
-      <div id="salesLoading" class="loading">Loading...</div>
-      <div id="salesEmpty" class="empty-state" style="display:none;">
-        <p>No sales recorded yet. Use the <a href="../pos/" style="color:var(--teal);">PoS app</a> to capture sales.</p>
+        <!-- Sales Table -->
+        <div id="salesLoading" class="loading">Loading...</div>
+        <div id="salesEmpty" class="empty-state" style="display:none;">
+          <p>No sales recorded yet. Use the <a href="../pos/" style="color:var(--teal);">PoS app</a> to capture sales.</p>
+        </div>
+        <div class="orders-table" id="salesTableWrap" style="display:none;">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Items</th>
+                <th>Payment</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="salesTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="order-cards" id="salesCards"></div>
+
+        <!-- Sale Detail View -->
+        <div id="saleDetailView" style="display:none;"></div>
       </div>
-      <div class="orders-table" id="salesTableWrap" style="display:none;">
-        <table>
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Items</th>
-              <th>Payment</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="salesTableBody"></tbody>
-        </table>
+
+      <!-- Square Payments View -->
+      <div id="squarePaymentsView" style="display:none;">
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin:16px 0;">
+          <div id="squarePaymentsSummary" style="display:flex;gap:16px;flex-wrap:wrap;"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <select id="squarePaymentsFilter" onchange="renderSquarePayments()" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
+            <option value="unmatched">Unmatched Only</option>
+            <option value="matched">Matched Only</option>
+            <option value="all">All Payments</option>
+          </select>
+        </div>
+        <div id="squarePaymentsEmpty" class="empty-state" style="display:none;">
+          <p>No Square payments received yet. Payments appear here when processed through Square.</p>
+        </div>
+        <div class="orders-table" id="squarePaymentsTableWrap" style="display:none;">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Amount</th>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Matched Sale</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="squarePaymentsTableBody"></tbody>
+          </table>
+        </div>
+        <div class="order-cards" id="squarePaymentsCards"></div>
       </div>
-
-      <!-- Mobile Cards -->
-      <div class="order-cards" id="salesCards"></div>
-
-      <!-- Sale Detail View -->
-      <div id="saleDetailView" style="display:none;"></div>
     </div>
 
     <!-- ===== SALES EVENTS TAB ===== -->
@@ -2631,6 +2670,42 @@
           <!-- Current allocations -->
           <div id="packingAllocations" style="margin-top:16px;"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- ===== INVENTORY INTAKE OVERLAY ===== -->
+    <div id="intakeOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#1a1a2e;z-index:9999;overflow-y:auto;">
+      <div style="padding:16px;max-width:600px;margin:0 auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h2 style="color:white;margin:0;">📷 Inventory Intake</h2>
+          <button onclick="exitIntakeMode()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:white;padding:6px 14px;border-radius:6px;font-family:'DM Sans',sans-serif;cursor:pointer;">✕ Exit</button>
+        </div>
+        <div id="intakeTally" style="color:#4CAF50;font-size:0.9rem;margin-bottom:12px;"></div>
+        <!-- Camera view -->
+        <div style="position:relative;margin-bottom:16px;">
+          <video id="intakeVideo" autoplay playsinline muted style="width:100%;border-radius:8px;background:#000;max-height:300px;object-fit:cover;"></video>
+          <div style="position:absolute;bottom:0;left:0;right:0;text-align:center;padding:8px;background:rgba(0,0,0,0.5);border-radius:0 0 8px 8px;">
+            <span style="color:rgba(255,255,255,0.7);font-size:0.78rem;">Show product clearly — capture color, shape, and features</span>
+          </div>
+        </div>
+        <div style="text-align:center;margin-bottom:16px;">
+          <button id="intakeCaptureBtn" onclick="captureIntakePhoto()" style="width:70px;height:70px;border-radius:50%;border:3px solid white;background:rgba(255,255,255,0.2);color:white;font-size:1.4rem;cursor:pointer;">📸</button>
+        </div>
+        <!-- Result area -->
+        <div id="intakeResult" style="display:none;background:rgba(255,255,255,0.08);border-radius:8px;padding:16px;margin-bottom:16px;">
+          <div id="intakeResultContent"></div>
+        </div>
+        <!-- Manual picker fallback -->
+        <div id="intakeManualPicker" style="display:none;margin-bottom:16px;">
+          <h4 style="color:white;margin:0 0 8px 0;">Manual Product Selection</h4>
+          <input type="text" id="intakeProductSearch" placeholder="Search products..." oninput="filterIntakeProducts()" style="width:100%;padding:8px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:6px;background:rgba(255,255,255,0.1);color:white;font-family:'DM Sans',sans-serif;margin-bottom:8px;box-sizing:border-box;">
+          <div id="intakeProductList" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+        <div style="text-align:center;">
+          <button onclick="toggleIntakeManualPicker()" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:0.82rem;font-family:'DM Sans',sans-serif;">Can't scan? Select manually ▼</button>
+        </div>
+        <!-- Logged items -->
+        <div id="intakeLoggedItems" style="margin-top:20px;"></div>
       </div>
     </div>
 
@@ -2843,6 +2918,33 @@
         <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
 
         <div class="form-group">
+          <label style="font-size:1.1rem;font-weight:600;">Inventory Locations</label>
+          <p style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:8px;">
+            Track where inventory is stored. Each location gets a QR code for quick scanning during intake, packing, and moves. The "Home" location is created automatically and can't be archived.
+          </p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <select id="locationStatusFilter" onchange="renderLocationsList()" style="padding:6px 10px;border:1px solid var(--cream-dark);border-radius:6px;font-size:0.82rem;font-family:'DM Sans',sans-serif;">
+              <option value="active">Active</option>
+              <option value="all">All</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+          <div id="inventoryLocationsList" style="margin-bottom:12px;"></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="text" id="newLocationName" placeholder="Location name (e.g. Shelf A, Display Case)"
+              style="flex:1;min-width:160px;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;">
+            <select id="newLocationType" style="padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;">
+              <option value="home">Home/Studio</option>
+              <option value="container">Container/Box</option>
+              <option value="other">Other</option>
+            </select>
+            <button class="btn btn-primary" onclick="createLocation()">+ Add Location</button>
+          </div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+
+        <div class="form-group">
           <label style="font-size:1.1rem;font-weight:600;">Build Media Storage</label>
           <p style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:16px;">
             Photos captured during production builds are stored in Firebase Storage.
@@ -2938,6 +3040,11 @@ var sales = {};
 var salesListener = null;
 var SALES_PATH = 'shirglassworks/admin/sales';
 var selectedSaleId = null;
+var SQUARE_PAYMENTS_PATH = 'shirglassworks/admin/square-payments';
+var squarePayments = {};
+var squarePaymentsLoaded = false;
+var squarePaymentsListener = null;
+var showingSquarePayments = false;
 var salesEventsLoaded = false;
 var salesEventsData = {};
 var salesEventsListener = null;
@@ -2947,6 +3054,10 @@ var editingEventId = null;
 var packingEventId = null;
 var packingCamera = null;
 var activeEventId = null;
+var LOCATIONS_PATH = 'shirglassworks/admin/locations';
+var locationsData = {};
+var locationsLoaded = false;
+var locationsListener = null;
 var productionRequests = {};
 var productionRequestsListener = null;
 var PRODUCTION_REQUESTS_PATH = 'shirglassworks/admin/buildJobs';
@@ -3222,7 +3333,7 @@ function switchTab(tab) {
   document.getElementById('couponsTab').style.display = tab === 'coupons' ? '' : 'none';
   document.getElementById('analyticsTab').style.display = tab === 'analytics' ? '' : 'none';
   document.getElementById('settingsTab').style.display = tab === 'settings' ? '' : 'none';
-  if (tab === 'settings') { updateGitHubTokenStatus(); loadOperators(); loadStorageInfo(); loadStudioLocations(); }
+  if (tab === 'settings') { updateGitHubTokenStatus(); loadOperators(); loadStorageInfo(); loadStudioLocations(); loadLocations(); }
   if (tab === 'analytics' && !analyticsLoaded) loadAnalytics();
   if (tab === 'products' && !productsLoaded) loadProducts();
   if (tab === 'orders' && !ordersLoaded) loadOrders();
@@ -3794,8 +3905,14 @@ function renderInventoryOverview() {
     return b.available - a.available;
   });
 
+  // Action bar
+  var actionBarHtml = '<div style="display:flex;gap:8px;margin-bottom:12px;">' +
+    '<button class="btn btn-primary" style="font-size:0.82rem;" onclick="startIntakeMode(null)">📷 Inventory Intake</button>' +
+    '<button class="btn btn-secondary" style="font-size:0.82rem;" onclick="openMoveItemsModal()">↔ Move Items</button>' +
+  '</div>';
+
   // Summary bar
-  var summaryHtml = '<div class="inv-overview-summary">' +
+  var summaryHtml = actionBarHtml + '<div class="inv-overview-summary">' +
     '<div class="inv-overview-stat">' +
       '<div class="inv-overview-stat-value">' + totalProducts + '</div>' +
       '<div class="inv-overview-stat-label">Products</div>' +
@@ -4823,6 +4940,15 @@ function attachListeners() {
       showToast('Error loading sales: ' + err.message, true);
     });
   }
+  if (!squarePaymentsListener) {
+    squarePaymentsListener = db.ref(SQUARE_PAYMENTS_PATH).limitToLast(200).on('value', function(snap) {
+      squarePayments = snap.val() || {};
+      squarePaymentsLoaded = true;
+      if (showingSquarePayments) renderSquarePayments();
+    }, function(err) {
+      console.log('Error loading square payments:', err.message);
+    });
+  }
   if (!salesEventsListener) {
     salesEventsListener = db.ref(SALES_EVENTS_PATH).limitToLast(100).on('value', function(snap) {
       salesEventsData = snap.val() || {};
@@ -4884,6 +5010,10 @@ function detachListeners() {
     db.ref(SALES_EVENTS_PATH).off('value', salesEventsListener);
     salesEventsListener = null;
   }
+  if (squarePaymentsListener) {
+    db.ref(SQUARE_PAYMENTS_PATH).off('value', squarePaymentsListener);
+    squarePaymentsListener = null;
+  }
   events = {};
   gallery = {};
   coupons = {};
@@ -4892,6 +5022,8 @@ function detachListeners() {
   productionRequests = {};
   productionJobs = {};
   inventory = {};
+  squarePayments = {};
+  squarePaymentsLoaded = false;
 }
 
 // ============================================================
@@ -6787,6 +6919,252 @@ async function voidSale(saleId) {
 }
 
 // ============================================================
+// SQUARE PAYMENTS VIEW
+// ============================================================
+
+function toggleSquarePayments() {
+  showingSquarePayments = !showingSquarePayments;
+  var listView = document.getElementById('salesListView');
+  var sqView = document.getElementById('squarePaymentsView');
+  var toggleBtn = document.getElementById('squarePaymentsToggle');
+  var filterControls = document.getElementById('salesFilterControls');
+  var titleEl = document.getElementById('salesViewTitle');
+  var countEl = document.getElementById('salesCount');
+
+  if (showingSquarePayments) {
+    listView.style.display = 'none';
+    sqView.style.display = '';
+    toggleBtn.textContent = '← Back to Sales';
+    toggleBtn.style.background = 'var(--warm-gray)';
+    filterControls.style.display = 'none';
+    titleEl.textContent = 'Square Payments';
+    countEl.textContent = '';
+    renderSquarePayments();
+  } else {
+    listView.style.display = '';
+    sqView.style.display = 'none';
+    toggleBtn.textContent = '💳 Square Payments';
+    toggleBtn.style.background = 'var(--teal)';
+    filterControls.style.display = 'flex';
+    titleEl.textContent = 'Sales';
+    renderSales();
+  }
+}
+
+function getSquarePaymentsArray() {
+  var arr = [];
+  Object.keys(squarePayments).forEach(function(key) {
+    var p = squarePayments[key];
+    p._key = key;
+    arr.push(p);
+  });
+  arr.sort(function(a, b) {
+    return (b.createdAt || '').localeCompare(a.createdAt || '');
+  });
+  return arr;
+}
+
+function renderSquarePayments() {
+  var emptyEl = document.getElementById('squarePaymentsEmpty');
+  var tableWrap = document.getElementById('squarePaymentsTableWrap');
+  var tbody = document.getElementById('squarePaymentsTableBody');
+  var cardsEl = document.getElementById('squarePaymentsCards');
+  var summaryEl = document.getElementById('squarePaymentsSummary');
+  var filter = document.getElementById('squarePaymentsFilter').value;
+
+  var all = getSquarePaymentsArray();
+  var filtered;
+  if (filter === 'unmatched') {
+    filtered = all.filter(function(p) { return !p.matchedSaleId; });
+  } else if (filter === 'matched') {
+    filtered = all.filter(function(p) { return !!p.matchedSaleId; });
+  } else {
+    filtered = all;
+  }
+
+  // Summary stats
+  var totalCount = all.length;
+  var unmatchedCount = all.filter(function(p) { return !p.matchedSaleId; }).length;
+  var matchedCount = totalCount - unmatchedCount;
+  var unmatchedAmount = all.filter(function(p) { return !p.matchedSaleId; }).reduce(function(sum, p) { return sum + (p.amount || 0); }, 0);
+
+  summaryEl.innerHTML =
+    '<div style="background:white;border:1px solid var(--cream-dark);border-radius:8px;padding:12px 16px;min-width:120px;">' +
+      '<div style="font-size:0.75rem;color:var(--warm-gray);text-transform:uppercase;">Total</div>' +
+      '<div style="font-size:1.3rem;font-weight:600;">' + totalCount + '</div>' +
+    '</div>' +
+    '<div style="background:white;border:1px solid var(--cream-dark);border-radius:8px;padding:12px 16px;min-width:120px;">' +
+      '<div style="font-size:0.75rem;color:var(--warm-gray);text-transform:uppercase;">Matched</div>' +
+      '<div style="font-size:1.3rem;font-weight:600;color:var(--teal);">' + matchedCount + '</div>' +
+    '</div>' +
+    '<div style="background:white;border:1px solid var(--cream-dark);border-radius:8px;padding:12px 16px;min-width:120px;">' +
+      '<div style="font-size:0.75rem;color:var(--warm-gray);text-transform:uppercase;">Unmatched</div>' +
+      '<div style="font-size:1.3rem;font-weight:600;color:' + (unmatchedCount > 0 ? '#FF9800' : 'var(--teal)') + ';">' + unmatchedCount + '</div>' +
+    '</div>' +
+    (unmatchedAmount > 0 ? '<div style="background:white;border:1px solid var(--cream-dark);border-radius:8px;padding:12px 16px;min-width:120px;">' +
+      '<div style="font-size:0.75rem;color:var(--warm-gray);text-transform:uppercase;">Unmatched $</div>' +
+      '<div style="font-size:1.3rem;font-weight:600;color:#FF9800;">' + formatCents(unmatchedAmount) + '</div>' +
+    '</div>' : '');
+
+  if (filtered.length === 0) {
+    emptyEl.style.display = '';
+    emptyEl.querySelector('p').textContent = filter === 'unmatched' ? 'All Square payments have been matched to sales.' : 'No Square payments found.';
+    tableWrap.style.display = 'none';
+    cardsEl.innerHTML = '';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+
+  // Desktop table
+  var rows = '';
+  filtered.forEach(function(p) {
+    var isMatched = !!p.matchedSaleId;
+    var statusColor = isMatched ? 'var(--teal)' : '#FF9800';
+    var statusText = isMatched ? 'Matched' : 'Unmatched';
+    var timeStr = p.createdAt ? new Date(p.createdAt).toLocaleString() : '-';
+    var sourceLabel = (p.sourceType || 'unknown').replace(/_/g, ' ');
+
+    rows += '<tr>' +
+      '<td>' + timeStr + '</td>' +
+      '<td style="font-weight:600;">' + formatCents(p.amount || 0) + '</td>' +
+      '<td style="text-transform:capitalize;font-size:0.85rem;">' + esc(sourceLabel) + '</td>' +
+      '<td><span style="color:' + statusColor + ';font-weight:500;">' + statusText + '</span></td>' +
+      '<td>' + (isMatched ? '<span style="font-family:monospace;font-size:0.78rem;">' + esc((p.matchedSaleId || '').slice(-8)) + '</span>' : '-') + '</td>' +
+      '<td>' +
+        (!isMatched ? '<button class="btn btn-small" onclick="openManualMatchModal(\'' + esc(p._key) + '\')" style="font-size:0.7rem;padding:3px 8px;">Match</button>' : '') +
+        (p.receiptUrl ? ' <a href="' + esc(p.receiptUrl) + '" target="_blank" style="font-size:0.7rem;color:var(--teal);">Receipt</a>' : '') +
+      '</td>' +
+    '</tr>';
+  });
+  tbody.innerHTML = rows;
+  tableWrap.style.display = '';
+
+  // Mobile cards
+  var cards = '';
+  filtered.forEach(function(p) {
+    var isMatched = !!p.matchedSaleId;
+    var statusColor = isMatched ? 'var(--teal)' : '#FF9800';
+    var statusText = isMatched ? 'Matched' : 'Unmatched';
+    var timeStr = p.createdAt ? new Date(p.createdAt).toLocaleString() : '-';
+    var sourceLabel = (p.sourceType || 'unknown').replace(/_/g, ' ');
+
+    cards += '<div class="order-card" style="border-left:3px solid ' + statusColor + ';">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+        '<span style="font-weight:600;font-size:1.1rem;">' + formatCents(p.amount || 0) + '</span>' +
+        '<span style="color:' + statusColor + ';font-weight:500;font-size:0.85rem;">' + statusText + '</span>' +
+      '</div>' +
+      '<div style="font-size:0.85rem;color:var(--warm-gray);margin-top:4px;">' + timeStr + '</div>' +
+      '<div style="font-size:0.82rem;color:var(--warm-gray-light);margin-top:2px;text-transform:capitalize;">' + esc(sourceLabel) + '</div>' +
+      (isMatched ? '<div style="font-size:0.8rem;margin-top:4px;">Matched: <span style="font-family:monospace;">' + esc((p.matchedSaleId || '').slice(-8)) + '</span></div>' : '') +
+      '<div style="margin-top:8px;display:flex;gap:8px;">' +
+        (!isMatched ? '<button class="btn btn-small" onclick="openManualMatchModal(\'' + esc(p._key) + '\')" style="font-size:0.8rem;padding:4px 12px;">Match to Sale</button>' : '') +
+        (p.receiptUrl ? '<a href="' + esc(p.receiptUrl) + '" target="_blank" class="btn btn-small" style="font-size:0.8rem;padding:4px 12px;text-decoration:none;">Receipt</a>' : '') +
+      '</div>' +
+    '</div>';
+  });
+  cardsEl.innerHTML = cards;
+}
+
+function openManualMatchModal(paymentKey) {
+  var payment = squarePayments[paymentKey];
+  if (!payment) return;
+
+  // Find unreconciled sales within a reasonable time window
+  var paymentTime = new Date(payment.createdAt).getTime();
+  var candidates = [];
+  Object.keys(sales).forEach(function(saleId) {
+    var s = sales[saleId];
+    if (s.squarePaymentId) return; // already matched
+    if (s.status === 'voided') return;
+    if (s.paymentType && s.paymentType !== 'square') return;
+    var saleTime = new Date(s.timestamp || s.createdAt).getTime();
+    var deltaMin = Math.abs(saleTime - paymentTime) / 60000;
+    candidates.push({
+      saleId: saleId,
+      sale: s,
+      deltaMin: deltaMin,
+      amount: s.amount || 0
+    });
+  });
+
+  // Sort by time proximity
+  candidates.sort(function(a, b) { return a.deltaMin - b.deltaMin; });
+
+  // Limit to top 20
+  candidates = candidates.slice(0, 20);
+
+  var optionsHtml = '';
+  if (candidates.length === 0) {
+    optionsHtml = '<p style="color:var(--warm-gray);">No candidate sales found. Try creating a sale first.</p>';
+  } else {
+    candidates.forEach(function(c) {
+      var s = c.sale;
+      var items = (s.items || []).map(function(i) { return i.productName; }).join(', ');
+      var amountMatch = c.amount === (payment.amount || 0);
+      var timeStr = s.timestamp ? new Date(s.timestamp).toLocaleString() : '-';
+      var deltaStr = c.deltaMin < 1 ? '<1 min' : Math.round(c.deltaMin) + ' min';
+
+      optionsHtml += '<div onclick="executeManualMatch(\'' + esc(paymentKey) + '\', \'' + esc(c.saleId) + '\')" ' +
+        'style="padding:12px;border:1px solid ' + (amountMatch ? 'var(--teal)' : 'var(--cream-dark)') + ';border-radius:8px;cursor:pointer;margin-bottom:8px;' +
+        (amountMatch ? 'background:rgba(0,150,136,0.05);' : '') + '" ' +
+        'onmouseover="this.style.background=\'var(--cream)\'" onmouseout="this.style.background=\'' + (amountMatch ? 'rgba(0,150,136,0.05)' : 'white') + '\'">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+          '<span style="font-weight:600;">' + formatCents(c.amount) + '</span>' +
+          '<span style="font-size:0.8rem;color:var(--warm-gray);">' + deltaStr + ' apart</span>' +
+        '</div>' +
+        '<div style="font-size:0.85rem;color:var(--warm-gray);margin-top:2px;">' + timeStr + '</div>' +
+        '<div style="font-size:0.85rem;margin-top:2px;">' + esc(items || 'No items recorded') + '</div>' +
+        (amountMatch ? '<div style="font-size:0.75rem;color:var(--teal);margin-top:4px;">✓ Amount matches</div>' : '<div style="font-size:0.75rem;color:#FF9800;margin-top:4px;">⚠ Amount mismatch (sale: ' + formatCents(c.amount) + ', payment: ' + formatCents(payment.amount || 0) + ')</div>') +
+      '</div>';
+    });
+  }
+
+  var modal = document.createElement('div');
+  modal.id = 'manualMatchModal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+  modal.innerHTML =
+    '<div style="background:white;border-radius:12px;padding:24px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+        '<h3 style="margin:0;">Match Square Payment</h3>' +
+        '<button onclick="document.getElementById(\'manualMatchModal\').remove()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;">✕</button>' +
+      '</div>' +
+      '<div style="background:var(--cream);border-radius:8px;padding:12px;margin-bottom:16px;">' +
+        '<div style="font-size:0.75rem;color:var(--warm-gray);text-transform:uppercase;">Square Payment</div>' +
+        '<div style="font-weight:600;font-size:1.1rem;">' + formatCents(payment.amount || 0) + '</div>' +
+        '<div style="font-size:0.85rem;color:var(--warm-gray);">' + (payment.createdAt ? new Date(payment.createdAt).toLocaleString() : '-') + '</div>' +
+      '</div>' +
+      '<div style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:8px;">Select a sale to match:</div>' +
+      optionsHtml +
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+async function executeManualMatch(paymentKey, saleId) {
+  var payment = squarePayments[paymentKey];
+  if (!payment || !saleId) return;
+
+  try {
+    var updates = {};
+    // Update sale with Square payment info — Square amount is authoritative
+    updates[SALES_PATH + '/' + saleId + '/squarePaymentId'] = payment.paymentId || paymentKey;
+    updates[SALES_PATH + '/' + saleId + '/amount'] = payment.amount || 0;
+    updates[SALES_PATH + '/' + saleId + '/status'] = 'reconciled';
+    // Update payment with matched sale
+    updates[SQUARE_PAYMENTS_PATH + '/' + paymentKey + '/matchedSaleId'] = saleId;
+
+    await db.ref().update(updates);
+    showToast('Payment matched to sale.');
+    var modal = document.getElementById('manualMatchModal');
+    if (modal) modal.remove();
+    renderSquarePayments();
+  } catch (err) {
+    showToast('Error: ' + err.message, true);
+  }
+}
+
+// ============================================================
 // SALES EVENTS SYSTEM
 // ============================================================
 
@@ -6945,6 +7323,8 @@ async function saveEvent() {
         status: 'planning', allocations: null,
         createdAt: now, updatedAt: now, closedAt: null, notes: notes || null
       });
+      // Auto-create an inventory location for this event
+      createEventLocation(newRef.key, name);
       showToast('Event created!');
     }
     closeCreateEventModal();
@@ -7157,13 +7537,36 @@ async function closeEvent(eventId) {
   var ev = salesEventsData[eventId];
   if (!ev) return;
   var stats = getEventAllocationsStats(ev);
-  if (!confirm('Close this event?\n\n' + stats.totalSold + ' of ' + stats.totalPacked + ' items sold.\nUnsold items are assumed to come home.')) return;
+  var unsoldCount = stats.totalPacked - stats.totalSold;
+  if (!confirm('Close this event?\n\n' + stats.totalSold + ' of ' + stats.totalPacked + ' items sold.' + (unsoldCount > 0 ? '\n' + unsoldCount + ' unsold items will be returned to their source location.' : ''))) return;
   try {
     await db.ref(SALES_EVENTS_PATH + '/' + eventId).update({
       status: 'closed', closedAt: new Date().toISOString(), updatedAt: new Date().toISOString()
     });
     if (activeEventId === eventId) activeEventId = null;
-    showToast('Event closed.');
+
+    // Move unsold items back to source locations
+    var eventLocId = getEventLocation(eventId);
+    if (eventLocId && ev.allocations) {
+      var returnHomeId = getHomeLocationId();
+      Object.keys(ev.allocations).forEach(function(pid) {
+        var alloc = ev.allocations[pid];
+        var unsold = (alloc.quantity || 0) - (alloc.sold || 0);
+        if (unsold > 0) {
+          var returnTo = alloc.sourceLocationId || returnHomeId;
+          if (returnTo && eventLocId) {
+            moveInventory(pid, '_default', eventLocId, returnTo, unsold).catch(function() { /* best-effort */ });
+          }
+        }
+      });
+    }
+
+    // Archive the event location
+    if (eventLocId) {
+      db.ref(LOCATIONS_PATH + '/' + eventLocId).update({ status: 'archived', updatedAt: new Date().toISOString() }).catch(function() {});
+    }
+
+    showToast('Event closed.' + (unsoldCount > 0 ? ' ' + unsoldCount + ' items returned.' : ''));
   } catch (err) {
     showToast('Error: ' + err.message, true);
   }
@@ -7367,11 +7770,26 @@ async function confirmPackItem(productId, productName) {
     var currentAlloc = salesEventsData[packingEventId] && salesEventsData[packingEventId].allocations && salesEventsData[packingEventId].allocations[productId];
     var currentQty = currentAlloc ? (currentAlloc.quantity || 0) : 0;
 
-    await db.ref(SALES_EVENTS_PATH + '/' + packingEventId + '/allocations/' + productId).update({
+    // Find source location (Home by default) for location tracking
+    var sourceLocId = getHomeLocationId();
+    var eventLocId = getEventLocation(packingEventId);
+
+    // Store sourceLocation on the allocation for return tracking
+    var allocUpdate = {
       quantity: currentQty + qty,
       sold: currentAlloc ? (currentAlloc.sold || 0) : 0,
       productName: productName
-    });
+    };
+    if (sourceLocId) allocUpdate.sourceLocationId = currentAlloc ? (currentAlloc.sourceLocationId || sourceLocId) : sourceLocId;
+
+    await db.ref(SALES_EVENTS_PATH + '/' + packingEventId + '/allocations/' + productId).update(allocUpdate);
+
+    // Move items from source to event location if locations are configured
+    if (sourceLocId && eventLocId) {
+      moveInventory(productId, '_default', sourceLocId, eventLocId, qty).catch(function() {
+        // Non-blocking — location tracking is best-effort during packing
+      });
+    }
 
     document.getElementById('packingRecognitionResult').style.display = 'none';
     showToast(qty + 'x ' + productName + ' added to pack!');
@@ -7446,6 +7864,395 @@ async function exitPackingMode() {
     renderSalesEventDetail(packingEventId);
   }
   packingEventId = null;
+}
+
+// ============================================================
+// INVENTORY INTAKE (Camera-First, Training-Quality Photos)
+// ============================================================
+
+var intakeCamera = null;
+var intakeJobId = null;
+var intakeLoggedCount = 0;
+var intakeTargetCount = 0;
+var intakeItems = [];
+var intakeLastBase64 = null;
+var intakeTrainingMode = false; // true when taking extra training photos for the same piece
+var intakeCurrentPiece = null; // { pid, variantKey, variantDesc, locationId, attrTags }
+var intakeTrainingPhotoCount = 0;
+
+function startIntakeMode(jobId) {
+  intakeJobId = jobId;
+  intakeLoggedCount = 0;
+  intakeItems = [];
+  intakeLastBase64 = null;
+
+  // Calculate target from job line items
+  intakeTargetCount = 0;
+  if (jobId) {
+    var job = productionJobs[jobId];
+    if (job && job.lineItems) {
+      Object.values(job.lineItems).forEach(function(li) {
+        intakeTargetCount += (li.completedQuantity || li.targetQuantity || 0);
+      });
+    }
+  }
+
+  // Make sure locations are loaded
+  if (!locationsLoaded) { loadLocations(); }
+
+  document.getElementById('intakeOverlay').style.display = '';
+  document.getElementById('intakeResult').style.display = 'none';
+  document.getElementById('intakeManualPicker').style.display = 'none';
+  updateIntakeTally();
+  renderIntakeLoggedItems();
+  startIntakeCamera();
+}
+
+function updateIntakeTally() {
+  var el = document.getElementById('intakeTally');
+  if (!el) return;
+  if (intakeTargetCount > 0) {
+    el.textContent = '✅ ' + intakeLoggedCount + ' of ' + intakeTargetCount + ' pieces logged';
+  } else if (intakeLoggedCount > 0) {
+    el.textContent = '✅ ' + intakeLoggedCount + ' pieces logged';
+  } else {
+    el.textContent = 'Snap a photo of each finished piece to log it.';
+  }
+}
+
+function startIntakeCamera() {
+  var videoEl = document.getElementById('intakeVideo');
+  if (!videoEl) return;
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } }
+  }).then(function(stream) {
+    intakeCamera = stream;
+    videoEl.srcObject = stream;
+  }).catch(function(err) {
+    showToast('Camera error: ' + err.message, true);
+  });
+}
+
+function stopIntakeCamera() {
+  if (intakeCamera) {
+    intakeCamera.getTracks().forEach(function(t) { t.stop(); });
+    intakeCamera = null;
+  }
+  var videoEl = document.getElementById('intakeVideo');
+  if (videoEl) videoEl.srcObject = null;
+}
+
+async function captureIntakePhoto() {
+  var videoEl = document.getElementById('intakeVideo');
+  if (!videoEl || !intakeCamera) { showToast('Camera not ready', true); return; }
+
+  var btn = document.getElementById('intakeCaptureBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳';
+
+  // Capture at high quality for training
+  var canvas = document.createElement('canvas');
+  canvas.width = videoEl.videoWidth || 1280;
+  canvas.height = videoEl.videoHeight || 960;
+  var ctx = canvas.getContext('2d');
+  ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+  var base64 = canvas.toDataURL('image/jpeg', 0.92).split(',')[1];
+  intakeLastBase64 = base64;
+
+  // Run classification with training context
+  try {
+    var token = await auth.currentUser.getIdToken();
+    var catalog = buildProductCatalogForVision();
+    var resp = await fetch(CLOUD_FUNCTIONS_BASE + '/shirClassifyImage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ image: base64, catalog: catalog, context: 'inventory' })
+    });
+    var result = await resp.json();
+    showIntakeResult(result);
+  } catch (err) {
+    showToast('Classification error: ' + err.message, true);
+    document.getElementById('intakeManualPicker').style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📸';
+  }
+}
+
+function showIntakeResult(result) {
+  var el = document.getElementById('intakeResult');
+  var content = document.getElementById('intakeResultContent');
+  el.style.display = '';
+
+  var pid = result.productId;
+  var product = productsData.find(function(p) { return p.pid === pid; });
+  var conf = result.confidence || 0;
+  var confColor = conf >= 80 ? '#4CAF50' : conf >= 50 ? '#FF9800' : '#f44336';
+
+  if (!product) {
+    content.innerHTML = '<div style="color:white;">' +
+      '<p style="color:#FF9800;font-weight:600;">Could not identify product.</p>' +
+      '<button onclick="toggleIntakeManualPicker()" style="background:#FF9800;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:\'DM Sans\',sans-serif;">Select Manually</button>' +
+    '</div>';
+    return;
+  }
+
+  // Build variant options
+  var variantInfo = getProductVariantCombos(product);
+  var variantHtml = '';
+  if (variantInfo.combos.length > 0) {
+    variantInfo.labels.forEach(function(label, idx) {
+      var uniqueValues = [];
+      variantInfo.combos.forEach(function(combo) {
+        if (uniqueValues.indexOf(combo[idx]) === -1) uniqueValues.push(combo[idx]);
+      });
+      // Pre-select from classification if possible
+      var detectedValue = result.color || '';
+      variantHtml += '<div style="margin-bottom:8px;">' +
+        '<label style="font-size:0.78rem;color:rgba(255,255,255,0.6);">' + esc(label) + '</label>' +
+        '<select id="intakeVariant_' + idx + '" style="width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-family:\'DM Sans\',sans-serif;">' +
+        uniqueValues.map(function(v) {
+          var selected = (v.toLowerCase() === detectedValue.toLowerCase()) ? ' selected' : '';
+          return '<option value="' + esc(v) + '"' + selected + '>' + esc(v) + '</option>';
+        }).join('') +
+        '</select></div>';
+    });
+  }
+
+  // Build location picker
+  var activeLocs = getLocationsArray('active');
+  var homeId = getHomeLocationId();
+  var locOptions = activeLocs.map(function(loc) {
+    var icon = loc.type === 'home' ? '🏠' : loc.type === 'event' ? '🎪' : loc.type === 'container' ? '📦' : '📍';
+    var sel = (loc.id === homeId) ? ' selected' : '';
+    return '<option value="' + esc(loc.id) + '"' + sel + '>' + icon + ' ' + esc(loc.name) + '</option>';
+  }).join('');
+
+  content.innerHTML = '<div style="color:white;">' +
+    '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;">' +
+      (product.images && product.images.length ? '<img src="' + esc(product.images[0]) + '" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">' : '') +
+      '<div>' +
+        '<div style="font-weight:600;font-size:1rem;">' + esc(product.name) + '</div>' +
+        '<div style="font-size:0.78rem;color:' + confColor + ';">' + conf + '% confidence</div>' +
+      '</div>' +
+    '</div>' +
+    variantHtml +
+    '<div style="margin-bottom:8px;">' +
+      '<label style="font-size:0.78rem;color:rgba(255,255,255,0.6);">Storage Location</label>' +
+      '<select id="intakeLocation" style="width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-family:\'DM Sans\',sans-serif;">' +
+        locOptions +
+      '</select>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;margin-top:12px;">' +
+      '<button onclick="confirmIntakeItem(\'' + esc(pid) + '\')" style="flex:1;background:#4CAF50;color:white;border:none;padding:10px;border-radius:6px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-weight:600;">✅ Confirm & Log</button>' +
+      '<button onclick="toggleIntakeManualPicker()" style="background:rgba(255,255,255,0.15);color:white;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;font-family:\'DM Sans\',sans-serif;">Wrong product?</button>' +
+    '</div>' +
+  '</div>';
+}
+
+async function confirmIntakeItem(pid) {
+  var product = productsData.find(function(p) { return p.pid === pid; });
+  if (!product) return;
+
+  var variantInfo = getProductVariantCombos(product);
+  var variantKey = '_default';
+  var variantDesc = '';
+  var attrTags = [];
+
+  if (variantInfo.combos.length > 0) {
+    var values = variantInfo.labels.map(function(label, idx) {
+      var sel = document.getElementById('intakeVariant_' + idx);
+      var val = sel ? sel.value : '';
+      attrTags.push(label.toLowerCase() + ':' + val.toLowerCase());
+      return val;
+    });
+    variantKey = comboKey(values);
+    variantDesc = values.join(' / ');
+  }
+
+  var locationId = document.getElementById('intakeLocation').value || getHomeLocationId();
+  var locationName = locationsData[locationId] ? locationsData[locationId].name : 'Home';
+
+  try {
+    // 1. Add to inventory at location
+    await addToLocation(pid, variantKey, locationId, 1);
+
+    // 2. Upload training image to library
+    if (intakeLastBase64) {
+      var token = await auth.currentUser.getIdToken();
+      var tags = ['training', 'inventory-intake', pid].concat(attrTags);
+      fetch(CLOUD_FUNCTIONS_BASE + '/shirUploadImage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ image: intakeLastBase64, tags: tags, source: 'intake', productId: pid })
+      }).catch(function() { /* non-blocking */ });
+    }
+
+    // 3. Track logged item
+    intakeLoggedCount++;
+    intakeItems.push({
+      pid: pid,
+      productName: product.name,
+      variant: variantDesc,
+      location: locationName,
+      timestamp: new Date().toISOString()
+    });
+
+    updateIntakeTally();
+    renderIntakeLoggedItems();
+    intakeLastBase64 = null;
+    showToast('+1 ' + product.name + (variantDesc ? ' (' + variantDesc + ')' : '') + ' → ' + locationName);
+
+    // 4. Check if product needs more training photos — offer multi-photo mode
+    intakeCurrentPiece = { pid: pid, variantKey: variantKey, variantDesc: variantDesc, locationId: locationId, attrTags: attrTags };
+    intakeTrainingPhotoCount = 0;
+    var trainingPhotoCount = countTrainingPhotos(pid);
+    showTrainingPrompt(product.name, trainingPhotoCount);
+
+  } catch (err) {
+    showToast('Error logging item: ' + err.message, true);
+  }
+}
+
+function countTrainingPhotos(pid) {
+  // Count existing training images for this product in the image library
+  var count = 0;
+  Object.values(imageLibrary).forEach(function(img) {
+    if (img.productId === pid || (img.tags && img.tags.indexOf(pid) >= 0)) {
+      count++;
+    }
+  });
+  return count;
+}
+
+function showTrainingPrompt(productName, existingPhotos) {
+  var el = document.getElementById('intakeResult');
+  var content = document.getElementById('intakeResultContent');
+  el.style.display = '';
+  intakeTrainingMode = true;
+
+  var suggestion = '';
+  if (existingPhotos < 5) {
+    suggestion = '<div style="color:#FF9800;font-size:0.82rem;margin-bottom:8px;">📷 This product has few training photos (' + existingPhotos + '). <strong>3 angles recommended</strong> — front, side, detail.</div>';
+  } else if (existingPhotos < 15) {
+    suggestion = '<div style="color:rgba(255,255,255,0.5);font-size:0.82rem;margin-bottom:8px;">📷 ' + existingPhotos + ' training photos exist. Additional angles help improve recognition.</div>';
+  } else {
+    suggestion = '<div style="color:rgba(255,255,255,0.4);font-size:0.82rem;margin-bottom:8px;">📷 ' + existingPhotos + ' training photos — recognition should be solid. Skip unless this piece looks unusual.</div>';
+  }
+
+  content.innerHTML = '<div style="color:white;">' +
+    '<div style="font-weight:600;margin-bottom:8px;">✅ ' + esc(productName) + ' logged to inventory</div>' +
+    suggestion +
+    (intakeTrainingPhotoCount > 0 ? '<div style="color:#4CAF50;font-size:0.82rem;margin-bottom:8px;">+' + intakeTrainingPhotoCount + ' training photo' + (intakeTrainingPhotoCount > 1 ? 's' : '') + ' captured</div>' : '') +
+    '<div style="display:flex;gap:8px;">' +
+      '<button onclick="captureTrainingPhoto()" style="flex:1;background:#1976D2;color:white;border:none;padding:10px;border-radius:6px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-weight:600;">📸 Add Training Photo</button>' +
+      '<button onclick="finishCurrentPiece()" style="flex:1;background:rgba(255,255,255,0.15);color:white;border:none;padding:10px;border-radius:6px;cursor:pointer;font-family:\'DM Sans\',sans-serif;">Done → Next Piece</button>' +
+    '</div>' +
+  '</div>';
+}
+
+async function captureTrainingPhoto() {
+  if (!intakeCurrentPiece) return;
+  var videoEl = document.getElementById('intakeVideo');
+  if (!videoEl || !intakeCamera) { showToast('Camera not ready', true); return; }
+
+  // Capture high-quality training photo
+  var canvas = document.createElement('canvas');
+  canvas.width = videoEl.videoWidth || 1280;
+  canvas.height = videoEl.videoHeight || 960;
+  var ctx = canvas.getContext('2d');
+  ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+  var base64 = canvas.toDataURL('image/jpeg', 0.92).split(',')[1];
+
+  // Upload as training-only (no inventory increment)
+  try {
+    var token = await auth.currentUser.getIdToken();
+    var tags = ['training', 'inventory-intake', intakeCurrentPiece.pid].concat(intakeCurrentPiece.attrTags);
+    fetch(CLOUD_FUNCTIONS_BASE + '/shirUploadImage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ image: base64, tags: tags, source: 'training', productId: intakeCurrentPiece.pid })
+    }).catch(function() { /* non-blocking */ });
+
+    intakeTrainingPhotoCount++;
+    var product = productsData.find(function(p) { return p.pid === intakeCurrentPiece.pid; });
+    var trainingPhotoCount = countTrainingPhotos(intakeCurrentPiece.pid) + intakeTrainingPhotoCount;
+    showTrainingPrompt(product ? product.name : 'Product', trainingPhotoCount);
+    showToast('Training photo ' + intakeTrainingPhotoCount + ' captured');
+  } catch (err) {
+    showToast('Error capturing training photo: ' + err.message, true);
+  }
+}
+
+function finishCurrentPiece() {
+  intakeTrainingMode = false;
+  intakeCurrentPiece = null;
+  intakeTrainingPhotoCount = 0;
+  document.getElementById('intakeResult').style.display = 'none';
+}
+
+function toggleIntakeManualPicker() {
+  var el = document.getElementById('intakeManualPicker');
+  el.style.display = el.style.display === 'none' ? '' : 'none';
+  if (el.style.display !== 'none') {
+    filterIntakeProducts();
+    document.getElementById('intakeProductSearch').focus();
+  }
+}
+
+function filterIntakeProducts() {
+  var q = (document.getElementById('intakeProductSearch').value || '').toLowerCase();
+  var el = document.getElementById('intakeProductList');
+  if (!productsData || !productsData.length) { el.innerHTML = ''; return; }
+
+  var filtered = productsData.filter(function(p) {
+    if (p.availability === 'discontinued') return false;
+    if (!q) return true;
+    return (p.name || '').toLowerCase().indexOf(q) >= 0 || (p.pid || '').toLowerCase().indexOf(q) >= 0;
+  }).slice(0, 20);
+
+  el.innerHTML = filtered.map(function(p) {
+    return '<div onclick="selectIntakeProduct(\'' + esc(p.pid) + '\')" style="padding:8px;cursor:pointer;color:white;border-bottom:1px solid rgba(255,255,255,0.1);">' +
+      '<strong>' + esc(p.name) + '</strong>' +
+      (p.categories && p.categories.length ? '<span style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-left:8px;">' + p.categories.join(', ') + '</span>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function selectIntakeProduct(pid) {
+  var product = productsData.find(function(p) { return p.pid === pid; });
+  if (!product) return;
+  // Show result with manual selection
+  showIntakeResult({ productId: pid, product: product.name, confidence: 100, color: '' });
+  document.getElementById('intakeManualPicker').style.display = 'none';
+}
+
+function renderIntakeLoggedItems() {
+  var el = document.getElementById('intakeLoggedItems');
+  if (!el) return;
+  if (intakeItems.length === 0) { el.innerHTML = ''; return; }
+
+  var html = '<h4 style="color:rgba(255,255,255,0.6);margin:0 0 8px 0;font-size:0.85rem;">Logged Items</h4>';
+  intakeItems.slice().reverse().forEach(function(item, idx) {
+    html += '<div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,0.05);border-radius:4px;margin-bottom:4px;color:white;font-size:0.82rem;">' +
+      '<span>' + esc(item.productName) + (item.variant ? ' (' + item.variant + ')' : '') + '</span>' +
+      '<span style="color:rgba(255,255,255,0.5);">→ ' + esc(item.location) + '</span>' +
+    '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function exitIntakeMode() {
+  stopIntakeCamera();
+  document.getElementById('intakeOverlay').style.display = 'none';
+  intakeLastBase64 = null;
+
+  if (intakeLoggedCount > 0) {
+    showToast('Intake complete: ' + intakeLoggedCount + ' items logged');
+    // Refresh inventory display
+    if (currentTab === 'production') renderInventoryOverview();
+  }
+  intakeJobId = null;
 }
 
 // ============================================================
@@ -8759,8 +9566,15 @@ function showCompletionSummary(items) {
   items.forEach(function(item) {
     html += '<div style="font-size:0.9rem;padding:6px 10px;background:var(--cream-dark,#f5f0e8);border-radius:6px;">' + esc(item) + '</div>';
   });
+  // Offer camera intake if inventory was updated
+  var hasInventoryUpdate = items.some(function(i) { return i.indexOf('📦 Inventory') >= 0; });
+  var intakeBtn = hasInventoryUpdate
+    ? '<button class="btn btn-secondary" style="margin-right:8px;" onclick="closeModal();startIntakeMode(null);">📷 Camera Intake</button>'
+    : '';
+
   html += '</div>' +
     '<div style="text-align:right;margin-top:16px;">' +
+    intakeBtn +
     '<button class="btn btn-primary" onclick="closeModal()">OK</button>' +
     '</div></div>';
   openModal(html);
@@ -9575,6 +10389,527 @@ function isNearAnyStudio(lat, lng, locations) {
     if (dist <= (loc.radius || STUDIO_RADIUS_METERS)) return { near: true, name: loc.name, distance: Math.round(dist) };
   }
   return { near: false };
+}
+
+// ============================================================
+// Inventory Locations (Settings + Data Model)
+// ============================================================
+
+function loadLocations() {
+  if (locationsLoaded) { renderLocationsList(); return; }
+  db.ref(LOCATIONS_PATH).once('value').then(function(snap) {
+    locationsData = snap.val() || {};
+    locationsLoaded = true;
+    ensureHomeLocation();
+    renderLocationsList();
+  });
+}
+
+function ensureHomeLocation() {
+  // Make sure a "Home" location always exists
+  var hasHome = Object.keys(locationsData).some(function(k) {
+    return locationsData[k].type === 'home' && locationsData[k].status === 'active';
+  });
+  if (!hasHome) {
+    var ref = db.ref(LOCATIONS_PATH).push();
+    var homeRecord = {
+      locationId: ref.key,
+      name: 'Home',
+      type: 'home',
+      status: 'active',
+      eventId: null,
+      qrUrl: 'https://shirglassworks.com/scan/location/' + ref.key,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    ref.set(homeRecord).then(function() {
+      locationsData[ref.key] = homeRecord;
+      renderLocationsList();
+    });
+  }
+}
+
+function getLocationsArray(statusFilter) {
+  var arr = Object.keys(locationsData).map(function(k) {
+    var loc = locationsData[k];
+    loc.id = k;
+    return loc;
+  });
+  if (statusFilter && statusFilter !== 'all') {
+    arr = arr.filter(function(loc) { return loc.status === statusFilter; });
+  }
+  arr.sort(function(a, b) {
+    // Home first, then alphabetical
+    if (a.type === 'home' && b.type !== 'home') return -1;
+    if (b.type === 'home' && a.type !== 'home') return 1;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+  return arr;
+}
+
+function renderLocationsList() {
+  var el = document.getElementById('inventoryLocationsList');
+  if (!el) return;
+  var filterEl = document.getElementById('locationStatusFilter');
+  var filter = filterEl ? filterEl.value : 'active';
+  var locs = getLocationsArray(filter);
+
+  if (locs.length === 0) {
+    el.innerHTML = '<div style="padding:12px;background:var(--cream);border-radius:6px;color:var(--warm-gray);font-size:0.85rem;">No locations found.</div>';
+    return;
+  }
+
+  var html = '';
+  locs.forEach(function(loc) {
+    var typeIcon = loc.type === 'home' ? '🏠' : loc.type === 'event' ? '🎪' : loc.type === 'container' ? '📦' : '📍';
+    var statusBadge = loc.status === 'archived' ? '<span style="background:#9E9E9E;color:white;font-size:0.68rem;padding:1px 6px;border-radius:8px;margin-left:6px;">Archived</span>' : '';
+    var eventTag = loc.eventId && salesEventsData[loc.eventId]
+      ? '<span style="font-size:0.78rem;color:var(--teal);">' + esc(salesEventsData[loc.eventId].name || 'Event') + '</span>'
+      : '';
+
+    // Count items at this location
+    var itemCount = getLocationItemCount(loc.id);
+
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--cream);border-radius:6px;margin-bottom:6px;flex-wrap:wrap;gap:8px;">' +
+      '<div style="flex:1;min-width:160px;">' +
+        '<div style="font-weight:600;font-size:0.9rem;">' + typeIcon + ' ' + esc(loc.name) + statusBadge + '</div>' +
+        '<div style="font-size:0.78rem;color:var(--warm-gray);">' +
+          (itemCount > 0 ? itemCount + ' items' : 'Empty') +
+          (eventTag ? ' · ' + eventTag : '') +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:4px;flex-wrap:wrap;">' +
+        '<button class="btn btn-secondary" style="font-size:0.72rem;padding:3px 8px;" onclick="copyLocationQR(\'' + loc.id + '\')" title="Copy QR URL">📋 QR</button>' +
+        '<button class="btn btn-secondary" style="font-size:0.72rem;padding:3px 8px;" onclick="exportLocationToLabelKeeper(\'' + loc.id + '\')" title="LabelKeeper format">🏷️ Label</button>' +
+        '<button class="btn btn-secondary" style="font-size:0.72rem;padding:3px 8px;" onclick="renameLocation(\'' + loc.id + '\')" title="Rename">✏️</button>' +
+        (loc.type !== 'home' && loc.status === 'active' ? '<button class="btn btn-secondary" style="font-size:0.72rem;padding:3px 8px;color:#E53935;" onclick="archiveLocation(\'' + loc.id + '\')" title="Archive">🗃️</button>' : '') +
+        (loc.status === 'archived' ? '<button class="btn btn-secondary" style="font-size:0.72rem;padding:3px 8px;color:var(--teal);" onclick="reactivateLocation(\'' + loc.id + '\')" title="Reactivate">♻️</button>' : '') +
+      '</div>' +
+    '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function getLocationItemCount(locationId) {
+  var count = 0;
+  Object.keys(inventory).forEach(function(pid) {
+    var inv = inventory[pid];
+    if (!inv || !inv.stock) return;
+    Object.keys(inv.stock).forEach(function(variantKey) {
+      var variant = inv.stock[variantKey];
+      if (variant && variant.locations && variant.locations[locationId]) {
+        count += variant.locations[locationId];
+      }
+    });
+  });
+  return count;
+}
+
+async function createLocation() {
+  var name = document.getElementById('newLocationName').value.trim();
+  if (!name) { showToast('Enter a location name', true); return; }
+  var type = document.getElementById('newLocationType').value;
+
+  try {
+    var ref = db.ref(LOCATIONS_PATH).push();
+    var record = {
+      locationId: ref.key,
+      name: name,
+      type: type,
+      status: 'active',
+      eventId: null,
+      qrUrl: 'https://shirglassworks.com/scan/location/' + ref.key,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    await ref.set(record);
+    locationsData[ref.key] = record;
+    document.getElementById('newLocationName').value = '';
+    showToast('Location "' + name + '" created');
+    renderLocationsList();
+  } catch (err) {
+    showToast('Error creating location: ' + err.message, true);
+  }
+}
+
+function createEventLocation(eventId, eventName) {
+  // Auto-create a location linked to a sales event
+  var ref = db.ref(LOCATIONS_PATH).push();
+  var record = {
+    locationId: ref.key,
+    name: eventName,
+    type: 'event',
+    status: 'active',
+    eventId: eventId,
+    qrUrl: 'https://shirglassworks.com/scan/location/' + ref.key,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  return ref.set(record).then(function() {
+    locationsData[ref.key] = record;
+    return ref.key;
+  });
+}
+
+function getEventLocation(eventId) {
+  // Find the location linked to a specific event
+  var keys = Object.keys(locationsData);
+  for (var i = 0; i < keys.length; i++) {
+    if (locationsData[keys[i]].eventId === eventId) return keys[i];
+  }
+  return null;
+}
+
+function getHomeLocationId() {
+  var keys = Object.keys(locationsData);
+  for (var i = 0; i < keys.length; i++) {
+    if (locationsData[keys[i]].type === 'home' && locationsData[keys[i]].status === 'active') return keys[i];
+  }
+  return null;
+}
+
+async function renameLocation(locId) {
+  var loc = locationsData[locId];
+  if (!loc) return;
+  var newName = prompt('Rename location:', loc.name);
+  if (!newName || newName.trim() === loc.name) return;
+  try {
+    await db.ref(LOCATIONS_PATH + '/' + locId).update({ name: newName.trim(), updatedAt: new Date().toISOString() });
+    locationsData[locId].name = newName.trim();
+    showToast('Location renamed');
+    renderLocationsList();
+  } catch (err) {
+    showToast('Error: ' + err.message, true);
+  }
+}
+
+async function archiveLocation(locId) {
+  var loc = locationsData[locId];
+  if (!loc) return;
+  var itemCount = getLocationItemCount(locId);
+  if (itemCount > 0) {
+    showToast('Move ' + itemCount + ' items out of this location first', true);
+    return;
+  }
+  if (!confirm('Archive "' + loc.name + '"? You can reactivate it later.')) return;
+  try {
+    await db.ref(LOCATIONS_PATH + '/' + locId).update({ status: 'archived', updatedAt: new Date().toISOString() });
+    locationsData[locId].status = 'archived';
+    showToast('Location archived');
+    renderLocationsList();
+  } catch (err) {
+    showToast('Error: ' + err.message, true);
+  }
+}
+
+async function reactivateLocation(locId) {
+  try {
+    await db.ref(LOCATIONS_PATH + '/' + locId).update({ status: 'active', updatedAt: new Date().toISOString() });
+    locationsData[locId].status = 'active';
+    showToast('Location reactivated');
+    renderLocationsList();
+  } catch (err) {
+    showToast('Error: ' + err.message, true);
+  }
+}
+
+function copyLocationQR(locId) {
+  var loc = locationsData[locId];
+  if (!loc) return;
+  var url = loc.qrUrl || ('https://shirglassworks.com/scan/location/' + locId);
+  navigator.clipboard.writeText(url).then(function() {
+    showToast('QR URL copied: ' + url);
+  }).catch(function() {
+    prompt('Copy this QR URL:', url);
+  });
+}
+
+function exportLocationToLabelKeeper(locId) {
+  var loc = locationsData[locId];
+  if (!loc) return;
+  var url = loc.qrUrl || ('https://shirglassworks.com/scan/location/' + locId);
+  var labelData = '#LABELKEEPER\ntype: 5160\nqty: 1\n---\n' + loc.name + '\n' + url;
+  navigator.clipboard.writeText(labelData).then(function() {
+    showToast('LabelKeeper format copied to clipboard');
+  }).catch(function() {
+    prompt('Copy this LabelKeeper data:', labelData);
+  });
+}
+
+// ============================================================
+// Inventory Location Tracking
+// ============================================================
+
+function getLocationBreakdown(pid, variantKey) {
+  // Get the location breakdown for a product/variant
+  var inv = inventory[pid];
+  if (!inv || !inv.stock) return {};
+  var key = variantKey || '_default';
+  var variant = inv.stock[key];
+  if (!variant || !variant.locations) return {};
+  return variant.locations;
+}
+
+function getTotalAtLocation(locationId) {
+  // Get total items across all products at a location
+  var total = 0;
+  Object.keys(inventory).forEach(function(pid) {
+    var inv = inventory[pid];
+    if (!inv || !inv.stock) return;
+    Object.keys(inv.stock).forEach(function(vk) {
+      var v = inv.stock[vk];
+      if (v && v.locations && v.locations[locationId]) {
+        total += v.locations[locationId];
+      }
+    });
+  });
+  return total;
+}
+
+async function moveInventory(pid, variantKey, fromLocationId, toLocationId, qty) {
+  // Atomically move qty items from one location to another
+  if (!pid || !fromLocationId || !toLocationId || qty <= 0) return;
+  var key = variantKey || '_default';
+  var basePath = INVENTORY_PATH + '/' + pid + '/stock/' + key + '/locations/';
+
+  try {
+    // Read current counts
+    var fromSnap = await db.ref(basePath + fromLocationId).once('value');
+    var fromCount = fromSnap.val() || 0;
+    if (fromCount < qty) throw new Error('Only ' + fromCount + ' available at source location');
+
+    var toSnap = await db.ref(basePath + toLocationId).once('value');
+    var toCount = toSnap.val() || 0;
+
+    // Multi-path update for atomicity
+    var updates = {};
+    updates[basePath + fromLocationId] = fromCount - qty;
+    updates[basePath + toLocationId] = toCount + qty;
+
+    // Clean up zero counts
+    if (fromCount - qty <= 0) updates[basePath + fromLocationId] = null;
+
+    await db.ref().update(updates);
+
+    // Refresh local cache
+    var freshSnap = await db.ref(INVENTORY_PATH + '/' + pid + '/stock/' + key + '/locations').once('value');
+    if (inventory[pid] && inventory[pid].stock && inventory[pid].stock[key]) {
+      inventory[pid].stock[key].locations = freshSnap.val() || {};
+    }
+
+    return true;
+  } catch (err) {
+    showToast('Move error: ' + err.message, true);
+    return false;
+  }
+}
+
+async function addToLocation(pid, variantKey, locationId, qty) {
+  // Add qty items to a location (used during intake)
+  if (!pid || !locationId || qty <= 0) return;
+  var key = variantKey || '_default';
+  var path = INVENTORY_PATH + '/' + pid + '/stock/' + key + '/locations/' + locationId;
+
+  var snap = await db.ref(path).once('value');
+  var current = snap.val() || 0;
+  await db.ref(path).set(current + qty);
+
+  // Also update the total available count
+  var availPath = INVENTORY_PATH + '/' + pid + '/stock/' + key + '/available';
+  var availSnap = await db.ref(availPath).once('value');
+  var availCurrent = availSnap.val() || 0;
+  await db.ref(availPath).set(availCurrent + qty);
+
+  // Update _default total if this is a variant
+  if (key !== '_default') {
+    var defPath = INVENTORY_PATH + '/' + pid + '/stock/_default/available';
+    var defSnap = await db.ref(defPath).once('value');
+    var defCurrent = defSnap.val() || 0;
+    await db.ref(defPath).set(defCurrent + qty);
+  }
+
+  // Refresh local cache
+  if (!inventory[pid]) inventory[pid] = { pid: pid, stock: {} };
+  if (!inventory[pid].stock) inventory[pid].stock = {};
+  if (!inventory[pid].stock[key]) inventory[pid].stock[key] = { available: 0, locations: {} };
+  if (!inventory[pid].stock[key].locations) inventory[pid].stock[key].locations = {};
+  inventory[pid].stock[key].locations[locationId] = (inventory[pid].stock[key].locations[locationId] || 0) + qty;
+  inventory[pid].stock[key].available = (inventory[pid].stock[key].available || 0) + qty;
+  if (key !== '_default') {
+    if (!inventory[pid].stock._default) inventory[pid].stock._default = { available: 0 };
+    inventory[pid].stock._default.available = (inventory[pid].stock._default.available || 0) + qty;
+  }
+}
+
+async function decrementFromLocation(pid, variantKey, locationId, qty) {
+  // Remove qty items from a location (used during sales)
+  if (!pid || !locationId || qty <= 0) return;
+  var key = variantKey || '_default';
+  var path = INVENTORY_PATH + '/' + pid + '/stock/' + key + '/locations/' + locationId;
+
+  var snap = await db.ref(path).once('value');
+  var current = snap.val() || 0;
+  var newVal = Math.max(0, current - qty);
+  if (newVal <= 0) {
+    await db.ref(path).remove();
+  } else {
+    await db.ref(path).set(newVal);
+  }
+}
+
+// ============================================================
+// Move Items Between Locations
+// ============================================================
+
+function openMoveItemsModal(prefillPid, prefillVariant, prefillFrom) {
+  if (!locationsLoaded) { loadLocations(); }
+  var activeLocs = getLocationsArray('active');
+
+  // Build product picker options
+  var productOptions = '<option value="">— Select product —</option>';
+  if (productsData && productsData.length) {
+    productsData.forEach(function(p) {
+      var inv = inventory[p.pid] || {};
+      var totals = getInventoryTotals(inv);
+      if (totals.available > 0) {
+        productOptions += '<option value="' + esc(p.pid) + '"' + (prefillPid === p.pid ? ' selected' : '') + '>' + esc(p.name) + ' (' + totals.available + ')</option>';
+      }
+    });
+  }
+
+  var locationOptions = '';
+  activeLocs.forEach(function(loc) {
+    var typeIcon = loc.type === 'home' ? '🏠' : loc.type === 'event' ? '🎪' : loc.type === 'container' ? '📦' : '📍';
+    locationOptions += '<option value="' + esc(loc.id) + '">' + typeIcon + ' ' + esc(loc.name) + '</option>';
+  });
+
+  var html = '<div style="max-width:480px;">' +
+    '<h3 style="margin:0 0 16px 0;">Move Items Between Locations</h3>' +
+    '<div class="form-group">' +
+      '<label>Product</label>' +
+      '<select id="movePid" onchange="updateMoveVariants()" style="width:100%;">' + productOptions + '</select>' +
+    '</div>' +
+    '<div id="moveVariantRow" class="form-group" style="display:none;">' +
+      '<label>Variant</label>' +
+      '<select id="moveVariant" onchange="updateMoveFromLocations()" style="width:100%;"></select>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label>From Location</label>' +
+      '<select id="moveFrom" onchange="updateMoveMaxQty()" style="width:100%;">' +
+        '<option value="">— Select source —</option>' + locationOptions +
+      '</select>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label>To Location</label>' +
+      '<select id="moveTo" style="width:100%;">' +
+        '<option value="">— Select destination —</option>' + locationOptions +
+      '</select>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label>Quantity <span id="moveMaxLabel" style="font-size:0.78rem;color:var(--warm-gray);"></span></label>' +
+      '<input type="number" id="moveQty" min="1" value="1" style="width:100px;">' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">' +
+      '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="executeMoveItems()">Move</button>' +
+    '</div>' +
+  '</div>';
+
+  openModal(html);
+
+  if (prefillPid) {
+    updateMoveVariants();
+    if (prefillVariant) {
+      var varEl = document.getElementById('moveVariant');
+      if (varEl) varEl.value = prefillVariant;
+    }
+    if (prefillFrom) {
+      var fromEl = document.getElementById('moveFrom');
+      if (fromEl) fromEl.value = prefillFrom;
+      updateMoveMaxQty();
+    }
+  }
+}
+
+function updateMoveVariants() {
+  var pid = document.getElementById('movePid').value;
+  var varRow = document.getElementById('moveVariantRow');
+  var varSel = document.getElementById('moveVariant');
+  if (!pid) { varRow.style.display = 'none'; return; }
+
+  var product = productsData.find(function(p) { return p.pid === pid; });
+  var variantInfo = getProductVariantCombos(product);
+
+  if (variantInfo.combos.length > 0) {
+    var options = '';
+    variantInfo.combos.forEach(function(combo) {
+      var key = comboKey(combo);
+      var inv = inventory[pid];
+      var stock = inv && inv.stock && inv.stock[key] ? inv.stock[key] : { available: 0 };
+      options += '<option value="' + esc(key) + '">' + combo.join(' / ') + ' (' + (stock.available || 0) + ')</option>';
+    });
+    varSel.innerHTML = options;
+    varRow.style.display = '';
+  } else {
+    varRow.style.display = 'none';
+  }
+  updateMoveFromLocations();
+}
+
+function updateMoveFromLocations() {
+  var pid = document.getElementById('movePid').value;
+  if (!pid) return;
+  var variantEl = document.getElementById('moveVariant');
+  var varKey = (variantEl && variantEl.value && document.getElementById('moveVariantRow').style.display !== 'none') ? variantEl.value : '_default';
+  var locations = getLocationBreakdown(pid, varKey);
+  var fromEl = document.getElementById('moveFrom');
+  // Highlight locations that have stock
+  var options = fromEl.options;
+  for (var i = 0; i < options.length; i++) {
+    var locId = options[i].value;
+    if (locId && locations[locId]) {
+      options[i].textContent = options[i].textContent.replace(/ \(\d+\)$/, '') + ' (' + locations[locId] + ')';
+    }
+  }
+  updateMoveMaxQty();
+}
+
+function updateMoveMaxQty() {
+  var pid = document.getElementById('movePid').value;
+  var fromLocId = document.getElementById('moveFrom').value;
+  var variantEl = document.getElementById('moveVariant');
+  var varKey = (variantEl && variantEl.value && document.getElementById('moveVariantRow').style.display !== 'none') ? variantEl.value : '_default';
+  var label = document.getElementById('moveMaxLabel');
+
+  if (!pid || !fromLocId) { label.textContent = ''; return; }
+  var locations = getLocationBreakdown(pid, varKey);
+  var maxQty = locations[fromLocId] || 0;
+  label.textContent = '(max: ' + maxQty + ')';
+  document.getElementById('moveQty').max = maxQty;
+}
+
+async function executeMoveItems() {
+  var pid = document.getElementById('movePid').value;
+  var fromLocId = document.getElementById('moveFrom').value;
+  var toLocId = document.getElementById('moveTo').value;
+  var qty = parseInt(document.getElementById('moveQty').value) || 0;
+  var variantEl = document.getElementById('moveVariant');
+  var varKey = (variantEl && variantEl.value && document.getElementById('moveVariantRow').style.display !== 'none') ? variantEl.value : '_default';
+
+  if (!pid) { showToast('Select a product', true); return; }
+  if (!fromLocId) { showToast('Select source location', true); return; }
+  if (!toLocId) { showToast('Select destination location', true); return; }
+  if (fromLocId === toLocId) { showToast('Source and destination must be different', true); return; }
+  if (qty <= 0) { showToast('Enter a positive quantity', true); return; }
+
+  var ok = await moveInventory(pid, varKey, fromLocId, toLocId, qty);
+  if (ok) {
+    var product = productsData.find(function(p) { return p.pid === pid; });
+    var fromName = locationsData[fromLocId] ? locationsData[fromLocId].name : fromLocId;
+    var toName = locationsData[toLocId] ? locationsData[toLocId].name : toLocId;
+    showToast('Moved ' + qty + 'x ' + (product ? product.name : pid) + ': ' + fromName + ' → ' + toName);
+    closeModal();
+  }
 }
 
 // ---- Shipping Modal ----
