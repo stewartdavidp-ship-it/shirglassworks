@@ -430,16 +430,18 @@ Full end-to-end "day in the life" walkthrough covering: Production → Inventory
 | Bug | Severity | Fix |
 |-----|----------|-----|
 | Product picker in Add Line Item modal always empty | **Critical** | `openAddLineItemModal()` referenced undefined `products` variable instead of `productsData` array. Fixed to iterate `productsData.forEach()`. Also fixed `onLineItemProductSelect()` to use `productsData.find()`. Without this fix, all freeform line items get `productId: null`, which breaks `autoUpdateInventory()` (skips items without productId). |
+| Variant-blind inventory check on order confirmation | **Critical** | `transitionOrder('confirmed')` now checks variant-specific stock via `getItemComboKey()` before falling back to `_default`. |
+| Variant-blind inventory reservation | **Critical** | `reserveInventory()` now accepts optional combo key and updates both variant-specific and `_default` counts atomically via multi-path update. |
+| Variant-blind `pullFromStock()` | **High** | Now accepts optional combo key, decrements reserved on both variant and `_default`. |
+| Variant-blind `releaseInventory()` | **High** | Now accepts optional combo key, releases on both variant and `_default`. |
+| `saveAdjustStock()` uses `set()` not transaction | **Medium** | Changed from `.set()` on entire stock object to `.update()` with specific `available` paths. Reserved counts are no longer overwritten — managed atomically by reserve/release/pull. Local cache refreshed from Firebase after save. |
+| Freeform line items silently break `autoUpdateInventory()` | **Medium** | Now shows "⚠️ item: no product linked, inventory not updated" feedback instead of silent skip. |
 
 ### Known Bugs (Not Yet Fixed)
 
 | Bug | Severity | Description |
 |-----|----------|-------------|
-| Variant-blind inventory check on order confirmation | **Critical** | `transitionOrder('confirmed')` only checks `stock._default.available`, not variant-specific stock. An order for an out-of-stock variant could show "in stock" if other variants have availability. |
-| Variant-blind inventory reservation | **Critical** | `reserveInventory()` only operates on `_default`. Variant-level available/reserved counts never updated by orders. |
-| Variant-blind `pullFromStock()` | **High** | Only decrements `_default.reserved`, never adjusts variant stock when shipping. |
-| Variant-blind `autoUpdateInventory()` | **High** | Always writes to `stock/_default/available`. Production output for varianted products never distributes to variant keys. |
-| `saveAdjustStock()` uses `set()` not transaction | **Medium** | Manual stock adjustment overwrites entire stock object. Concurrent `autoUpdateInventory()` transaction could be overwritten. |
+| `autoUpdateInventory()` only pushes to `_default` | **Medium** | Production line items don't carry variant info, so auto-push still only increments `_default.available`. Variant distribution must be done manually via stock adjust. |
 
 ### Missing Features
 
@@ -457,12 +459,12 @@ Full end-to-end "day in the life" walkthrough covering: Production → Inventory
 | Pipeline | Status | Notes |
 |----------|--------|-------|
 | Job creation → line items → build → complete | ✅ Works | Full lifecycle tested live. Job auto-completes when targets met. |
-| Build completion → inventory auto-push | ❌ Broken (fixed) | Was broken because product picker bug caused null productId. Fixed locally, pending deploy. |
+| Build completion → inventory auto-push | ✅ Works | Product picker bug fixed (was causing null productId). Auto-push works for `_default`; variant distribution is manual. Freeform items now show warning instead of silent skip. |
 | Build completion → completion summary | ✅ Works | Shows target met, duration, and pipeline status. |
 | Build completion → fulfillment auto-advance | ✅ Works (code trace) | Linked production requests auto-fulfill on build complete. |
-| Order confirm → reserve/build routing | ✅ Works (code trace) | In-stock items reserved, out-of-stock creates production requests. |
+| Order confirm → reserve/build routing | ✅ Works (code trace) | In-stock items reserved (variant-aware), out-of-stock creates production requests. |
 | Production queue → assign → job creation | ✅ Works (code trace) | Both "new job" and "existing job" assignment paths functional. |
-| Shipping → pull from stock | ✅ Works (code trace) | Correctly decrements reserved (not available). |
+| Shipping → pull from stock | ✅ Works (code trace) | Correctly decrements reserved (variant-aware). |
 
 ---
 
@@ -478,5 +480,4 @@ Full end-to-end "day in the life" walkthrough covering: Production → Inventory
 - **Refund integration:** Square Refunds API for order cancellations after payment
 - **Customer order lookup:** Public page for customers to check order status by email + order number
 - **Inventory display on public site:** Show In Stock / Made to Order badges on public product cards (admin already shows badges)
-- **Variant-level fulfillment:** Extend `reserveInventory`/`releaseInventory`/`pullFromStock` to operate on specific combo keys rather than `_default` only
 - **Production Forecasting:** Cross-reference order/purchase history against current on-hand inventory to surface production recommendations — what to build next, trending products, restock alerts. Builds on the Inventory Overview in the Production tab.
