@@ -288,7 +288,7 @@
   <!-- Menu Screen -->
   <div class="screen" id="menuScreen">
     <div class="menu-header">
-      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v7</span></h1>
+      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v8</span></h1>
       <img class="menu-avatar" id="userAvatar" src="" alt="" onclick="signOut()">
     </div>
     <div class="menu-grid">
@@ -437,6 +437,7 @@ var storage = firebase.storage();
 var PRODUCTS_PATH = 'shirglassworks/public/products';
 var TRAINING_IMAGES_PATH = 'shirglassworks/admin/training-images';
 var CLASSIFY_FUNCTION_URL = 'https://us-central1-word-boxing.cloudfunctions.net/shirClassifyImage';
+var UPLOAD_FUNCTION_URL = 'https://us-central1-word-boxing.cloudfunctions.net/shirUploadTrainingImage';
 
 // ============================================================
 // State
@@ -670,64 +671,60 @@ function handleTrainingCapture(blob) {
   document.getElementById('uploadStatus').textContent = 'Compressing...';
 
   compressImage(blob).then(function(compressed) {
-    var uid = currentUser ? currentUser.uid : 'NO_AUTH';
-    var bucket = storage.app.options.storageBucket || 'NO_BUCKET';
-    var sizeKB = Math.round(compressed.size / 1024);
-    var imageId = db.ref().push().key;
-    var storagePath = 'shirglassworks/builds/training-' + selectedProductId + '/' + imageId + '.jpg';
+    document.getElementById('uploadStatus').textContent = 'Uploading via server...';
+    document.getElementById('uploadProgress').style.width = '30%';
 
-    // Show debug info directly in the UI
-    document.getElementById('uploadStatus').innerHTML =
-      '<small style="word-break:break-all">' +
-      'UID: ' + uid + '<br>' +
-      'Bucket: ' + bucket + '<br>' +
-      'Size: ' + sizeKB + 'KB<br>' +
-      'Path: ' + storagePath + '<br>' +
-      'Status: calling put()...</small>';
+    // Convert blob to base64
+    var reader = new FileReader();
+    reader.onloadend = function() {
+      var base64 = reader.result.split(',')[1]; // strip data:image/jpeg;base64,
 
-    var storageRef = storage.ref(storagePath);
-    var metadata = { contentType: 'image/jpeg' };
+      currentUser.getIdToken().then(function(idToken) {
+        document.getElementById('uploadProgress').style.width = '50%';
 
-    // Use promise-based upload with timeout
-    var uploadTimeout = setTimeout(function() {
-      isProcessing = false;
-      document.getElementById('captureBtn').classList.remove('processing');
-      document.getElementById('uploadStatus').textContent = 'Upload timed out (30s) — put() never resolved';
-      showToast('Upload timed out', true);
-    }, 30000);
-
-    storageRef.put(compressed, metadata).then(function(snapshot) {
-      clearTimeout(uploadTimeout);
-      console.log('[Studio] Upload complete, getting URL...');
-      document.getElementById('uploadProgress').style.width = '100%';
-      return snapshot.ref.getDownloadURL();
-    }).then(function(downloadUrl) {
-      console.log('[Studio] Got URL, saving to RTDB...');
-      document.getElementById('uploadStatus').textContent = 'Saving metadata...';
-      return db.ref(TRAINING_IMAGES_PATH + '/' + selectedProductId + '/' + imageId).set({
-        url: downloadUrl,
-        uploadedAt: new Date().toISOString(),
-        uploadedBy: currentUser.displayName || currentUser.email,
-        sizeBytes: compressed.size
+        fetch(UPLOAD_FUNCTION_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + idToken
+          },
+          body: JSON.stringify({
+            image: base64,
+            productId: selectedProductId
+          })
+        }).then(function(resp) {
+          if (!resp.ok) {
+            return resp.json().then(function(err) {
+              throw new Error(err.error || 'Upload failed (' + resp.status + ')');
+            });
+          }
+          return resp.json();
+        }).then(function(data) {
+          document.getElementById('uploadProgress').style.width = '100%';
+          trainingCounts[selectedProductId] = (trainingCounts[selectedProductId] || 0) + 1;
+          updateTrainingCountDisplay();
+          document.getElementById('uploadStatus').textContent = 'Saved!';
+          document.getElementById('keepBtn').style.display = '';
+          document.getElementById('keepBtn').textContent = 'Next';
+          isProcessing = false;
+          document.getElementById('captureBtn').classList.remove('processing');
+          showToast('Training photo saved');
+        }).catch(function(err) {
+          console.error('[Studio] Upload error:', err);
+          isProcessing = false;
+          document.getElementById('captureBtn').classList.remove('processing');
+          document.getElementById('uploadStatus').textContent = 'Error: ' + err.message;
+          showToast('Upload failed: ' + err.message, true);
+        });
+      }).catch(function(err) {
+        console.error('[Studio] Auth token error:', err);
+        isProcessing = false;
+        document.getElementById('captureBtn').classList.remove('processing');
+        document.getElementById('uploadStatus').textContent = 'Auth error';
+        showToast('Auth error: ' + err.message, true);
       });
-    }).then(function() {
-      console.log('[Studio] Done!');
-      trainingCounts[selectedProductId] = (trainingCounts[selectedProductId] || 0) + 1;
-      updateTrainingCountDisplay();
-      document.getElementById('uploadStatus').textContent = 'Saved!';
-      document.getElementById('keepBtn').style.display = '';
-      document.getElementById('keepBtn').textContent = 'Next';
-      isProcessing = false;
-      document.getElementById('captureBtn').classList.remove('processing');
-      showToast('Training photo saved');
-    }).catch(function(err) {
-      clearTimeout(uploadTimeout);
-      console.error('[Studio] Upload chain error:', err.code, err.message);
-      isProcessing = false;
-      document.getElementById('captureBtn').classList.remove('processing');
-      document.getElementById('uploadStatus').textContent = 'Error: ' + (err.code || err.message);
-      showToast('Error: ' + err.message, true);
-    });
+    };
+    reader.readAsDataURL(compressed);
   }).catch(function(err) {
     console.error('[Studio] Compression error:', err);
     isProcessing = false;
