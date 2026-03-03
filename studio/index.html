@@ -288,7 +288,7 @@
   <!-- Menu Screen -->
   <div class="screen" id="menuScreen">
     <div class="menu-header">
-      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v9</span></h1>
+      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v10</span></h1>
       <img class="menu-avatar" id="userAvatar" src="" alt="" onclick="signOut()">
     </div>
     <div class="menu-grid">
@@ -872,10 +872,12 @@ function runClaudeVision(blob) {
     reader.onload = function() {
       var base64 = reader.result.split(',')[1];
 
-      // Build product catalog context
+      // Build product catalog context with thumbnail URLs
       var catalog = Object.keys(products).map(function(pid) {
         var p = products[pid];
-        return { id: pid, name: p.name, categories: p.categories || [] };
+        var entry = { id: pid, name: p.name, categories: p.categories || [] };
+        if (p.images && p.images.length) entry.imageUrl = p.images[0];
+        return entry;
       });
 
       currentUser.getIdToken().then(function(token) {
