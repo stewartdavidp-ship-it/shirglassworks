@@ -288,7 +288,7 @@
   <!-- Menu Screen -->
   <div class="screen" id="menuScreen">
     <div class="menu-header">
-      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v8</span></h1>
+      <h1>Studio <span style="font-size:12px;font-weight:400;color:var(--text-dim)">v9</span></h1>
       <img class="menu-avatar" id="userAvatar" src="" alt="" onclick="signOut()">
     </div>
     <div class="menu-grid">
@@ -764,10 +764,11 @@ function handleTestCapture(blob, canvas) {
     result.tfjs = r;
     displayTfjsResult(r);
   }).catch(function(err) {
-    result.tfjs = { product: 'Error', confidence: 0, latencyMs: 0, error: err.message };
-    document.getElementById('tfjsResult').textContent = 'Error';
-    document.getElementById('tfjsConfidence').textContent = err.message;
-    document.getElementById('tfjsConfidence').className = 'result-value confidence-low';
+    var isNoModel = err.message === 'No model loaded';
+    result.tfjs = { product: isNoModel ? 'Not trained' : 'Error', confidence: 0, latencyMs: 0, error: err.message };
+    document.getElementById('tfjsResult').textContent = isNoModel ? 'Not trained yet' : 'Error';
+    document.getElementById('tfjsConfidence').textContent = isNoModel ? 'Run train-model.py' : err.message;
+    document.getElementById('tfjsConfidence').className = 'result-value' + (isNoModel ? '' : ' confidence-low');
   });
 
   var claudePromise = runClaudeVision(blob).then(function(r) {
