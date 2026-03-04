@@ -6467,12 +6467,16 @@ function renderImageLibrary() {
     var id = entry[0];
     var img = entry[1];
     var u = usage[id] || { onWebsite: false, products: [], galleryCount: 0 };
-    var thumb = img.thumbnailUrl || img.url || '';
-    var tags = (img.tags || []).join(', ') || '';
-    var date = img.uploadedAt ? new Date(img.uploadedAt).toLocaleDateString() : '';
+    var isVideo = img.type === 'video' || (img.contentType && img.contentType.indexOf('video') === 0);
+    var thumb = img.thumbnailUrl || (isVideo ? '' : img.url) || '';
+    var tags = (img.tags || []).join(', ') || (img.description ? img.description.substring(0, 60) : '');
+    var date = img.uploadedAt ? new Date(img.uploadedAt).toLocaleDateString() : (img.uploadDate || '');
 
     html += '<div class="img-lib-card" onclick="viewLibraryImage(\'' + esc(id) + '\')">' +
-      '<img src="' + esc(thumb) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+      (thumb
+        ? '<img src="' + esc(thumb) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
+        : '<div style="height:120px;display:flex;align-items:center;justify-content:center;background:var(--charcoal);color:var(--warm-gray-light);font-size:2rem;">' +
+          (isVideo ? '\u25B6' : '\u{1F5BC}') + '</div>') +
       '<div class="img-lib-card-body">' +
         (tags ? '<div class="img-lib-card-tags">' + esc(tags) + '</div>' : '') +
         '<div class="img-lib-card-badges">';
@@ -6496,25 +6500,32 @@ function viewLibraryImage(imageId) {
   var tags = (img.tags || []).join(', ') || 'none';
   var dims = img.dimensions ? (img.dimensions.width + ' x ' + img.dimensions.height) : 'unknown';
 
+  var isVideo = img.type === 'video' || (img.contentType && img.contentType.indexOf('video') === 0);
+  var mediaPreview = isVideo
+    ? '<video src="' + esc(img.url) + '" controls style="max-width:100%;max-height:300px;border-radius:8px;" preload="metadata"></video>'
+    : '<img src="' + esc(img.url || img.thumbnailUrl) + '" style="max-width:100%;max-height:300px;border-radius:8px;" loading="lazy">';
+
   var html =
     '<div class="modal-header">' +
-      '<h3>Image Details</h3>' +
+      '<h3>' + (isVideo ? 'Video' : 'Image') + ' Details</h3>' +
       '<button class="modal-close" onclick="closeModal()">&times;</button>' +
     '</div>' +
     '<div class="modal-body">' +
       '<div style="text-align:center;margin-bottom:16px;">' +
-        '<img src="' + esc(img.url || img.thumbnailUrl) + '" style="max-width:100%;max-height:300px;border-radius:8px;" loading="lazy">' +
+        mediaPreview +
       '</div>' +
+      (img.description ? '<div style="font-size:0.9rem;margin-bottom:12px;color:var(--warm-white);">' + esc(img.description) + '</div>' : '') +
       '<div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:0.9rem;">' +
-        '<span style="color:var(--warm-gray);">Source</span><span>' + esc(img.source || 'unknown') + '</span>' +
-        '<span style="color:var(--warm-gray);">Dimensions</span><span>' + dims + '</span>' +
+        '<span style="color:var(--warm-gray);">Type</span><span>' + (isVideo ? 'Video' + (img.duration ? ' (' + img.duration + 's)' : '') : 'Image') + '</span>' +
+        '<span style="color:var(--warm-gray);">Source</span><span>' + esc(img.source || 'unknown') + (img.instagramUrl ? ' <a href="' + esc(img.instagramUrl) + '" target="_blank" style="color:var(--amber);">View on IG</a>' : '') + '</span>' +
+        '<span style="color:var(--warm-gray);">Dimensions</span><span>' + (img.resolution || dims) + '</span>' +
         '<span style="color:var(--warm-gray);">Tags</span><span>' + esc(tags) + '</span>' +
-        '<span style="color:var(--warm-gray);">Uploaded</span><span>' + (img.uploadedAt ? new Date(img.uploadedAt).toLocaleString() : 'unknown') + '</span>' +
+        '<span style="color:var(--warm-gray);">Uploaded</span><span>' + (img.uploadedAt ? new Date(img.uploadedAt).toLocaleString() : (img.uploadDate || 'unknown')) + '</span>' +
         '<span style="color:var(--warm-gray);">On Website</span><span>' + (u.onWebsite ? 'Yes (' + u.galleryCount + ' placement' + (u.galleryCount !== 1 ? 's' : '') + ')' : 'No') + '</span>' +
         '<span style="color:var(--warm-gray);">Products</span><span>' + (u.products.length > 0 ? esc(u.products.join(', ')) : 'None') + '</span>' +
       '</div>' +
       '<div style="margin-top:12px;">' +
-        '<label style="font-size:0.85rem;color:var(--warm-gray);">Image URL</label>' +
+        '<label style="font-size:0.85rem;color:var(--warm-gray);">' + (isVideo ? 'Video' : 'Image') + ' URL</label>' +
         '<input type="text" value="' + esc(img.url || '') + '" readonly onclick="this.select()" style="width:100%;font-size:0.8rem;">' +
       '</div>' +
     '</div>' +
@@ -6688,10 +6699,14 @@ function openImagePicker(callback, options) {
     entries.forEach(function(entry) {
       var id = entry[0];
       var img = entry[1];
-      var thumb = img.thumbnailUrl || img.url || '';
-      var tagStr = (img.tags || []).join(',');
+      var isVid = img.type === 'video' || (img.contentType && img.contentType.indexOf('video') === 0);
+      var thumb = img.thumbnailUrl || (isVid ? '' : img.url) || '';
+      var tagStr = (img.tags || []).join(',') || (img.description || '');
       html += '<div class="img-picker-item" data-imgid="' + esc(id) + '" data-tags="' + esc(tagStr) + '" onclick="togglePickerItem(this)">' +
-        '<img src="' + esc(thumb) + '" alt="" loading="lazy">' +
+        (thumb
+          ? '<img src="' + esc(thumb) + '" alt="" loading="lazy">'
+          : '<div style="height:100%;display:flex;align-items:center;justify-content:center;background:var(--charcoal);color:var(--warm-gray-light);font-size:1.5rem;min-height:80px;">' +
+            (isVid ? '\u25B6' : '\u{1F5BC}') + '</div>') +
         '<div class="picker-check">&#10003;</div>' +
       '</div>';
     });
