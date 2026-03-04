@@ -1501,21 +1501,23 @@
     var video = document.getElementById('heroVideo');
     var poster = document.getElementById('heroPoster');
     if (video && heroItems.length > 0) {
-      var heroPlaylist = heroItems.map(function(h) { return h.videoUrl; });
+      var heroPlaylist = heroItems.map(function(h) { return { url: h.videoUrl, speed: h.playbackSpeed || 1 }; });
       var heroIndex = 0;
       // Disable loop before loading so 'ended' event fires for playlist cycling
       if (heroPlaylist.length > 1) {
         video.loop = false;
         video.removeAttribute('loop');
       }
-      video.src = heroPlaylist[0];
+      video.src = heroPlaylist[0].url;
+      video.playbackRate = heroPlaylist[0].speed;
       if (heroItems[0].url) video.poster = heroItems[0].url;
       video.load();
       video.play().catch(function() {});
       if (heroPlaylist.length > 1) {
         video.addEventListener('ended', function() {
           heroIndex = (heroIndex + 1) % heroPlaylist.length;
-          video.src = heroPlaylist[heroIndex];
+          video.src = heroPlaylist[heroIndex].url;
+          video.playbackRate = heroPlaylist[heroIndex].speed;
           video.load();
           video.play().catch(function() {});
         });
