@@ -5939,11 +5939,23 @@ function openImageModal(imageId, defaultSection) {
           '<div id="imgProgressStatus" style="font-size:0.8rem;color:var(--warm-gray);margin-top:4px;"></div>' +
         '</div>' +
       '</div>' +
-      // Hero: video URL
+      // Hero: video URL + playback speed
       '<div class="form-group" id="imgVideoUrlGroup"' + (!showVideoUrl ? ' style="display:none;"' : '') + '>' +
         '<label for="imgVideoUrl">Video URL</label>' +
         '<input type="text" id="imgVideoUrl" value="' + esc(img.videoUrl || '') + '" placeholder="https://...video.mp4">' +
         '<p style="font-size:0.8rem;color:var(--warm-gray);margin-top:4px;">Looping background video for the hero section</p>' +
+      '</div>' +
+      '<div class="form-group" id="imgPlaybackSpeedGroup"' + (!showVideoUrl ? ' style="display:none;"' : '') + '>' +
+        '<label for="imgPlaybackSpeed">Playback Speed</label>' +
+        '<select id="imgPlaybackSpeed">' +
+          '<option value="0.25"' + (img.playbackSpeed == 0.25 ? ' selected' : '') + '>0.25x (very slow)</option>' +
+          '<option value="0.5"' + (img.playbackSpeed == 0.5 ? ' selected' : '') + '>0.5x (slow)</option>' +
+          '<option value="0.75"' + (img.playbackSpeed == 0.75 ? ' selected' : '') + '>0.75x</option>' +
+          '<option value="1"' + (!img.playbackSpeed || img.playbackSpeed == 1 ? ' selected' : '') + '>1x (normal)</option>' +
+          '<option value="1.25"' + (img.playbackSpeed == 1.25 ? ' selected' : '') + '>1.25x</option>' +
+          '<option value="1.5"' + (img.playbackSpeed == 1.5 ? ' selected' : '') + '>1.5x</option>' +
+          '<option value="2"' + (img.playbackSpeed == 2 ? ' selected' : '') + '>2x (fast)</option>' +
+        '</select>' +
       '</div>' +
       '<div class="form-group">' +
         '<label for="imgAlt">Alt Text *</label>' +
@@ -6024,7 +6036,9 @@ function onSectionChange() {
   var categoryGroup = document.getElementById('imgCategoryGroup');
   var productFields = document.getElementById('imgProductFields');
   var isShopSec = SHOP_SECTION_IDS.indexOf(sec) !== -1;
+  var speedGroup = document.getElementById('imgPlaybackSpeedGroup');
   videoGroup.style.display = sec === 'hero' ? '' : 'none';
+  if (speedGroup) speedGroup.style.display = sec === 'hero' ? '' : 'none';
   categoryGroup.style.display = (sec === 'gallery' || sec === 'shop') ? '' : 'none';
   productFields.style.display = isShopSec ? '' : 'none';
 }
@@ -6190,10 +6204,13 @@ async function saveImage(imageId) {
     updatedAt: firebase.database.ServerValue.TIMESTAMP
   };
 
-  // Hero: video URL
+  // Hero: video URL + playback speed
   if (section === 'hero') {
     var videoUrl = document.getElementById('imgVideoUrl').value.trim();
     if (videoUrl) data.videoUrl = videoUrl;
+    var speed = parseFloat(((document.getElementById('imgPlaybackSpeed') || {}).value || '1'));
+    if (speed && speed !== 1) data.playbackSpeed = speed;
+    else data.playbackSpeed = null;
   }
 
   // Shop sections: product fields
