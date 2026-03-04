@@ -45,7 +45,7 @@
       font-family: 'Cormorant Garamond', serif;
     }
 
-    /* ========== HEADER ========== */
+    /* ========== TOP BAR ========== */
     .header {
       position: fixed;
       top: 0;
@@ -70,39 +70,21 @@
       white-space: nowrap;
     }
 
-    .hamburger-btn { display: none; }
-    .mobile-menu-overlay { display: none; }
-
-    .header-tabs {
-      display: flex;
-      gap: 4px;
-      height: 100%;
-    }
-
-    .header-tab {
+    .hamburger-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
       background: none;
       border: none;
       color: var(--warm-gray-light);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 500;
-      padding: 0 20px;
+      font-size: 22px;
       cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: color 0.2s, border-color 0.2s;
-      height: 100%;
-      display: flex;
-      align-items: center;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .header-tab:hover {
-      color: white;
-    }
-
-    .header-tab.active {
-      color: white;
-      border-bottom-color: var(--amber);
-    }
+    .mobile-menu-overlay { display: none; }
 
     .header-user {
       display: flex;
@@ -134,6 +116,142 @@
       border-color: white;
     }
 
+    /* ========== SIDEBAR NAVIGATION ========== */
+    .sidebar {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      bottom: 0;
+      width: 240px;
+      background: var(--charcoal);
+      color: white;
+      overflow-y: auto;
+      z-index: 99;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      display: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .sidebar.visible { display: block; }
+
+    .sidebar-section { border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+    .sidebar-section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      cursor: pointer;
+      color: var(--warm-gray-light);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      transition: background 0.15s, color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .sidebar-section-header:hover { background: rgba(255,255,255,0.04); color: white; }
+    .sidebar-section-header.active { color: var(--amber-glow); }
+
+    .sidebar-section-icon { font-size: 1.1rem; flex-shrink: 0; width: 24px; text-align: center; }
+    .sidebar-section-label { flex: 1; }
+    .sidebar-section-arrow {
+      font-size: 0.65rem;
+      transition: transform 0.2s;
+      color: var(--warm-gray);
+    }
+    .sidebar-section.open .sidebar-section-arrow { transform: rotate(90deg); }
+
+    .sidebar-items {
+      display: none;
+      padding-bottom: 4px;
+    }
+    .sidebar-section.open .sidebar-items { display: block; }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px 9px 50px;
+      cursor: pointer;
+      color: var(--warm-gray-light);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      transition: background 0.15s, color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      text-decoration: none;
+    }
+    .sidebar-item:hover { background: rgba(255,255,255,0.04); color: white; }
+    .sidebar-item.active {
+      color: white;
+      background: rgba(42, 124, 111, 0.25);
+      border-left: 3px solid var(--teal);
+      padding-left: 47px;
+    }
+    .sidebar-item.muted { opacity: 0.55; }
+    .sidebar-item.muted.active { opacity: 1; }
+
+    .sidebar-badge {
+      font-size: 0.6rem;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .sidebar-badge.new { background: #2563eb; color: white; }
+    .sidebar-badge.partial { background: var(--amber); color: white; }
+    .sidebar-badge.future { background: rgba(255,255,255,0.1); color: var(--warm-gray); }
+
+    /* Dashboard is a direct-click section header */
+    .sidebar-section-header.dashboard-link { cursor: pointer; }
+    .sidebar-section-header.dashboard-link.active {
+      color: white;
+      background: rgba(42, 124, 111, 0.25);
+    }
+
+    /* ========== PLACEHOLDER VIEW ========== */
+    .placeholder-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .placeholder-badge {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    .placeholder-badge.new { background: #2563eb; color: white; }
+    .placeholder-badge.partial { background: var(--amber); color: white; }
+    .placeholder-badge.future { background: var(--warm-gray); color: white; }
+    .placeholder-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 500;
+      color: var(--charcoal);
+      margin-bottom: 8px;
+    }
+    .placeholder-desc {
+      color: var(--warm-gray);
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      max-width: 400px;
+    }
+    .placeholder-note {
+      color: var(--warm-gray-light);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
     /* ========== MAIN CONTENT ========== */
     .main {
       padding-top: 80px;
@@ -142,6 +260,11 @@
       margin: 0 auto;
       padding-left: 20px;
       padding-right: 20px;
+      transition: margin-left 0.2s;
+    }
+    .main.with-sidebar {
+      margin-left: 240px;
+      max-width: calc(1100px + 240px);
     }
 
     /* ========== AUTH SCREENS ========== */
@@ -835,45 +958,17 @@
 
       .hamburger-btn {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        background: none;
-        border: none;
-        color: var(--warm-gray-light);
-        font-size: 22px;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
       }
 
-      .header-tabs {
-        position: fixed;
+      .sidebar {
         top: 60px;
-        left: 0;
-        right: 0;
-        background: var(--charcoal);
-        display: none;
-        flex-direction: column;
-        border-top: 1px solid rgba(255,255,255,0.1);
-        z-index: 99;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        width: 280px;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        display: block !important;
+        box-shadow: 4px 0 12px rgba(0,0,0,0.3);
       }
-      .header-tabs.open { display: flex; }
-
-      .header-tab {
-        height: auto;
-        justify-content: flex-start;
-        padding: 14px 20px;
-        font-size: 0.95rem;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-        border-left: 3px solid transparent;
-      }
-      .header-tab:last-child { border-bottom: none; }
-      .header-tab.active {
-        border-left-color: var(--amber);
-        background: rgba(255,255,255,0.05);
-      }
+      .sidebar.open { transform: translateX(0); }
 
       .mobile-menu-overlay {
         display: none;
@@ -884,6 +979,11 @@
         z-index: 98;
       }
       .mobile-menu-overlay.open { display: block; }
+
+      .main.with-sidebar {
+        margin-left: 0;
+        max-width: 1100px;
+      }
 
       .main {
         padding-top: 80px;
@@ -2246,28 +2346,101 @@
 </head>
 <body>
 
-  <!-- ===== HEADER ===== -->
+  <!-- ===== TOP BAR ===== -->
   <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
   <header class="header" id="header" style="display:none;">
-    <div class="header-brand">Shir Glassworks</div>
-    <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileMenu(event)">&#9776;</button>
-    <div class="header-tabs" id="headerTabs">
-      <button class="header-tab active" data-tab="schedule" onclick="switchTab('schedule')">Schedule</button>
-      <button class="header-tab" data-tab="gallery" onclick="switchTab('gallery')">Gallery</button>
-      <button class="header-tab" data-tab="products" onclick="switchTab('products')">Products</button>
-      <button class="header-tab" data-tab="orders" onclick="switchTab('orders')">Orders</button>
-      <button class="header-tab" data-tab="sales" onclick="switchTab('sales')">Sales</button>
-      <button class="header-tab" data-tab="salesEvents" onclick="switchTab('salesEvents')">Events</button>
-      <button class="header-tab" data-tab="production" onclick="switchTab('production')">Production</button>
-      <button class="header-tab" data-tab="coupons" onclick="switchTab('coupons')">Coupons</button>
-      <button class="header-tab" data-tab="analytics" onclick="switchTab('analytics')">Analytics</button>
-      <button class="header-tab" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileMenu(event)">&#9776;</button>
+      <div class="header-brand">Shir Glassworks</div>
     </div>
     <div class="header-user">
       <img class="header-avatar" id="userAvatar" src="" alt="User">
       <button class="header-signout" onclick="signOut()">Sign Out</button>
     </div>
   </header>
+
+  <!-- ===== SIDEBAR NAVIGATION ===== -->
+  <nav class="sidebar" id="sidebar">
+    <!-- Dashboard -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-header dashboard-link" onclick="navigateTo('dashboard')">
+        <span class="sidebar-section-icon">&#127968;</span>
+        <span class="sidebar-section-label">Dashboard</span>
+      </div>
+    </div>
+    <!-- Make -->
+    <div class="sidebar-section" data-section="make">
+      <div class="sidebar-section-header" onclick="toggleSection('make')">
+        <span class="sidebar-section-icon">&#128293;</span>
+        <span class="sidebar-section-label">Make</span>
+        <span class="sidebar-section-arrow">&#9654;</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item" data-route="production" onclick="navigateTo('production')">Production</div>
+        <div class="sidebar-item muted" data-route="procurement" onclick="navigateTo('procurement')">Procurement <span class="sidebar-badge new">New</span></div>
+        <div class="sidebar-item muted" data-route="commissions" onclick="navigateTo('commissions')">Commissions <span class="sidebar-badge new">New</span></div>
+      </div>
+    </div>
+    <!-- Sell -->
+    <div class="sidebar-section" data-section="sell">
+      <div class="sidebar-section-header" onclick="toggleSection('sell')">
+        <span class="sidebar-section-icon">&#128176;</span>
+        <span class="sidebar-section-label">Sell</span>
+        <span class="sidebar-section-arrow">&#9654;</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item" data-route="pos" onclick="navigateTo('pos')">Point of Sale</div>
+        <div class="sidebar-item" data-route="events" onclick="navigateTo('events')">Events</div>
+        <div class="sidebar-item" data-route="orders" onclick="navigateTo('orders')">Retail Orders</div>
+        <div class="sidebar-item muted" data-route="wholesale" onclick="navigateTo('wholesale')">Wholesale <span class="sidebar-badge new">New</span></div>
+        <div class="sidebar-item muted" data-route="galleries" onclick="navigateTo('galleries')">Galleries &amp; Consignment <span class="sidebar-badge new">New</span></div>
+        <div class="sidebar-item muted" data-route="fulfillment" onclick="navigateTo('fulfillment')">Fulfillment <span class="sidebar-badge partial">Partial</span></div>
+        <div class="sidebar-item" data-route="receipts" onclick="navigateTo('receipts')">Receipts &amp; Reconciliation</div>
+      </div>
+    </div>
+    <!-- Market -->
+    <div class="sidebar-section" data-section="market">
+      <div class="sidebar-section-header" onclick="toggleSection('market')">
+        <span class="sidebar-section-icon">&#128227;</span>
+        <span class="sidebar-section-label">Market</span>
+        <span class="sidebar-section-arrow">&#9654;</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item muted" data-route="social" onclick="navigateTo('social')">Social Media <span class="sidebar-badge new">New</span></div>
+        <div class="sidebar-item muted" data-route="newsletter" onclick="navigateTo('newsletter')">Blog &amp; Newsletter <span class="sidebar-badge new">New</span></div>
+        <div class="sidebar-item" data-route="stories" onclick="navigateTo('stories')">Stories</div>
+        <div class="sidebar-item" data-route="website" onclick="navigateTo('website')">Website Content</div>
+      </div>
+    </div>
+    <!-- Manage -->
+    <div class="sidebar-section" data-section="manage">
+      <div class="sidebar-section-header" onclick="toggleSection('manage')">
+        <span class="sidebar-section-icon">&#9881;&#65039;</span>
+        <span class="sidebar-section-label">Manage</span>
+        <span class="sidebar-section-arrow">&#9654;</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item" data-route="products" onclick="navigateTo('products')">Products</div>
+        <div class="sidebar-item" data-route="inventory" onclick="navigateTo('inventory')">Inventory</div>
+        <div class="sidebar-item muted" data-route="customers" onclick="navigateTo('customers')">Customers <span class="sidebar-badge new">New</span></div>
+        <div class="sidebar-item" data-route="images" onclick="navigateTo('images')">Images</div>
+        <div class="sidebar-item muted" data-route="employees" onclick="navigateTo('employees')">Employees &amp; Permissions <span class="sidebar-badge new">New</span></div>
+        <div class="sidebar-item muted" data-route="financials" onclick="navigateTo('financials')">Financials <span class="sidebar-badge new">New</span></div>
+        <div class="sidebar-item" data-route="settings" onclick="navigateTo('settings')">Settings &amp; Integrations</div>
+      </div>
+    </div>
+    <!-- Teach -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-header dashboard-link muted" onclick="navigateTo('teach')" style="opacity:0.55;">
+        <span class="sidebar-section-icon">&#127891;</span>
+        <span class="sidebar-section-label">Teach</span>
+        <span class="sidebar-badge future" style="margin-left:auto;">Future</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== PLACEHOLDER CONTAINER ===== -->
+  <div id="placeholderTab" style="display:none;"></div>
 
   <!-- ===== MAIN CONTENT ===== -->
   <div class="main">
@@ -2934,6 +3107,7 @@
             <input type="text" id="newLocationName" placeholder="Location name (e.g. Shelf A, Display Case)"
               style="flex:1;min-width:160px;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;">
             <select id="newLocationType" style="padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;">
+              <option value="storage">Storage/Display</option>
               <option value="home">Home/Studio</option>
               <option value="container">Container/Box</option>
               <option value="other">Other</option>
@@ -3240,13 +3414,17 @@ function enterAuthorizedState() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('deniedScreen').style.display = 'none';
   document.getElementById('header').style.display = 'flex';
-  switchTab(currentTab);
+  showSidebar();
+  // Route from hash or default to dashboard
+  var initialRoute = location.hash.replace('#', '') || 'dashboard';
+  navigateTo(initialRoute);
 }
 
 if (TEST_MODE) {
   // Bypass auth on localhost for preview/testing
+  // Deferred so all var assignments (ROUTE_MAP, etc.) complete first
   currentUser = { uid: 'test', photoURL: '', displayName: 'Test User' };
-  enterAuthorizedState();
+  setTimeout(enterAuthorizedState, 0);
 }
 
 auth.onAuthStateChanged(function(user) {
@@ -3260,6 +3438,7 @@ auth.onAuthStateChanged(function(user) {
     authScreen.style.display = '';
     deniedScreen.style.display = 'none';
     header.style.display = 'none';
+    hideSidebar();
     hideAdminTabs();
     detachListeners();
     return;
@@ -3269,6 +3448,7 @@ auth.onAuthStateChanged(function(user) {
     authScreen.style.display = 'none';
     deniedScreen.style.display = '';
     header.style.display = 'none';
+    hideSidebar();
     hideAdminTabs();
     detachListeners();
     return;
@@ -3278,8 +3458,10 @@ auth.onAuthStateChanged(function(user) {
   authScreen.style.display = 'none';
   deniedScreen.style.display = 'none';
   header.style.display = 'flex';
+  showSidebar();
   document.getElementById('userAvatar').src = user.photoURL || '';
-  switchTab(currentTab);
+  var initialRoute = location.hash.replace('#', '') || 'dashboard';
+  navigateTo(initialRoute);
   attachListeners();
 
   // Load GitHub token for image uploads
@@ -3296,72 +3478,212 @@ auth.onAuthStateChanged(function(user) {
 // ============================================================
 // Tabs
 // ============================================================
-function toggleMobileMenu(e) {
-  if (e) e.stopPropagation();
-  var tabs = document.getElementById('headerTabs');
-  var overlay = document.getElementById('mobileMenuOverlay');
-  var isOpen = tabs.classList.contains('open');
-  tabs.classList.toggle('open', !isOpen);
-  overlay.classList.toggle('open', !isOpen);
+// ============================================================
+// Sidebar Navigation System
+// ============================================================
+
+// Route → tab element + optional setup
+var ROUTE_MAP = {
+  'dashboard':   { tab: null, placeholder: { name: 'Dashboard', desc: 'Overview of your studio at a glance.', badge: 'new' } },
+  'production':  { tab: 'productionTab', setup: function() { switchProductionSubView('jobs'); } },
+  'procurement': { tab: null, placeholder: { name: 'Procurement', desc: 'Track materials, supplies, purchase orders.', badge: 'new' } },
+  'commissions': { tab: null, placeholder: { name: 'Commissions', desc: 'Manage custom orders from inquiry to delivery.', badge: 'new' } },
+  'pos':         { tab: 'salesTab', setup: function() { if (showingSquarePayments) toggleSquarePayments(); } },
+  'events':      { tab: 'salesEventsTab' },
+  'orders':      { tab: 'ordersTab' },
+  'wholesale':   { tab: null, placeholder: { name: 'Wholesale', desc: 'Bulk buyer accounts, pricing, terms.', badge: 'new' } },
+  'galleries':   { tab: null, placeholder: { name: 'Galleries & Consignment', desc: 'Track consigned pieces at galleries.', badge: 'new' } },
+  'fulfillment': { tab: null, placeholder: { name: 'Fulfillment', desc: 'Shipping workflow and order fulfillment.', badge: 'partial' } },
+  'receipts':    { tab: 'salesTab', setup: function() { if (!showingSquarePayments) toggleSquarePayments(); } },
+  'social':      { tab: null, placeholder: { name: 'Social Media', desc: 'Content calendar, post planning.', badge: 'new' } },
+  'newsletter':  { tab: null, placeholder: { name: 'Blog & Newsletter', desc: 'Subscriber management, compose, send.', badge: 'new' } },
+  'stories':     { tab: 'productionTab', setup: function() { switchProductionSubView('jobs'); } },
+  'website':     { tab: 'galleryTab' },
+  'products':    { tab: 'productsTab' },
+  'inventory':   { tab: 'productionTab', setup: function() { switchProductionSubView('inventory'); } },
+  'customers':   { tab: null, placeholder: { name: 'Customers', desc: 'Contacts, collectors, purchase history.', badge: 'new' } },
+  'images':      { tab: 'galleryTab' },
+  'employees':   { tab: null, placeholder: { name: 'Employees & Permissions', desc: 'Team access, feature-level permissions.', badge: 'new' } },
+  'financials':  { tab: null, placeholder: { name: 'Financials', desc: 'Revenue, costs, P&L.', badge: 'new' } },
+  'settings':    { tab: 'settingsTab' },
+  'teach':       { tab: null, placeholder: { name: 'Teach', desc: 'Coming when Studio 2 opens \u2014 classes, workshops, scheduling.', badge: 'future' } },
+  // Legacy routes for backward compatibility
+  'schedule':    { tab: 'scheduleTab' },
+  'sales':       { tab: 'salesTab' },
+  'salesEvents': { tab: 'salesEventsTab' },
+  'gallery':     { tab: 'galleryTab' },
+  'coupons':     { tab: 'couponsTab' },
+  'analytics':   { tab: 'analyticsTab' }
+};
+
+// Section → which routes belong to it (for auto-expanding)
+var SECTION_ROUTES = {
+  'make':   ['production', 'procurement', 'commissions'],
+  'sell':   ['pos', 'events', 'orders', 'wholesale', 'galleries', 'fulfillment', 'receipts'],
+  'market': ['social', 'newsletter', 'stories', 'website'],
+  'manage': ['products', 'inventory', 'customers', 'images', 'employees', 'financials', 'settings']
+};
+
+var ALL_TAB_IDS = ['scheduleTab', 'galleryTab', 'productsTab', 'ordersTab', 'salesTab', 'salesEventsTab', 'productionTab', 'couponsTab', 'analyticsTab', 'settingsTab', 'placeholderTab'];
+
+var currentRoute = 'dashboard';
+
+function navigateTo(route) {
+  if (!ROUTE_MAP[route]) route = 'dashboard';
+  currentRoute = route;
+  location.hash = route;
+  applyRoute(route);
+  closeMobileMenu();
 }
 
-function closeMobileMenu() {
-  var tabs = document.getElementById('headerTabs');
-  var overlay = document.getElementById('mobileMenuOverlay');
-  if (tabs) tabs.classList.remove('open');
-  if (overlay) overlay.classList.remove('open');
-}
+function applyRoute(route) {
+  var config = ROUTE_MAP[route];
+  if (!config) return;
 
-// Close menu when tapping overlay
-document.getElementById('mobileMenuOverlay').addEventListener('mousedown', function() {
-  closeMobileMenu();
-});
-
-function switchTab(tab) {
-  currentTab = tab;
-  closeMobileMenu();
-  document.querySelectorAll('.header-tab').forEach(function(btn) {
-    btn.classList.toggle('active', btn.dataset.tab === tab);
+  // Hide all tabs
+  ALL_TAB_IDS.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
   });
-  document.getElementById('scheduleTab').style.display = tab === 'schedule' ? '' : 'none';
-  document.getElementById('galleryTab').style.display = tab === 'gallery' ? '' : 'none';
-  document.getElementById('productsTab').style.display = tab === 'products' ? '' : 'none';
-  document.getElementById('ordersTab').style.display = tab === 'orders' ? '' : 'none';
-  document.getElementById('salesTab').style.display = tab === 'sales' ? '' : 'none';
-  document.getElementById('salesEventsTab').style.display = tab === 'salesEvents' ? '' : 'none';
-  document.getElementById('productionTab').style.display = tab === 'production' ? '' : 'none';
-  document.getElementById('couponsTab').style.display = tab === 'coupons' ? '' : 'none';
-  document.getElementById('analyticsTab').style.display = tab === 'analytics' ? '' : 'none';
-  document.getElementById('settingsTab').style.display = tab === 'settings' ? '' : 'none';
-  if (tab === 'settings') { updateGitHubTokenStatus(); loadOperators(); loadStorageInfo(); loadStudioLocations(); loadLocations(); }
-  if (tab === 'analytics' && !analyticsLoaded) loadAnalytics();
-  if (tab === 'products' && !productsLoaded) loadProducts();
-  if (tab === 'orders' && !ordersLoaded) loadOrders();
-  if (tab === 'sales' && !salesLoaded) loadSales();
-  if (tab === 'salesEvents') {
+
+  // Show placeholder or real tab
+  if (config.placeholder) {
+    renderPlaceholder(config.placeholder);
+    document.getElementById('placeholderTab').style.display = '';
+  } else if (config.tab) {
+    document.getElementById(config.tab).style.display = '';
+  }
+
+  // Run setup (sub-view switching, etc.)
+  if (config.setup) config.setup();
+
+  // Lazy-load data
+  lazyLoadForRoute(route);
+
+  // Update sidebar active state
+  updateSidebarActive(route);
+}
+
+function lazyLoadForRoute(route) {
+  if (route === 'settings') { updateGitHubTokenStatus(); loadOperators(); loadStorageInfo(); loadStudioLocations(); loadLocations(); }
+  if (route === 'analytics' && !analyticsLoaded) loadAnalytics();
+  if (route === 'products' && !productsLoaded) loadProducts();
+  if (route === 'orders' && !ordersLoaded) loadOrders();
+  if (route === 'pos' || route === 'receipts' || route === 'sales') { if (!salesLoaded) loadSales(); }
+  if (route === 'events' || route === 'salesEvents') {
     if (!salesEventsLoaded) loadSalesEvents();
     if (!productsLoaded) loadProducts();
     if (!salesLoaded) loadSales();
   }
-  if (tab === 'coupons' && !couponsLoaded) loadCoupons();
-  if (tab === 'production') {
-    if (!productsLoaded) loadProducts(); // needed for inventory overview
+  if (route === 'coupons' && !couponsLoaded) loadCoupons();
+  if (route === 'production' || route === 'inventory' || route === 'stories') {
+    if (!productsLoaded) loadProducts();
     if (!productionLoaded) loadProduction();
-    else switchProductionSubView(productionSubView);
+  }
+  if (route === 'schedule') { /* schedule loads on auth */ }
+}
+
+function renderPlaceholder(config) {
+  var badgeClass = config.badge === 'partial' ? 'partial' : config.badge === 'future' ? 'future' : 'new';
+  var badgeText = config.badge === 'partial' ? 'Partial' : config.badge === 'future' ? 'Future' : 'New';
+  var noteText = config.badge === 'future'
+    ? config.desc
+    : 'This feature is on the roadmap. Check back soon!';
+  var descText = config.badge === 'future' ? '' : config.desc;
+
+  document.getElementById('placeholderTab').innerHTML =
+    '<div class="placeholder-view">' +
+      '<span class="placeholder-badge ' + badgeClass + '">' + badgeText + '</span>' +
+      '<div class="placeholder-title">' + config.name + '</div>' +
+      (descText ? '<div class="placeholder-desc">' + descText + '</div>' : '') +
+      '<div class="placeholder-note">' + noteText + '</div>' +
+    '</div>';
+}
+
+function updateSidebarActive(route) {
+  // Clear all active states
+  document.querySelectorAll('.sidebar-item.active').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelectorAll('.sidebar-section-header.active').forEach(function(el) { el.classList.remove('active'); });
+
+  // Set active item
+  var activeItem = document.querySelector('.sidebar-item[data-route="' + route + '"]');
+  if (activeItem) activeItem.classList.add('active');
+
+  // Dashboard special case
+  if (route === 'dashboard') {
+    document.querySelector('.sidebar-section-header.dashboard-link').classList.add('active');
+  }
+
+  // Auto-expand the section containing this route
+  for (var section in SECTION_ROUTES) {
+    var sectionEl = document.querySelector('.sidebar-section[data-section="' + section + '"]');
+    if (!sectionEl) continue;
+    if (SECTION_ROUTES[section].indexOf(route) >= 0) {
+      sectionEl.classList.add('open');
+    }
   }
 }
 
+function toggleSection(section) {
+  var el = document.querySelector('.sidebar-section[data-section="' + section + '"]');
+  if (el) el.classList.toggle('open');
+}
+
+// Mobile menu
+function toggleMobileMenu(e) {
+  if (e) e.stopPropagation();
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('mobileMenuOverlay');
+  var isOpen = sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('open', !isOpen);
+}
+
+function closeMobileMenu() {
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('mobileMenuOverlay');
+  if (sidebar) sidebar.classList.remove('open');
+  if (overlay) overlay.classList.remove('open');
+}
+
+document.getElementById('mobileMenuOverlay').addEventListener('mousedown', function() {
+  closeMobileMenu();
+});
+
+// Hash routing
+window.addEventListener('hashchange', function() {
+  var hash = location.hash.replace('#', '') || 'dashboard';
+  if (hash !== currentRoute) {
+    currentRoute = hash;
+    applyRoute(hash);
+  }
+});
+
+// Legacy switchTab for any internal code that still calls it
+function switchTab(tab) {
+  currentTab = tab;
+  navigateTo(tab);
+}
+
 function hideAdminTabs() {
-  document.getElementById('scheduleTab').style.display = 'none';
-  document.getElementById('galleryTab').style.display = 'none';
-  document.getElementById('productsTab').style.display = 'none';
-  document.getElementById('ordersTab').style.display = 'none';
-  document.getElementById('salesTab').style.display = 'none';
-  document.getElementById('salesEventsTab').style.display = 'none';
-  document.getElementById('productionTab').style.display = 'none';
-  document.getElementById('couponsTab').style.display = 'none';
-  document.getElementById('analyticsTab').style.display = 'none';
-  document.getElementById('settingsTab').style.display = 'none';
+  ALL_TAB_IDS.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function showSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var main = document.querySelector('.main');
+  if (sidebar) sidebar.classList.add('visible');
+  if (main) main.classList.add('with-sidebar');
+}
+
+function hideSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var main = document.querySelector('.main');
+  if (sidebar) sidebar.classList.remove('visible');
+  if (main) main.classList.remove('with-sidebar');
 }
 
 // ============================================================
@@ -4414,8 +4736,7 @@ async function saveProduct(pid) {
       productData.storyId = existing.storyId || null;
       productData.buildIds = existing.buildIds || [];
     } else {
-      productData.images = [];
-      productData.imageIds = [];
+      productData.url = '';
     }
 
     // Handle history-tracked fields
@@ -4675,6 +4996,15 @@ async function saveAdjustStock(pid) {
       updates['stock/_default/available'] = avail;
     }
     updates['updatedAt'] = new Date().toISOString();
+
+    // Auto-set stockType to 'in-stock' when stock is added (Bug #5 fix)
+    var inv = inventory[pid] || {};
+    if (!inv.stockType || inv.stockType === 'made-to-order') {
+      var totalSet = updates['stock/_default/available'] || 0;
+      if (totalSet > 0) {
+        updates['stockType'] = 'in-stock';
+      }
+    }
 
     await db.ref(INVENTORY_PATH + '/' + pid).update(updates);
     // Refresh local cache from Firebase to pick up current reserved values
@@ -6233,7 +6563,8 @@ function renderOrderDetail(orderId) {
   // Order summary
   var summaryHtml = '<div class="order-summary-row"><span>Subtotal</span><span>$' + (o.subtotal || 0).toFixed(2) + '</span></div>';
   if (o.tax) {
-    summaryHtml += '<div class="order-summary-row"><span>Tax (' + ((o.taxRate || 0) * 100).toFixed(1) + '% ' + (o.taxState || '') + ')</span><span>$' + o.tax.toFixed(2) + '</span></div>';
+    var displayRate = o.taxRate || (o.subtotal ? o.tax / o.subtotal : 0);
+    summaryHtml += '<div class="order-summary-row"><span>Tax (' + (displayRate * 100).toFixed(1) + '% ' + (o.taxState || '') + ')</span><span>$' + o.tax.toFixed(2) + '</span></div>';
   }
   summaryHtml += '<div class="order-summary-row"><span>Shipping (' + esc((o.shippingMethod && o.shippingMethod.label) || 'Standard') + ')</span><span>$' + (o.shippingCost || 0).toFixed(2) + '</span></div>';
   if (o.coupon && o.coupon.discount) {
@@ -6690,6 +7021,8 @@ function formatSaleTime(ts) {
 
 function formatSaleDate(ts) {
   if (!ts) return '';
+  // Handle YYYY-MM-DD date strings (avoid UTC parsing off-by-one)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(ts)) return formatDate(ts);
   var d = new Date(ts);
   if (isNaN(d.getTime())) return '';
   var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -10461,7 +10794,7 @@ function renderLocationsList() {
 
   var html = '';
   locs.forEach(function(loc) {
-    var typeIcon = loc.type === 'home' ? '🏠' : loc.type === 'event' ? '🎪' : loc.type === 'container' ? '📦' : '📍';
+    var typeIcon = loc.type === 'storage' ? '🗄️' : loc.type === 'home' ? '🏠' : loc.type === 'event' ? '🎪' : loc.type === 'container' ? '📦' : '📍';
     var statusBadge = loc.status === 'archived' ? '<span style="background:#9E9E9E;color:white;font-size:0.68rem;padding:1px 6px;border-radius:8px;margin-left:6px;">Archived</span>' : '';
     var eventTag = loc.eventId && salesEventsData[loc.eventId]
       ? '<span style="font-size:0.78rem;color:var(--teal);">' + esc(salesEventsData[loc.eventId].name || 'Event') + '</span>'
@@ -10646,8 +10979,16 @@ function getLocationBreakdown(pid, variantKey) {
   if (!inv || !inv.stock) return {};
   var key = variantKey || '_default';
   var variant = inv.stock[key];
-  if (!variant || !variant.locations) return {};
-  return variant.locations;
+  if (!variant) return {};
+  var locs = variant.locations ? Object.assign({}, variant.locations) : {};
+  // Calculate unassigned stock (available minus sum of all location quantities)
+  var assignedTotal = 0;
+  Object.keys(locs).forEach(function(locId) { assignedTotal += locs[locId] || 0; });
+  var unassigned = (variant.available || 0) - assignedTotal;
+  if (unassigned > 0) {
+    locs['__unassigned__'] = unassigned;
+  }
+  return locs;
 }
 
 function getTotalAtLocation(locationId) {
@@ -10673,21 +11014,28 @@ async function moveInventory(pid, variantKey, fromLocationId, toLocationId, qty)
   var basePath = INVENTORY_PATH + '/' + pid + '/stock/' + key + '/locations/';
 
   try {
-    // Read current counts
-    var fromSnap = await db.ref(basePath + fromLocationId).once('value');
-    var fromCount = fromSnap.val() || 0;
-    if (fromCount < qty) throw new Error('Only ' + fromCount + ' available at source location');
-
-    var toSnap = await db.ref(basePath + toLocationId).once('value');
-    var toCount = toSnap.val() || 0;
-
-    // Multi-path update for atomicity
     var updates = {};
-    updates[basePath + fromLocationId] = fromCount - qty;
-    updates[basePath + toLocationId] = toCount + qty;
 
-    // Clean up zero counts
-    if (fromCount - qty <= 0) updates[basePath + fromLocationId] = null;
+    if (fromLocationId === '__unassigned__') {
+      // Moving from unassigned stock — just assign to destination location
+      var toSnap = await db.ref(basePath + toLocationId).once('value');
+      var toCount = toSnap.val() || 0;
+      updates[basePath + toLocationId] = toCount + qty;
+    } else {
+      // Read current counts
+      var fromSnap = await db.ref(basePath + fromLocationId).once('value');
+      var fromCount = fromSnap.val() || 0;
+      if (fromCount < qty) throw new Error('Only ' + fromCount + ' available at source location');
+
+      var toSnap = await db.ref(basePath + toLocationId).once('value');
+      var toCount = toSnap.val() || 0;
+
+      updates[basePath + fromLocationId] = fromCount - qty;
+      updates[basePath + toLocationId] = toCount + qty;
+
+      // Clean up zero counts
+      if (fromCount - qty <= 0) updates[basePath + fromLocationId] = null;
+    }
 
     await db.ref().update(updates);
 
@@ -10705,39 +11053,55 @@ async function moveInventory(pid, variantKey, fromLocationId, toLocationId, qty)
 }
 
 async function addToLocation(pid, variantKey, locationId, qty) {
-  // Add qty items to a location (used during intake)
+  // Add qty items to a location (used during intake and production builds)
+  // Increments variant available count and assigns to location.
+  // Recomputes _default.available as sum of all variants to avoid double-counting.
   if (!pid || !locationId || qty <= 0) return;
   var key = variantKey || '_default';
-  var path = INVENTORY_PATH + '/' + pid + '/stock/' + key + '/locations/' + locationId;
+  var basePath = INVENTORY_PATH + '/' + pid + '/stock/';
+  var locPath = basePath + key + '/locations/' + locationId;
 
-  var snap = await db.ref(path).once('value');
+  var snap = await db.ref(locPath).once('value');
   var current = snap.val() || 0;
-  await db.ref(path).set(current + qty);
 
-  // Also update the total available count
-  var availPath = INVENTORY_PATH + '/' + pid + '/stock/' + key + '/available';
-  var availSnap = await db.ref(availPath).once('value');
+  var updates = {};
+  updates[key + '/locations/' + locationId] = current + qty;
+
+  // Increment variant available
+  var availSnap = await db.ref(basePath + key + '/available').once('value');
   var availCurrent = availSnap.val() || 0;
-  await db.ref(availPath).set(availCurrent + qty);
+  updates[key + '/available'] = availCurrent + qty;
 
-  // Update _default total if this is a variant
+  // Recompute _default.available as sum of all variant availables
   if (key !== '_default') {
-    var defPath = INVENTORY_PATH + '/' + pid + '/stock/_default/available';
-    var defSnap = await db.ref(defPath).once('value');
-    var defCurrent = defSnap.val() || 0;
-    await db.ref(defPath).set(defCurrent + qty);
+    var stockSnap = await db.ref(basePath).once('value');
+    var stockData = stockSnap.val() || {};
+    var total = 0;
+    Object.keys(stockData).forEach(function(k) {
+      if (k !== '_default' && stockData[k] && stockData[k].available) {
+        total += (k === key) ? (availCurrent + qty) : stockData[k].available;
+      }
+    });
+    updates['_default/available'] = total;
   }
+
+  await db.ref(basePath).update(updates);
 
   // Refresh local cache
   if (!inventory[pid]) inventory[pid] = { pid: pid, stock: {} };
   if (!inventory[pid].stock) inventory[pid].stock = {};
   if (!inventory[pid].stock[key]) inventory[pid].stock[key] = { available: 0, locations: {} };
   if (!inventory[pid].stock[key].locations) inventory[pid].stock[key].locations = {};
-  inventory[pid].stock[key].locations[locationId] = (inventory[pid].stock[key].locations[locationId] || 0) + qty;
-  inventory[pid].stock[key].available = (inventory[pid].stock[key].available || 0) + qty;
+  inventory[pid].stock[key].locations[locationId] = current + qty;
+  inventory[pid].stock[key].available = availCurrent + qty;
   if (key !== '_default') {
     if (!inventory[pid].stock._default) inventory[pid].stock._default = { available: 0 };
-    inventory[pid].stock._default.available = (inventory[pid].stock._default.available || 0) + qty;
+    // Recompute from local cache
+    var localTotal = 0;
+    Object.keys(inventory[pid].stock).forEach(function(k) {
+      if (k !== '_default') localTotal += (inventory[pid].stock[k].available || 0);
+    });
+    inventory[pid].stock._default.available = localTotal;
   }
 }
 
@@ -10779,7 +11143,7 @@ function openMoveItemsModal(prefillPid, prefillVariant, prefillFrom) {
 
   var locationOptions = '';
   activeLocs.forEach(function(loc) {
-    var typeIcon = loc.type === 'home' ? '🏠' : loc.type === 'event' ? '🎪' : loc.type === 'container' ? '📦' : '📍';
+    var typeIcon = loc.type === 'storage' ? '🗄️' : loc.type === 'home' ? '🏠' : loc.type === 'event' ? '🎪' : loc.type === 'container' ? '📦' : '📍';
     locationOptions += '<option value="' + esc(loc.id) + '">' + typeIcon + ' ' + esc(loc.name) + '</option>';
   });
 
@@ -10796,7 +11160,8 @@ function openMoveItemsModal(prefillPid, prefillVariant, prefillFrom) {
     '<div class="form-group">' +
       '<label>From Location</label>' +
       '<select id="moveFrom" onchange="updateMoveMaxQty()" style="width:100%;">' +
-        '<option value="">— Select source —</option>' + locationOptions +
+        '<option value="">— Select source —</option>' +
+        '<option value="__unassigned__">📋 Unassigned Stock</option>' + locationOptions +
       '</select>' +
     '</div>' +
     '<div class="form-group">' +
@@ -10905,7 +11270,7 @@ async function executeMoveItems() {
   var ok = await moveInventory(pid, varKey, fromLocId, toLocId, qty);
   if (ok) {
     var product = productsData.find(function(p) { return p.pid === pid; });
-    var fromName = locationsData[fromLocId] ? locationsData[fromLocId].name : fromLocId;
+    var fromName = fromLocId === '__unassigned__' ? 'Unassigned Stock' : (locationsData[fromLocId] ? locationsData[fromLocId].name : fromLocId);
     var toName = locationsData[toLocId] ? locationsData[toLocId].name : toLocId;
     showToast('Moved ' + qty + 'x ' + (product ? product.name : pid) + ': ' + fromName + ' → ' + toName);
     closeModal();
