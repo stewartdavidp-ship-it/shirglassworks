@@ -5654,7 +5654,10 @@ function renderGallery() {
         var isLast = idx === items.length - 1;
 
         html += '<div class="gallery-card">';
-        if (img.url) {
+        var isVidEntry = img.videoUrl || /\.(mp4|mov|webm)/i.test(img.url || '');
+        if (isVidEntry) {
+          html += '<div class="gallery-card-img" style="display:flex;align-items:center;justify-content:center;background:var(--charcoal);color:var(--amber);font-size:2rem;min-height:120px;">&#9654;</div>';
+        } else if (img.url) {
           html += '<img class="gallery-card-img" src="' + esc(img.url) + '" alt="' + esc(img.alt || '') + '" onerror="this.classList.add(\'broken\')">';
         }
         html +=
@@ -5927,9 +5930,13 @@ function openImageModal(imageId, defaultSection) {
         '<div id="imgUrlSection"' + (defaultUpload ? ' style="display:none;"' : '') + '>' +
           '<input type="text" id="imgUrl" value="' + esc(img.url || '') + '" placeholder="https://..." oninput="previewImageUrl()">' +
         '</div>' +
-        // Shared preview
+        // Shared preview (use <video> with preload=metadata for video entries to avoid full download)
         '<div class="img-preview-container" id="imgPreviewContainer">' +
-          (img.url ? '<img src="' + esc(img.url) + '" onerror="this.parentNode.innerHTML=\'<span class=error-msg>Invalid image URL</span>\'">' : '<span class="placeholder-msg">Select an image or enter a URL to preview</span>') +
+          (img.url
+            ? (showVideoUrl && (img.videoUrl || /\.(mp4|mov|webm)/i.test(img.url))
+              ? '<video src="' + esc(img.videoUrl || img.url) + '" style="max-width:100%;max-height:200px;" preload="metadata" controls muted></video>'
+              : '<img src="' + esc(img.url) + '" onerror="this.parentNode.innerHTML=\'<span class=error-msg>Invalid image URL</span>\'">')
+            : '<span class="placeholder-msg">Select an image or enter a URL to preview</span>') +
         '</div>' +
         // Upload progress (hidden by default)
         '<div id="imgUploadProgress" style="display:none;margin-top:8px;">' +
