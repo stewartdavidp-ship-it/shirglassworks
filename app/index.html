@@ -6758,19 +6758,33 @@ function confirmPickerSelection() {
 function addGalleryImageFromLibrary(sectionId) {
   openImagePicker(function(imgId, url, thumbUrl) {
     // After picking, open metadata modal for gallery entry
-    setTimeout(function() { openGalleryMetadataModal(sectionId, url, imgId); }, 200);
+    var libImg = imageLibrary[imgId] || {};
+    setTimeout(function() { openGalleryMetadataModal(sectionId, url, imgId, libImg); }, 200);
   });
 }
 
-function openGalleryMetadataModal(sectionId, imageUrl, libraryImageId) {
+function openGalleryMetadataModal(sectionId, imageUrl, libraryImageId, libImg) {
+  libImg = libImg || {};
   var sec = SECTIONS.find(function(s) { return s.id === sectionId; }) || { label: sectionId };
   var isShopSection = SHOP_SECTION_IDS.indexOf(sectionId) !== -1;
   var showCategory = (sectionId === 'gallery' || sectionId === 'shop');
   var showVideoUrl = (sectionId === 'hero');
+  var isVideo = libImg.type === 'video' || (libImg.contentType && libImg.contentType.indexOf('video') === 0) || /\.(mp4|mov|webm)/i.test(imageUrl);
 
   var categoryOptions = CATEGORIES.map(function(cat) {
     return '<option value="' + cat + '">' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</option>';
   }).join('');
+
+  // Preview: use <video> for videos, <img> for images
+  var previewHtml;
+  if (isVideo) {
+    previewHtml = '<video src="' + esc(imageUrl) + '" style="max-width:100%;max-height:150px;border-radius:8px;" controls muted></video>';
+  } else {
+    previewHtml = '<img src="' + esc(imageUrl) + '" style="max-width:100%;max-height:150px;border-radius:8px;">';
+  }
+
+  // Auto-populate video URL for hero section when library item is a video
+  var videoUrlDefault = (showVideoUrl && isVideo) ? imageUrl : '';
 
   var html =
     '<div class="modal-header">' +
@@ -6779,17 +6793,17 @@ function openGalleryMetadataModal(sectionId, imageUrl, libraryImageId) {
     '</div>' +
     '<div class="modal-body">' +
       '<div style="text-align:center;margin-bottom:12px;">' +
-        '<img src="' + esc(imageUrl) + '" style="max-width:100%;max-height:150px;border-radius:8px;">' +
+        previewHtml +
       '</div>' +
-      '<div class="form-group">' +
+      (!(isVideo && sectionId === 'hero') ? '<div class="form-group">' +
         '<label for="galAlt">Alt Text *</label>' +
-        '<input type="text" id="galAlt" placeholder="Describe the image">' +
+        '<input type="text" id="galAlt" placeholder="Describe the image" value="' + esc(libImg.description || '') + '">' +
       '</div>' +
       '<div class="form-group">' +
         '<label for="galCaption">Caption</label>' +
         '<input type="text" id="galCaption">' +
-      '</div>' +
-      (showVideoUrl ? '<div class="form-group"><label for="galVideoUrl">Video URL</label><input type="text" id="galVideoUrl" placeholder="https://...video.mp4"></div>' : '') +
+      '</div>' : '') +
+      (showVideoUrl ? '<div class="form-group"><label for="galVideoUrl">Video URL' + (isVideo ? ' (auto-filled from library)' : '') + '</label><input type="text" id="galVideoUrl" value="' + esc(videoUrlDefault) + '" placeholder="https://...video.mp4"></div>' : '') +
       (showCategory ? '<div class="form-group"><label for="galCategory">Category</label><select id="galCategory">' + categoryOptions + '</select></div>' : '') +
       (isShopSection ? '<div class="form-group"><label for="galProductName">Product Name</label><input type="text" id="galProductName"></div>' +
         '<div class="form-group"><label for="galProductLink">Product Link</label><input type="text" id="galProductLink"></div>' +
@@ -6807,7 +6821,7 @@ function openGalleryMetadataModal(sectionId, imageUrl, libraryImageId) {
 
 async function saveGalleryFromLibrary(sectionId, imageUrl, libraryImageId) {
   var alt = (document.getElementById('galAlt') || {}).value || '';
-  if (!alt.trim()) { showToast('Please fill in the alt text.', true); return; }
+  if (!alt.trim() && sectionId !== 'hero') { showToast('Please fill in the alt text.', true); return; }
 
   var data = {
     url: imageUrl,
