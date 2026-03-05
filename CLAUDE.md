@@ -1,8 +1,5 @@
 # CLAUDE.md — Shir Glassworks
 
-## What This App Is
-E-commerce website for Shir Glassworks — handmade glass art. Single-file HTML admin app with Firebase RTDB backend, public storefront on GitHub Pages, image pipeline via Cloud Functions, and Etsy integration for checkout.
-
 ## Current Idea
 **Shir Glassworks Website + Storefront** — Full website redesign and storefront for Shir Glassworks. Phase 1: landing page, about, schedule, admin app with gallery management. Phase 2: shop with product catalog (6 categories, 31 products), analytics tracking. Phase 3: product detail pages with color variants, cart/checkout strategy. Phase 4: Studio Companion — camera-first PWA for production management and craft fair sales. Hybrid photo recognition (TensorFlow.js + Claude Vision), QR code system, GPS-based mode switching (studio/fair/packing), batch counting, new product onboarding via camera, travel inventory for events.
 
@@ -11,6 +8,7 @@ E-commerce website for Shir Glassworks — handmade glass art. Single-file HTML 
 - No unbounded Firebase listeners. All reads must use limitToLast(N) or .once('value'). Prevents billing spikes (learned from $17/day incident on another project). _(from: Shir Glassworks Website + Storefront)_
 - Admin writes go to shirglassworks/public/gallery (directly public). Firebase rules enforce admin-only writes (auth.uid check) and anonymous read access for public pages. Analytics writes are append-only with field validation. _(from: Shir Glassworks Website + Storefront)_
 - generate_claude_md runs on job creation only when stale. Chat must call generate_claude_md(action="get") to check staleness before creating a draft job — if _stale: true, call generate_claude_md(action="push") to regenerate and deliver. If not stale, skip. Rules and constraints change infrequently — regenerating on every job is wasteful. The stale signal is the trigger, not the job creation event itself. _(from: Shir Glassworks Website + Storefront)_
+- Shipping address entered at checkout must be validated via Google Places API before Square payment is taken and before CSV is generated for Pirate Ship. Invalid or unvalidated addresses must be corrected before the order can proceed. This prevents failed USPS deliveries on fragile glass shipments. _(from: Shir Glassworks Website + Storefront)_
 
 ## CONSTRAINTs — External realities. Work within these.
 
