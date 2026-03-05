@@ -2392,6 +2392,311 @@
     body.dark-mode .analytics-visitors-table td { color: #bbb; border-bottom-color: #333; }
     body.dark-mode .analytics-visitors-table code { background: #333; color: #ddd; }
     body.dark-mode .analytics-ip { color: #666; }
+
+    /* ============================================================
+       Audit Log Viewer (Phase E3)
+       ============================================================ */
+    .audit-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: flex-end;
+    }
+    .audit-filters .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .audit-filters .filter-group label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--warm-gray-light);
+    }
+    .audit-filters select, .audit-filters input[type="date"] {
+      padding: 6px 10px;
+      border: 1px solid var(--cream-dark);
+      border-radius: 6px;
+      font-size: 0.82rem;
+      background: #fff;
+      color: var(--charcoal);
+    }
+    .audit-table { margin-top: 12px; }
+    .audit-table table { width: 100%; border-collapse: collapse; }
+    .audit-table th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--warm-gray-light);
+      border-bottom: 1px solid var(--cream-dark);
+    }
+    .audit-table td {
+      padding: 10px 12px;
+      font-size: 0.82rem;
+      border-bottom: 1px solid var(--cream-dark);
+      vertical-align: middle;
+    }
+    .audit-table tr { transition: background 0.15s; }
+    .audit-table tbody tr:hover { background: rgba(196,133,60,0.04); }
+    .audit-action-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .audit-action-badge.create { background: #E8F5E9; color: #2E7D32; }
+    .audit-action-badge.update { background: #E3F2FD; color: #1565C0; }
+    .audit-action-badge.delete { background: #F8D7DA; color: #9B2335; }
+    .audit-entity-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      background: var(--cream-dark);
+      color: var(--charcoal);
+    }
+    .audit-gps-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+    }
+    .audit-gps-badge.fair { background: #FFF8E1; color: #F57F17; }
+    .audit-gps-badge.studio { background: #F3E5F5; color: #7B1FA2; }
+    .audit-cards {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .audit-card {
+      background: #fff;
+      border: 1px solid var(--cream-dark);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .audit-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .audit-card-detail {
+      font-size: 0.82rem;
+      color: var(--warm-gray);
+      margin-top: 4px;
+    }
+    .audit-load-more {
+      text-align: center;
+      margin-top: 16px;
+    }
+    .audit-stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .audit-stat {
+      font-size: 0.82rem;
+      color: var(--warm-gray);
+    }
+    .audit-stat strong {
+      color: var(--charcoal);
+    }
+
+    /* Record history inline component */
+    .record-history {
+      margin-top: 16px;
+      border-top: 1px solid var(--cream-dark);
+      padding-top: 12px;
+    }
+    .record-history-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--charcoal);
+    }
+    .record-history-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      font-size: 0.82rem;
+    }
+    .record-history-item:last-child { border-bottom: none; }
+    .record-history-time {
+      color: var(--warm-gray-light);
+      white-space: nowrap;
+      min-width: 130px;
+      font-size: 0.78rem;
+    }
+    .record-history-actor {
+      color: var(--warm-gray);
+      min-width: 100px;
+    }
+
+    /* ============================================================
+       Employees & Permissions (Phase E3)
+       ============================================================ */
+    .perm-matrix-container {
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+    .perm-matrix {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 500px;
+    }
+    .perm-matrix th {
+      text-align: center;
+      padding: 8px 10px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--warm-gray-light);
+      border-bottom: 1px solid var(--cream-dark);
+    }
+    .perm-matrix th:first-child {
+      text-align: left;
+      min-width: 140px;
+    }
+    .perm-matrix td {
+      padding: 6px 10px;
+      text-align: center;
+      border-bottom: 1px solid var(--cream-dark);
+      font-size: 0.82rem;
+    }
+    .perm-matrix td:first-child {
+      text-align: left;
+      font-weight: 500;
+    }
+    .perm-matrix input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--gold);
+    }
+    .perm-matrix tr:hover { background: rgba(196,133,60,0.04); }
+
+    .user-list-table { margin-top: 12px; }
+    .user-list-table table { width: 100%; border-collapse: collapse; }
+    .user-list-table th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--warm-gray-light);
+      border-bottom: 1px solid var(--cream-dark);
+    }
+    .user-list-table td {
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      border-bottom: 1px solid var(--cream-dark);
+      vertical-align: middle;
+    }
+    .user-list-table tr:hover { background: rgba(196,133,60,0.04); }
+    .user-role-select {
+      padding: 4px 8px;
+      border: 1px solid var(--cream-dark);
+      border-radius: 6px;
+      font-size: 0.82rem;
+      background: #fff;
+      color: var(--charcoal);
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .role-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .role-badge.admin { background: #F3E5F5; color: #7B1FA2; }
+    .role-badge.user { background: #E3F2FD; color: #1565C0; }
+    .role-badge.guest { background: #FFF8E1; color: #F57F17; }
+
+    .emp-sub-nav {
+      display: flex;
+      gap: 0;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--cream-dark);
+    }
+    .emp-sub-nav-item {
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      color: var(--warm-gray);
+      transition: all 0.15s;
+    }
+    .emp-sub-nav-item:hover { color: var(--charcoal); }
+    .emp-sub-nav-item.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+      font-weight: 600;
+    }
+
+    /* Mobile audit cards */
+    @media (max-width: 768px) {
+      .audit-table { display: none; }
+      .audit-cards { display: flex; }
+      .audit-filters { flex-direction: column; }
+      .audit-filters .filter-group { width: 100%; }
+      .audit-filters select, .audit-filters input[type="date"] { width: 100%; }
+      .perm-matrix-container { font-size: 0.78rem; }
+      .user-list-table { overflow-x: auto; }
+    }
+
+    /* Dark mode overrides */
+    body.dark-mode .audit-table td { border-bottom-color: #333; color: #ccc; }
+    body.dark-mode .audit-table th { color: #999; border-bottom-color: #444; }
+    body.dark-mode .audit-table tbody tr:hover { background: rgba(196,133,60,0.08); }
+    body.dark-mode .audit-filters select,
+    body.dark-mode .audit-filters input[type="date"] { background: #2a2a2a; color: #ccc; border-color: #444; }
+    body.dark-mode .audit-action-badge.create { background: #1a3a1a; color: #66BB6A; }
+    body.dark-mode .audit-action-badge.update { background: #1a2a3a; color: #64B5F6; }
+    body.dark-mode .audit-action-badge.delete { background: #3a1a1a; color: #EF9A9A; }
+    body.dark-mode .audit-entity-badge { background: #333; color: #ccc; }
+    body.dark-mode .audit-gps-badge.fair { background: #3a2e1a; color: #FFD54F; }
+    body.dark-mode .audit-gps-badge.studio { background: #2a1a3a; color: #CE93D8; }
+    body.dark-mode .audit-card { background: #1e1e1e; border-color: #333; }
+    body.dark-mode .perm-matrix th { color: #999; border-bottom-color: #444; }
+    body.dark-mode .perm-matrix td { border-bottom-color: #333; color: #ccc; }
+    body.dark-mode .perm-matrix tr:hover { background: rgba(196,133,60,0.08); }
+    body.dark-mode .user-list-table th { color: #999; border-bottom-color: #444; }
+    body.dark-mode .user-list-table td { color: #ccc; border-bottom-color: #333; }
+    body.dark-mode .user-role-select { background: #2a2a2a; color: #ccc; border-color: #444; }
+    body.dark-mode .role-badge.admin { background: #2a1a3a; color: #CE93D8; }
+    body.dark-mode .role-badge.user { background: #1a2a3a; color: #64B5F6; }
+    body.dark-mode .role-badge.guest { background: #3a2e1a; color: #FFD54F; }
+    body.dark-mode .emp-sub-nav { border-bottom-color: #444; }
+    body.dark-mode .emp-sub-nav-item { color: #888; }
+    body.dark-mode .emp-sub-nav-item.active { color: var(--gold); }
+    body.dark-mode .record-history { border-top-color: #333; }
+    body.dark-mode .record-history-item { border-bottom-color: #333; }
+    body.dark-mode .record-history-time { color: #666; }
+    body.dark-mode .record-history-actor { color: #888; }
   </style>
 </head>
 <body>
@@ -2474,7 +2779,8 @@
         <div class="sidebar-item" data-route="inventory" onclick="navigateTo('inventory')">Inventory</div>
         <div class="sidebar-item muted" data-route="customers" onclick="navigateTo('customers')">Customers <span class="sidebar-badge new">New</span></div>
         <div class="sidebar-item" data-route="images" onclick="navigateTo('images')">Images</div>
-        <div class="sidebar-item muted" data-route="employees" onclick="navigateTo('employees')">Employees &amp; Permissions <span class="sidebar-badge new">New</span></div>
+        <div class="sidebar-item" data-route="employees" onclick="navigateTo('employees')">Employees &amp; Permissions</div>
+        <div class="sidebar-item" data-route="auditlog" onclick="navigateTo('auditlog')">Audit Log</div>
         <div class="sidebar-item muted" data-route="financials" onclick="navigateTo('financials')">Financials <span class="sidebar-badge new">New</span></div>
         <div class="sidebar-item" data-route="settings" onclick="navigateTo('settings')">Settings &amp; Integrations</div>
       </div>
@@ -3190,6 +3496,152 @@
         </div>
       </div>
     </div>
+
+    <!-- Admin: Audit Log Tab -->
+    <div id="auditLogTab" style="display:none;">
+      <div class="section-header">
+        <h2>Audit Log</h2>
+      </div>
+      <div class="audit-filters" id="auditFilters">
+        <div class="filter-group">
+          <label>Entity</label>
+          <select id="auditFilterEntity" onchange="renderAuditLog()">
+            <option value="">All Entities</option>
+            <option value="orders">Orders</option>
+            <option value="products">Products</option>
+            <option value="inventory">Inventory</option>
+            <option value="jobs">Jobs</option>
+            <option value="buildJobs">Build Jobs</option>
+            <option value="salesEvents">Sales Events</option>
+            <option value="gallery">Gallery</option>
+            <option value="schedule">Schedule</option>
+            <option value="locations">Locations</option>
+            <option value="coupons">Coupons</option>
+            <option value="settings">Settings</option>
+            <option value="operators">Operators</option>
+            <option value="pos">PoS</option>
+            <option value="stories">Stories</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Action</label>
+          <select id="auditFilterAction" onchange="renderAuditLog()">
+            <option value="">All Actions</option>
+            <option value="create">Create</option>
+            <option value="update">Update</option>
+            <option value="delete">Delete</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Actor</label>
+          <select id="auditFilterActor" onchange="renderAuditLog()">
+            <option value="">All Actors</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>From</label>
+          <input type="date" id="auditFilterFrom" onchange="renderAuditLog()">
+        </div>
+        <div class="filter-group">
+          <label>To</label>
+          <input type="date" id="auditFilterTo" onchange="renderAuditLog()">
+        </div>
+        <div class="filter-group" style="align-self:flex-end;">
+          <button class="btn btn-secondary" onclick="clearAuditFilters()" style="font-size:0.8rem;padding:6px 12px;">Clear</button>
+        </div>
+      </div>
+      <div class="audit-stats" id="auditStats"></div>
+      <div id="auditLoading" class="loading" style="display:none;">Loading audit log...</div>
+      <div id="auditEmpty" class="empty-state" style="display:none;">
+        <p>No audit entries found matching your filters.</p>
+      </div>
+      <div class="audit-table" id="auditTableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>ID</th>
+              <th>Mode</th>
+            </tr>
+          </thead>
+          <tbody id="auditTableBody"></tbody>
+        </table>
+      </div>
+      <div class="audit-cards" id="auditCards"></div>
+      <div class="audit-load-more" id="auditLoadMore" style="display:none;">
+        <button class="btn btn-secondary" onclick="loadMoreAuditEntries()">Load More</button>
+      </div>
+    </div>
+
+    <!-- Admin: Employees & Permissions Tab -->
+    <div id="employeesTab" style="display:none;">
+      <div class="section-header">
+        <h2>Employees &amp; Permissions</h2>
+      </div>
+      <div class="emp-sub-nav" id="empSubNav">
+        <div class="emp-sub-nav-item active" onclick="switchEmployeesView('users')">Users</div>
+        <div class="emp-sub-nav-item" onclick="switchEmployeesView('roles')">Roles &amp; Permissions</div>
+      </div>
+
+      <!-- Users Sub-View -->
+      <div id="empUsersView">
+        <div id="usersLoading" class="loading" style="display:none;">Loading users...</div>
+        <div id="usersEmpty" class="empty-state" style="display:none;">
+          <p>No users found.</p>
+        </div>
+        <div class="user-list-table" id="usersTableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Last Login</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Roles Sub-View -->
+      <div id="empRolesView" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="display:flex;gap:10px;align-items:center;">
+            <label style="font-size:0.82rem;font-weight:600;">Editing Role:</label>
+            <select id="roleSelector" onchange="renderPermissionMatrix()" style="padding:6px 10px;border:1px solid var(--cream-dark);border-radius:6px;font-size:0.85rem;">
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary" onclick="openCreateRoleModal()" style="font-size:0.8rem;padding:6px 12px;">+ New Role</button>
+          </div>
+        </div>
+        <div id="roleDescription" style="font-size:0.82rem;color:var(--warm-gray);margin-bottom:12px;"></div>
+        <div class="perm-matrix-container" id="permMatrixWrap">
+          <table class="perm-matrix" id="permMatrixTable">
+            <thead>
+              <tr>
+                <th>Entity</th>
+                <th>Create</th>
+                <th>Read</th>
+                <th>Update</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody id="permMatrixBody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end;" id="permMatrixActions">
+          <button class="btn btn-secondary" onclick="resetPermissionMatrix()">Reset</button>
+          <button class="btn btn-primary" onclick="savePermissionMatrix()">Save Permissions</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ===== MODAL ===== -->
@@ -3853,7 +4305,8 @@ var ROUTE_MAP = {
   'inventory':   { tab: 'productionTab', setup: function() { switchProductionSubView('inventory'); } },
   'customers':   { tab: null, placeholder: { name: 'Customers', desc: 'Contacts, collectors, purchase history.', badge: 'new' } },
   'images':      { tab: 'imagesTab' },
-  'employees':   { tab: null, placeholder: { name: 'Employees & Permissions', desc: 'Team access, feature-level permissions.', badge: 'new' } },
+  'employees':   { tab: 'employeesTab', setup: function() { switchEmployeesView('users'); } },
+  'auditlog':    { tab: 'auditLogTab' },
   'financials':  { tab: null, placeholder: { name: 'Financials', desc: 'Revenue, costs, P&L.', badge: 'new' } },
   'settings':    { tab: 'settingsTab' },
   'teach':       { tab: null, placeholder: { name: 'Teach', desc: 'Coming when Studio 2 opens \u2014 classes, workshops, scheduling.', badge: 'future' } },
@@ -3871,10 +4324,10 @@ var SECTION_ROUTES = {
   'make':   ['production', 'procurement', 'commissions'],
   'sell':   ['pos', 'events', 'orders', 'wholesale', 'galleries', 'fulfillment', 'receipts'],
   'market': ['social', 'newsletter', 'stories', 'website'],
-  'manage': ['products', 'inventory', 'customers', 'images', 'employees', 'financials', 'settings']
+  'manage': ['products', 'inventory', 'customers', 'images', 'employees', 'auditlog', 'financials', 'settings']
 };
 
-var ALL_TAB_IDS = ['scheduleTab', 'galleryTab', 'productsTab', 'ordersTab', 'salesTab', 'salesEventsTab', 'productionTab', 'couponsTab', 'analyticsTab', 'settingsTab', 'imagesTab', 'placeholderTab'];
+var ALL_TAB_IDS = ['scheduleTab', 'galleryTab', 'productsTab', 'ordersTab', 'salesTab', 'salesEventsTab', 'productionTab', 'couponsTab', 'analyticsTab', 'settingsTab', 'imagesTab', 'auditLogTab', 'employeesTab', 'placeholderTab'];
 
 var currentRoute = 'dashboard';
 
@@ -3935,6 +4388,8 @@ function lazyLoadForRoute(route) {
     renderImageLibrary();
   }
   if (route === 'schedule') { /* schedule loads on auth */ }
+  if (route === 'auditlog') { loadAuditLog(); }
+  if (route === 'employees') { loadAdminUsers(); loadRoles(); }
 }
 
 function renderPlaceholder(config) {
@@ -6027,6 +6482,582 @@ document.getElementById('modalOverlay').addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeModal();
 });
+
+// ============================================================
+// Audit Log Viewer (Phase E3)
+// ============================================================
+var auditEntries = [];
+var auditLoaded = false;
+var auditPageSize = 50;
+var auditLastKey = null;
+var auditHasMore = false;
+var auditKnownActors = {};
+
+// Entity display names for the UI
+var ENTITY_LABELS = {
+  orders: 'Orders', products: 'Products', inventory: 'Inventory',
+  jobs: 'Jobs', buildJobs: 'Build Jobs', salesEvents: 'Sales Events',
+  gallery: 'Gallery', schedule: 'Schedule', locations: 'Locations',
+  coupons: 'Coupons', settings: 'Settings', operators: 'Operators',
+  pos: 'PoS', stories: 'Stories', receipts: 'Receipts',
+  users: 'Users', roles: 'Roles'
+};
+
+function loadAuditLog() {
+  if (!hasPermission('auditLog', 'read')) {
+    document.getElementById('auditEmpty').style.display = '';
+    document.getElementById('auditEmpty').innerHTML = '<p>You do not have permission to view the audit log.</p>';
+    return;
+  }
+  if (auditLoaded) { renderAuditLog(); return; }
+  document.getElementById('auditLoading').style.display = '';
+  var ref = db.ref(AUDIT_LOG_PATH).orderByKey().limitToLast(auditPageSize + 1);
+  ref.once('value').then(function(snap) {
+    auditEntries = [];
+    auditKnownActors = {};
+    snap.forEach(function(child) {
+      var entry = child.val();
+      entry._key = child.key;
+      auditEntries.push(entry);
+      if (entry.actor && entry.actor.displayName) {
+        auditKnownActors[entry.actor.uid] = entry.actor.displayName;
+      }
+    });
+    auditEntries.reverse(); // newest first
+    if (auditEntries.length > auditPageSize) {
+      auditHasMore = true;
+      auditLastKey = auditEntries[auditEntries.length - 1]._key;
+      auditEntries.pop();
+    } else {
+      auditHasMore = false;
+    }
+    auditLoaded = true;
+    document.getElementById('auditLoading').style.display = 'none';
+    populateActorFilter();
+    renderAuditLog();
+  }).catch(function(err) {
+    console.error('Failed to load audit log:', err);
+    document.getElementById('auditLoading').style.display = 'none';
+    document.getElementById('auditEmpty').style.display = '';
+    document.getElementById('auditEmpty').innerHTML = '<p>Failed to load audit log.</p>';
+  });
+}
+
+function loadMoreAuditEntries() {
+  if (!auditLastKey) return;
+  var ref = db.ref(AUDIT_LOG_PATH).orderByKey().endBefore(auditLastKey).limitToLast(auditPageSize + 1);
+  ref.once('value').then(function(snap) {
+    var newEntries = [];
+    snap.forEach(function(child) {
+      var entry = child.val();
+      entry._key = child.key;
+      newEntries.push(entry);
+      if (entry.actor && entry.actor.displayName) {
+        auditKnownActors[entry.actor.uid] = entry.actor.displayName;
+      }
+    });
+    newEntries.reverse();
+    if (newEntries.length > auditPageSize) {
+      auditHasMore = true;
+      auditLastKey = newEntries[newEntries.length - 1]._key;
+      newEntries.pop();
+    } else {
+      auditHasMore = false;
+      auditLastKey = null;
+    }
+    auditEntries = auditEntries.concat(newEntries);
+    populateActorFilter();
+    renderAuditLog();
+  });
+}
+
+function populateActorFilter() {
+  var sel = document.getElementById('auditFilterActor');
+  var current = sel.value;
+  var actors = Object.entries(auditKnownActors).sort(function(a, b) { return a[1].localeCompare(b[1]); });
+  sel.innerHTML = '<option value="">All Actors</option>';
+  actors.forEach(function(pair) {
+    sel.innerHTML += '<option value="' + pair[0] + '">' + pair[1] + '</option>';
+  });
+  sel.value = current;
+}
+
+function renderAuditLog() {
+  var entityFilter = document.getElementById('auditFilterEntity').value;
+  var actionFilter = document.getElementById('auditFilterAction').value;
+  var actorFilter = document.getElementById('auditFilterActor').value;
+  var fromDate = document.getElementById('auditFilterFrom').value;
+  var toDate = document.getElementById('auditFilterTo').value;
+  var fromTs = fromDate ? new Date(fromDate + 'T00:00:00').getTime() : 0;
+  var toTs = toDate ? new Date(toDate + 'T23:59:59').getTime() : Infinity;
+
+  var filtered = auditEntries.filter(function(e) {
+    if (entityFilter && e.event && e.event.entity !== entityFilter) return false;
+    if (actionFilter && e.event && e.event.action !== actionFilter) return false;
+    if (actorFilter && e.actor && e.actor.uid !== actorFilter) return false;
+    if (e.time && (e.time < fromTs || e.time > toTs)) return false;
+    return true;
+  });
+
+  // Stats
+  var statsEl = document.getElementById('auditStats');
+  statsEl.innerHTML = '<div class="audit-stat">Showing <strong>' + filtered.length + '</strong> of ' + auditEntries.length + ' loaded entries</div>';
+
+  // Empty state
+  var emptyEl = document.getElementById('auditEmpty');
+  var tableEl = document.getElementById('auditTableWrap');
+  var cardsEl = document.getElementById('auditCards');
+  if (filtered.length === 0) {
+    emptyEl.style.display = '';
+    emptyEl.innerHTML = '<p>No audit entries match your filters.</p>';
+    tableEl.style.display = 'none';
+    cardsEl.style.display = 'none';
+  } else {
+    emptyEl.style.display = 'none';
+    tableEl.style.display = '';
+    cardsEl.style.display = '';
+  }
+
+  // Table rows
+  var tbody = document.getElementById('auditTableBody');
+  tbody.innerHTML = '';
+  filtered.forEach(function(e) {
+    var time = e.time ? new Date(e.time).toLocaleString() : '—';
+    var actor = (e.actor && e.actor.displayName) || 'Unknown';
+    var action = (e.event && e.event.action) || '—';
+    var entity = (e.event && e.event.entity) || '—';
+    var entityId = (e.event && e.event.entityId) || '—';
+    var gpsMode = (e.context && e.context.gpsMode) || '—';
+
+    var actionBadge = '<span class="audit-action-badge ' + action + '">' + action + '</span>';
+    var entityBadge = '<span class="audit-entity-badge">' + (ENTITY_LABELS[entity] || entity) + '</span>';
+    var gpsBadge = gpsMode !== '—' ? '<span class="audit-gps-badge ' + gpsMode + '">' + gpsMode + '</span>' : '—';
+
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + time + '</td>' +
+      '<td>' + actor + '</td>' +
+      '<td>' + actionBadge + '</td>' +
+      '<td>' + entityBadge + '</td>' +
+      '<td style="font-family:monospace;font-size:0.78rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + entityId + '">' + entityId + '</td>' +
+      '<td>' + gpsBadge + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  // Mobile cards
+  cardsEl.innerHTML = '';
+  filtered.forEach(function(e) {
+    var time = e.time ? new Date(e.time).toLocaleString() : '—';
+    var actor = (e.actor && e.actor.displayName) || 'Unknown';
+    var action = (e.event && e.event.action) || '—';
+    var entity = (e.event && e.event.entity) || '—';
+    var entityId = (e.event && e.event.entityId) || '—';
+    var gpsMode = (e.context && e.context.gpsMode) || '—';
+
+    var card = document.createElement('div');
+    card.className = 'audit-card';
+    card.innerHTML = '<div class="audit-card-header">' +
+      '<span class="audit-action-badge ' + action + '">' + action + '</span>' +
+      '<span style="font-size:0.78rem;color:var(--warm-gray-light);">' + time + '</span>' +
+    '</div>' +
+    '<div class="audit-card-detail"><strong>' + actor + '</strong> — ' + (ENTITY_LABELS[entity] || entity) + '</div>' +
+    '<div class="audit-card-detail" style="font-family:monospace;font-size:0.78rem;">' + entityId + '</div>' +
+    (gpsMode !== '—' ? '<div class="audit-card-detail"><span class="audit-gps-badge ' + gpsMode + '">' + gpsMode + '</span></div>' : '');
+    cardsEl.appendChild(card);
+  });
+
+  // Load more
+  var loadMoreEl = document.getElementById('auditLoadMore');
+  loadMoreEl.style.display = auditHasMore ? '' : 'none';
+}
+
+function clearAuditFilters() {
+  document.getElementById('auditFilterEntity').value = '';
+  document.getElementById('auditFilterAction').value = '';
+  document.getElementById('auditFilterActor').value = '';
+  document.getElementById('auditFilterFrom').value = '';
+  document.getElementById('auditFilterTo').value = '';
+  renderAuditLog();
+}
+
+/**
+ * Render per-record audit history for any entity.
+ * Returns HTML string to embed in a detail view.
+ * Usage: var historyHtml = await renderRecordHistory('orders', orderId);
+ */
+async function renderRecordHistory(entity, entityId) {
+  if (!hasPermission('auditLog', 'read') || !entityId) return '';
+  try {
+    var snap = await db.ref(AUDIT_INDEX_PATH + '/' + entity + '/' + entityId)
+      .orderByKey().limitToLast(20).once('value');
+    if (!snap.exists()) return '';
+    var entries = [];
+    snap.forEach(function(child) {
+      var e = child.val();
+      e._key = child.key;
+      entries.push(e);
+    });
+    entries.reverse();
+    var html = '<div class="record-history">' +
+      '<div class="record-history-title">Change History</div>';
+    entries.forEach(function(e) {
+      var time = e.time ? new Date(e.time).toLocaleString() : '—';
+      var actor = (e.actor && e.actor.displayName) || 'Unknown';
+      var action = (e.event && e.event.action) || '—';
+      html += '<div class="record-history-item">' +
+        '<span class="record-history-time">' + time + '</span>' +
+        '<span class="record-history-actor">' + actor + '</span>' +
+        '<span class="audit-action-badge ' + action + '">' + action + '</span>' +
+      '</div>';
+    });
+    html += '</div>';
+    return html;
+  } catch (err) {
+    console.error('Record history load failed:', err);
+    return '';
+  }
+}
+
+// ============================================================
+// Employees & Permissions (Phase E3)
+// ============================================================
+var adminUsers = {};
+var adminUsersLoaded = false;
+var rolesData = {};
+var rolesLoaded = false;
+var editingPermissions = {}; // temp state for permission matrix edits
+
+function loadAdminUsers() {
+  if (adminUsersLoaded) { renderUsersList(); return; }
+  if (!hasPermission('users', 'read')) {
+    document.getElementById('usersEmpty').style.display = '';
+    document.getElementById('usersEmpty').innerHTML = '<p>You do not have permission to manage users.</p>';
+    return;
+  }
+  document.getElementById('usersLoading').style.display = '';
+  db.ref(ADMIN_USERS_PATH).once('value').then(function(snap) {
+    adminUsers = snap.val() || {};
+    adminUsersLoaded = true;
+    document.getElementById('usersLoading').style.display = 'none';
+    renderUsersList();
+  }).catch(function(err) {
+    console.error('Failed to load admin users:', err);
+    document.getElementById('usersLoading').style.display = 'none';
+  });
+}
+
+function loadRoles() {
+  if (rolesLoaded) { populateRoleSelector(); return; }
+  if (!hasPermission('roles', 'read')) return;
+  db.ref(ROLES_PATH).once('value').then(function(snap) {
+    rolesData = snap.val() || DEFAULT_ROLES;
+    rolesLoaded = true;
+    populateRoleSelector();
+  }).catch(function(err) {
+    console.error('Failed to load roles:', err);
+    rolesData = DEFAULT_ROLES;
+    rolesLoaded = true;
+    populateRoleSelector();
+  });
+}
+
+function switchEmployeesView(view) {
+  var items = document.querySelectorAll('#empSubNav .emp-sub-nav-item');
+  items.forEach(function(item) { item.classList.remove('active'); });
+  if (view === 'users') {
+    items[0].classList.add('active');
+    document.getElementById('empUsersView').style.display = '';
+    document.getElementById('empRolesView').style.display = 'none';
+    renderUsersList();
+  } else {
+    items[1].classList.add('active');
+    document.getElementById('empUsersView').style.display = 'none';
+    document.getElementById('empRolesView').style.display = '';
+    renderPermissionMatrix();
+  }
+}
+
+function renderUsersList() {
+  var tbody = document.getElementById('usersTableBody');
+  var emptyEl = document.getElementById('usersEmpty');
+  var tableEl = document.getElementById('usersTableWrap');
+  var users = Object.entries(adminUsers).sort(function(a, b) {
+    var roleOrder = { admin: 0, user: 1, guest: 2 };
+    var ra = roleOrder[a[1].role] !== undefined ? roleOrder[a[1].role] : 3;
+    var rb = roleOrder[b[1].role] !== undefined ? roleOrder[b[1].role] : 3;
+    if (ra !== rb) return ra - rb;
+    return (a[1].displayName || '').localeCompare(b[1].displayName || '');
+  });
+
+  if (users.length === 0) {
+    emptyEl.style.display = '';
+    tableEl.style.display = 'none';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  tableEl.style.display = '';
+
+  // Build role options from available roles
+  var roleKeys = Object.keys(rolesData).length > 0 ? Object.keys(rolesData) : Object.keys(DEFAULT_ROLES);
+
+  tbody.innerHTML = '';
+  users.forEach(function(pair) {
+    var uid = pair[0];
+    var u = pair[1];
+    var lastLogin = u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : 'Never';
+    var role = u.role || 'guest';
+    var roleBadgeClass = role === 'admin' ? 'admin' : role === 'user' ? 'user' : 'guest';
+    var isSelf = currentUser && uid === currentUser.uid;
+
+    var avatar = u.photoURL
+      ? '<img class="user-avatar" src="' + u.photoURL + '" alt="">'
+      : '<span style="display:inline-block;width:32px;height:32px;border-radius:50%;background:var(--cream-dark);text-align:center;line-height:32px;font-size:0.85rem;margin-right:8px;">' + (u.displayName || '?').charAt(0).toUpperCase() + '</span>';
+
+    var roleCell;
+    if (hasPermission('users', 'update') && !isSelf) {
+      var opts = '';
+      roleKeys.forEach(function(rk) {
+        var selected = rk === role ? ' selected' : '';
+        var rName = rolesData[rk] ? rolesData[rk].name : rk;
+        opts += '<option value="' + rk + '"' + selected + '>' + rName + '</option>';
+      });
+      roleCell = '<select class="user-role-select" onchange="changeUserRole(\'' + uid + '\', this.value)">' + opts + '</select>';
+    } else {
+      roleCell = '<span class="role-badge ' + roleBadgeClass + '">' + (rolesData[role] ? rolesData[role].name : role) + '</span>' +
+        (isSelf ? ' <span style="font-size:0.72rem;color:var(--warm-gray);">(you)</span>' : '');
+    }
+
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + avatar + (u.displayName || 'Unnamed') + '</td>' +
+      '<td>' + (u.email || '—') + '</td>' +
+      '<td>' + roleCell + '</td>' +
+      '<td>' + lastLogin + '</td>' +
+      '<td>' + (isSelf ? '' : '<button class="btn btn-secondary" style="font-size:0.72rem;padding:3px 8px;" onclick="viewUserAudit(\'' + uid + '\')">History</button>') + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+async function changeUserRole(uid, newRole) {
+  if (!hasPermission('users', 'update')) {
+    showToast('You do not have permission to change user roles.', true);
+    return;
+  }
+  var user = adminUsers[uid];
+  if (!user) return;
+  var oldRole = user.role;
+  if (oldRole === newRole) return;
+
+  // Warn if changing another admin's role
+  if (oldRole === 'admin') {
+    var adminCount = Object.values(adminUsers).filter(function(u) { return u.role === 'admin'; }).length;
+    if (adminCount <= 1) {
+      showToast('Cannot change role — this is the only admin account.', true);
+      renderUsersList(); // reset dropdown
+      return;
+    }
+    if (!confirm('Change ' + (user.displayName || user.email) + ' from Admin to ' + newRole + '? They will lose admin access on next login.')) {
+      renderUsersList(); // reset dropdown
+      return;
+    }
+  }
+
+  try {
+    await db.ref(ADMIN_USERS_PATH + '/' + uid + '/role').set(newRole);
+    adminUsers[uid].role = newRole;
+    await writeAudit('update', 'users', uid);
+    showToast('Role changed to ' + newRole + '.');
+    renderUsersList();
+  } catch (err) {
+    console.error('Role change failed:', err);
+    showToast('Failed to change role.', true);
+    renderUsersList();
+  }
+}
+
+function viewUserAudit(uid) {
+  // Set actor filter and switch to audit log
+  navigateTo('auditlog');
+  setTimeout(function() {
+    document.getElementById('auditFilterActor').value = uid;
+    renderAuditLog();
+  }, 100);
+}
+
+// ============================================================
+// Permission Matrix (Phase E3)
+// ============================================================
+function populateRoleSelector() {
+  var sel = document.getElementById('roleSelector');
+  if (!sel) return;
+  var current = sel.value;
+  var roleKeys = Object.keys(rolesData).length > 0 ? Object.keys(rolesData) : Object.keys(DEFAULT_ROLES);
+  sel.innerHTML = '';
+  roleKeys.forEach(function(rk) {
+    var rName = rolesData[rk] ? rolesData[rk].name : rk;
+    sel.innerHTML += '<option value="' + rk + '">' + rName + '</option>';
+  });
+  if (current && roleKeys.includes(current)) sel.value = current;
+  renderPermissionMatrix();
+}
+
+function renderPermissionMatrix() {
+  var sel = document.getElementById('roleSelector');
+  if (!sel) return;
+  var roleKey = sel.value;
+  var role = rolesData[roleKey] || DEFAULT_ROLES[roleKey];
+  if (!role) return;
+
+  // Show description
+  var descEl = document.getElementById('roleDescription');
+  descEl.textContent = role.description || '';
+
+  // Clone permissions for editing
+  editingPermissions = {};
+  var perms = role.permissions || {};
+  Object.keys(perms).forEach(function(entity) {
+    editingPermissions[entity] = {};
+    Object.keys(perms[entity]).forEach(function(action) {
+      editingPermissions[entity][action] = perms[entity][action];
+    });
+  });
+
+  // Build matrix
+  var tbody = document.getElementById('permMatrixBody');
+  tbody.innerHTML = '';
+  var entities = Object.keys(ENTITY_LABELS);
+  // Add users, roles, auditLog if they exist in permissions
+  ['users', 'roles', 'auditLog', 'receipts'].forEach(function(extra) {
+    if (perms[extra] && !entities.includes(extra)) entities.push(extra);
+  });
+
+  entities.forEach(function(entity) {
+    var ep = editingPermissions[entity] || { create: false, read: false, update: false, delete: false };
+    if (!editingPermissions[entity]) editingPermissions[entity] = ep;
+    var label = ENTITY_LABELS[entity] || entity;
+
+    var tr = document.createElement('tr');
+    var actions = ['create', 'read', 'update', 'delete'];
+    var cells = '<td>' + label + '</td>';
+    actions.forEach(function(action) {
+      var checked = ep[action] ? ' checked' : '';
+      var disabled = (role.isDefault && roleKey === 'admin' && entity !== 'auditLog') ? ' disabled title="Admin has full access"' : '';
+      cells += '<td><input type="checkbox"' + checked + disabled + ' onchange="togglePermission(\'' + entity + '\', \'' + action + '\', this.checked)"></td>';
+    });
+    tr.innerHTML = cells;
+    tbody.appendChild(tr);
+  });
+
+  // Show/hide save buttons based on editability
+  var actionsEl = document.getElementById('permMatrixActions');
+  actionsEl.style.display = hasPermission('roles', 'update') ? '' : 'none';
+}
+
+function togglePermission(entity, action, value) {
+  if (!editingPermissions[entity]) editingPermissions[entity] = {};
+  editingPermissions[entity][action] = value;
+}
+
+async function savePermissionMatrix() {
+  if (!hasPermission('roles', 'update')) {
+    showToast('You do not have permission to edit roles.', true);
+    return;
+  }
+  var roleKey = document.getElementById('roleSelector').value;
+  if (!roleKey) return;
+
+  try {
+    await db.ref(ROLES_PATH + '/' + roleKey + '/permissions').set(editingPermissions);
+    rolesData[roleKey].permissions = editingPermissions;
+    await writeAudit('update', 'roles', roleKey);
+    showToast('Permissions saved for ' + (rolesData[roleKey].name || roleKey) + '.');
+
+    // If editing own role, reload config
+    if (roleKey === currentUserRole) {
+      currentRoleConfig.permissions = editingPermissions;
+    }
+  } catch (err) {
+    console.error('Save permissions failed:', err);
+    showToast('Failed to save permissions.', true);
+  }
+}
+
+function resetPermissionMatrix() {
+  renderPermissionMatrix();
+  showToast('Permissions reset to saved state.');
+}
+
+function openCreateRoleModal() {
+  if (!hasPermission('roles', 'create')) {
+    showToast('You do not have permission to create roles.', true);
+    return;
+  }
+  var html = '<div class="modal-header">' +
+    '<h3>Create New Role</h3>' +
+    '<button class="modal-close" onclick="closeModal()">&times;</button>' +
+  '</div>' +
+  '<div class="modal-body">' +
+    '<div class="form-group">' +
+      '<label for="newRoleKey">Role Key *</label>' +
+      '<input type="text" id="newRoleKey" placeholder="e.g. manager" style="width:100%;padding:8px;border:1px solid var(--cream-dark);border-radius:6px;">' +
+      '<p style="font-size:0.72rem;color:var(--warm-gray);margin-top:4px;">Lowercase, no spaces. Used as the identifier.</p>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label for="newRoleName">Display Name *</label>' +
+      '<input type="text" id="newRoleName" placeholder="e.g. Manager" style="width:100%;padding:8px;border:1px solid var(--cream-dark);border-radius:6px;">' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label for="newRoleDesc">Description</label>' +
+      '<input type="text" id="newRoleDesc" placeholder="Brief description of this role" style="width:100%;padding:8px;border:1px solid var(--cream-dark);border-radius:6px;">' +
+    '</div>' +
+  '</div>' +
+  '<div class="modal-footer">' +
+    '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
+    '<button class="btn btn-primary" onclick="saveNewRole()">Create Role</button>' +
+  '</div>';
+  openModal(html);
+  setTimeout(function() { document.getElementById('newRoleKey').focus(); }, 100);
+}
+
+async function saveNewRole() {
+  var key = (document.getElementById('newRoleKey').value || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  var name = (document.getElementById('newRoleName').value || '').trim();
+  var desc = (document.getElementById('newRoleDesc').value || '').trim();
+
+  if (!key || !name) {
+    showToast('Role key and name are required.', true);
+    return;
+  }
+  if (rolesData[key]) {
+    showToast('A role with key "' + key + '" already exists.', true);
+    return;
+  }
+
+  // Start with guest-like permissions (all false)
+  var perms = {};
+  Object.keys(ENTITY_LABELS).concat(['users', 'roles', 'auditLog', 'receipts']).forEach(function(entity) {
+    perms[entity] = { create: false, read: false, update: false, delete: false };
+  });
+
+  var roleData = {
+    name: name,
+    description: desc,
+    isDefault: false,
+    permissions: perms
+  };
+
+  try {
+    await db.ref(ROLES_PATH + '/' + key).set(roleData);
+    rolesData[key] = roleData;
+    await writeAudit('create', 'roles', key);
+    closeModal();
+    populateRoleSelector();
+    document.getElementById('roleSelector').value = key;
+    renderPermissionMatrix();
+    showToast('Role "' + name + '" created. Set permissions below.');
+  } catch (err) {
+    console.error('Create role failed:', err);
+    showToast('Failed to create role.', true);
+  }
+}
 
 // ============================================================
 // Event Modal (Add / Edit)
