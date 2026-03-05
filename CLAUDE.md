@@ -1,23 +1,16 @@
-<!-- cc:app=shirglassworks idea=-OmgHr79DCEJbWnni1mt generated=2026-03-05T15:22:41.732Z -->
 # CLAUDE.md — Shir Glassworks
-
-> **Read cc-build-protocol before doing anything else.**
-
-## Current State
-
-- **App:** Shir Glassworks (`shirglassworks`)
-- **Active Idea:** Shir Glassworks Website + Storefront (`-OmgHr79DCEJbWnni1mt`)
-- **Idea Status:** active
-- **Active Concepts:** 3 rules, 8 constraints, 17 decisions, 7 opens
 
 ## What This App Is
 E-commerce website for Shir Glassworks — handmade glass art. Single-file HTML admin app with Firebase RTDB backend, public storefront on GitHub Pages, image pipeline via Cloud Functions, and Etsy integration for checkout.
+
+## Current Idea
+**Shir Glassworks Website + Storefront** — Full website redesign and storefront for Shir Glassworks. Phase 1: landing page, about, schedule, admin app with gallery management. Phase 2: shop with product catalog (6 categories, 31 products), analytics tracking. Phase 3: product detail pages with color variants, cart/checkout strategy. Phase 4: Studio Companion — camera-first PWA for production management and craft fair sales. Hybrid photo recognition (TensorFlow.js + Claude Vision), QR code system, GPS-based mode switching (studio/fair/packing), batch counting, new product onboarding via camera, travel inventory for events.
 
 ## RULEs — Do not violate these.
 
 - No unbounded Firebase listeners. All reads must use limitToLast(N) or .once('value'). Prevents billing spikes (learned from $17/day incident on another project). _(from: Shir Glassworks Website + Storefront)_
 - Admin writes go to shirglassworks/public/gallery (directly public). Firebase rules enforce admin-only writes (auth.uid check) and anonymous read access for public pages. Analytics writes are append-only with field validation. _(from: Shir Glassworks Website + Storefront)_
-- generate_claude_md is called automatically as part of job creation. When Chat creates a draft job, it must call generate_claude_md(action="push") for the target app before or alongside job creation. This ensures Code always has a current CLAUDE.md when it claims the job. Manual generation is no longer the expected path. _(from: Shir Glassworks Website + Storefront)_
+- generate_claude_md runs on job creation only when stale. Chat must call generate_claude_md(action="get") to check staleness before creating a draft job — if _stale: true, call generate_claude_md(action="push") to regenerate and deliver. If not stale, skip. Rules and constraints change infrequently — regenerating on every job is wasteful. The stale signal is the trigger, not the job creation event itself. _(from: Shir Glassworks Website + Storefront)_
 
 ## CONSTRAINTs — External realities. Work within these.
 
