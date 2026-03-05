@@ -305,6 +305,46 @@
       checkoutData.billing.same = this.checked;
       document.getElementById('billingFields').style.display = this.checked ? 'none' : '';
     });
+
+    // Restore saved checkout info from localStorage
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem('shir_checkout_info')); } catch (e) { /* ignore */ }
+    if (saved) {
+      if (saved.email && !checkoutData.email) {
+        checkoutData.email = saved.email;
+        var eml = document.getElementById('coEmail');
+        if (eml) eml.value = saved.email;
+      }
+      if (saved.shipping) {
+        var shipMap = { name: 'shipName', address1: 'shipAddr1', address2: 'shipAddr2', city: 'shipCity', state: 'shipState', zip: 'shipZip' };
+        for (var sKey in shipMap) {
+          if (saved.shipping[sKey] && !checkoutData.shipping[sKey]) {
+            checkoutData.shipping[sKey] = saved.shipping[sKey];
+            var sEl = document.getElementById(shipMap[sKey]);
+            if (sEl) sEl.value = saved.shipping[sKey];
+          }
+        }
+      }
+      if (saved.billing && !saved.billing.same) {
+        var cb = document.getElementById('billingSame');
+        if (cb && cb.checked) {
+          cb.checked = false;
+          cb.dispatchEvent(new Event('change'));
+        }
+        checkoutData.billing.same = false;
+        // Fill billing fields after the section becomes visible
+        setTimeout(function () {
+          var billMap = { name: 'billName', address1: 'billAddr1', address2: 'billAddr2', city: 'billCity', state: 'billState', zip: 'billZip' };
+          for (var bKey in billMap) {
+            if (saved.billing[bKey] && !checkoutData.billing[bKey]) {
+              checkoutData.billing[bKey] = saved.billing[bKey];
+              var bEl = document.getElementById(billMap[bKey]);
+              if (bEl) bEl.value = saved.billing[bKey];
+            }
+          }
+        }, 50);
+      }
+    }
   }
 
   function saveAddressData() {
@@ -330,6 +370,15 @@
         }
       }
     }
+
+    // Persist to localStorage so returning users don't re-enter
+    try {
+      localStorage.setItem('shir_checkout_info', JSON.stringify({
+        email: checkoutData.email,
+        shipping: checkoutData.shipping,
+        billing: checkoutData.billing
+      }));
+    } catch (e) { /* private browsing may block localStorage */ }
   }
 
   function validateAddress() {
@@ -357,11 +406,12 @@
       return true;
     }
 
-    // Email
+    // Email – regex validates format: no spaces, has @, has domain with dot
     var emailEl = document.getElementById('coEmail');
     if (emailEl) {
       var emailVal = emailEl.value.trim();
-      if (!emailVal || !emailVal.includes('@') || !emailVal.includes('.')) {
+      var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailVal || !emailRegex.test(emailVal)) {
         emailEl.classList.add('error');
         var errE = document.createElement('div');
         errE.className = 'checkout-error-msg';
@@ -716,8 +766,9 @@
           }));
         } catch (e) { /* sessionStorage not available */ }
 
-        // Clear cart before redirect (order is committed server-side)
+        // Clear cart and saved checkout info before redirect
         window.ShirCart.clear();
+        try { localStorage.removeItem('shir_checkout_info'); } catch (e) { /* ignore */ }
         trackCheckoutEvent('checkout_redirect_to_payment');
 
         // Redirect to Square hosted checkout
