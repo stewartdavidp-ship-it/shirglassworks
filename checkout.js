@@ -1050,6 +1050,8 @@
 
     function csvEsc(val) {
       var str = String(val);
+      // Prevent CSV formula injection
+      if (/^[=+\-@\t\r]/.test(str)) str = "'" + str;
       if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1) {
         return '"' + str.replace(/"/g, '""') + '"';
       }
