@@ -1,6 +1,6 @@
 # Shir Glassworks — End-to-End Product Lifecycle
 
-**Last Updated:** 2026-03-03 (post Phase D)
+**Last Updated:** 2026-03-05 (post Phase E)
 **Purpose:** Living reference document covering the full product lifecycle, production system, studio companion features, and what's next.
 
 ---
@@ -35,7 +35,7 @@ BUILD COMPLETE → CAMERA INTAKE (per piece) → VISION ID + CONFIRM → INVENTO
 ## Stage 1: Product Catalog (BUILT)
 
 **What exists:**
-- 31 products across 6 categories (Figurines, Jewelry, Drinkware, Vases, Decoration, Sculpture)
+- 27 products across 7 categories (Figurines, Jewelry, Drinkware, Vases, Decoration, Sculpture, and a general/uncategorized category)
 - Product data at `shirglassworks/public/products/{pid}` with name, price, images, options (color, opacity, size), description
 - Admin Products tab for managing catalog: add/edit/delete products, option management, image uploads, variant inventory management
 - Filter pills on public shop page for category browsing
@@ -70,7 +70,8 @@ BUILD COMPLETE → CAMERA INTAKE (per piece) → VISION ID + CONFIRM → INVENTO
 **What exists:**
 - Multi-step checkout flow: Shipping Address → Review → Payment
 - Shipping options: Standard ($8.99), Express ($14.99), Local Pickup (free)
-- Tax calculation by US state (MA 6.25%, CA 7.25%, etc.)
+- Tax calculation by US state (rates stored in Firebase at `shirglassworks/public/taxRates/{STATE}`)
+- **NOTE:** MA tax rate in Firebase is currently 6.3% — actual MA sales tax is 6.25%. Needs correction in RTDB.
 - Coupon code application (percentage, fixed, free-shipping types)
 - Order summary with subtotal, tax, shipping, coupon discount, total
 - Coupon system at `shirglassworks/admin/coupons/{code}` with admin CRUD, validation, max uses, expiry
@@ -182,8 +183,8 @@ BUILD COMPLETE → CAMERA INTAKE (per piece) → VISION ID + CONFIRM → INVENTO
 **Product Detail — Read-Only Inventory Dashboard:**
 - Click any product card to open full detail with back navigation
 - **Inventory on Hand** section shows total available as a big number, plus reserved count
-- For products with attributes: tags show each attribute value with its count (e.g., `Blue (3)`, `Red (0)`)
-  - Tags with stock are highlighted in teal; zero-stock tags are greyed out
+- For products with attributes: tags show each attribute value name (e.g., `Blue`, `Red`)
+  - Tags with stock are highlighted; zero-stock tags are greyed out
   - Attribute values grouped by label (Color, Size, etc.)
 - For products without attributes: shows single total count
 - **"Adjust Stock" button** opens a modal for manual corrections (the exception case, not the normal flow)
@@ -200,7 +201,7 @@ BUILD COMPLETE → CAMERA INTAKE (per piece) → VISION ID + CONFIRM → INVENTO
 
 **Inventory Overview (Production → Inventory sub-view):**
 - All-products-at-a-glance table in the Production tab alongside Queue and Jobs
-- Summary stat cards: total products, total on hand, reserved, out of stock, low stock, made to order
+- Summary stat cards: total products, total on hand, reserved, made to order
 - Table columns: thumbnail, product name/price, stock type badge, on hand, reserved, attribute breakdown tags
 - Smart sort: out of stock first (urgent), low stock next, then by quantity descending, made-to-order last
 - Click any row to navigate to that product's detail page
@@ -313,7 +314,7 @@ BUILD COMPLETE → CAMERA INTAKE (per piece) → VISION ID + CONFIRM → INVENTO
 - Sale detail view with items, payment info, notes
 - Reconcile and void actions
 - Square Payments view (toggle from sales list):
-  - Summary cards: total, matched, unmatched, unmatched amount
+  - Summary cards: total, matched, unmatched
   - Filter: unmatched only, matched only, all
   - Manual match modal: shows candidate sales sorted by time proximity, amount match highlighting
   - `executeManualMatch()` atomic update: sale gets squarePaymentId + authoritative amount, payment gets matchedSaleId
@@ -354,16 +355,76 @@ BUILD COMPLETE → CAMERA INTAKE (per piece) → VISION ID + CONFIRM → INVENTO
 
 ---
 
-## GPS-Aware Mode Switching (BUILT — Phase C)
+## GPS-Aware Mode Switching (BUILT)
 
 **What exists:**
-- Studio Locations configuration in Settings: latitude, longitude, detection radius (default 500m)
-- `detectStudioProximity()` uses Geolocation API to check distance from studio
-- Automatic mode switching based on location:
-  - Within studio radius: production-focused UI
-  - Outside studio: event/selling-focused UI
-- Visual indicator showing current detected mode
-- Graceful fallback when GPS unavailable or denied
+- Multi-studio location support: admin settings to add/remove studio locations with live GPS capture
+- Studio locations config at `shirglassworks/config/studioLocations` — each entry has latitude, longitude, name
+- Shared `haversineDistance()` function with 500m default detection radius
+- PoS auto-detects location on auth:
+  - Within any studio radius: normal PoS operation
+  - Outside all studio radii: remote notice modal with option to link to an active sales event
+- Non-blocking UX: camera initializes immediately, GPS check runs in background
+- Silent failure on geolocation error or permission denied — does not block PoS usage
+- Supports multiple studios (second studio in progress)
+
+**Note:** GPS was deferred from Phase C (mode switching was manual) and built as a separate job post-Phase D.
+
+---
+
+## RBAC — Role-Based Access Control (BUILT — Phase E1)
+
+**What exists:**
+- Three-tier role model: Admin (full access), User (operational), Guest (read-only)
+- Role data at `shirglassworks/admin/roles/{roleKey}` with name, description, permissions map
+- User records at `shirglassworks/admin/users/{uid}` with role, displayName, email, timestamps
+- 16-entity × 4-action (CRUD) permission matrix per role
+- `hasPermission(entity, action)` — default-deny permission check used throughout the app
+- `isAdmin()`, `isStaff()` — convenience role checks
+- Auto-provisioning: known admin UIDs bootstrap as admin, everyone else as guest
+- `loadUserRole(uid)` on login loads user record + role config, falls back to DEFAULT_ROLES
+- `seedRolesAndAdminUser()` one-time bootstrap for first admin
+
+**Permission entities:** orders, products, inventory, jobs, buildJobs, salesEvents, gallery, schedule, locations, coupons, settings, users, roles, auditLog, pos, receipts
+
+---
+
+## Audit Trail (BUILT — Phase E2)
+
+**What exists:**
+- `writeAudit(action, entity, entityId)` — non-blocking async utility called after every CUD operation
+- Dual-path atomic writes via `db.ref().update()`:
+  - Global log: `shirglassworks/admin/auditLog/{pushKey}` (chronological, paginated queries)
+  - Per-entity index: `shirglassworks/admin/auditIndex/{entity}/{entityId}/{pushKey}` (record-level history)
+- Audit entry schema: `{ event: { action, entity, entityId }, actor: { uid, displayName, role }, time: ServerValue.TIMESTAMP, context: { gpsMode, eventId } }`
+- Immutable: Firebase rules enforce `!data.exists()` (append-only, no updates or deletes)
+- Non-blocking: catches all errors internally, never throws, so audit failures don't block business operations
+- GPS mode derived from `activeEventId` (set = fair, null = studio)
+- 81 audit calls across 17 entities covering all create/update/delete operations
+
+---
+
+## Admin UI — Audit Log & Permissions (BUILT — Phase E3)
+
+**Audit Log Viewer (`#auditlog`):**
+- Paginated list view (50 entries per page via `limitToLast`)
+- 5 independent filters: entity type, action (create/update/delete), actor, date from, date to
+- Desktop table + mobile card layouts
+- Color-coded action badges and GPS mode badges
+- "Load More" button for pagination
+- Per-record history component (`renderRecordHistory(entity, entityId)`) — reusable for embedding in entity detail views
+
+**Employees & Permissions (`#employees`):**
+- **Users sub-view:** All admin users sorted by role, with avatar, email, role dropdown for promotion/demotion
+  - Last-admin protection (cannot demote the only admin)
+  - Confirmation dialog when demoting admins
+  - "History" button links to audit log filtered by that user
+- **Roles & Permissions sub-view:** Visual permission matrix editor
+  - Role selector dropdown
+  - 16 entities × 4 actions = 64 checkboxes in grid format
+  - Admin role locks enforced
+  - Save/Reset buttons with Firebase persistence
+  - "New Role" modal for creating custom roles (starts with all permissions false)
 
 ---
 
@@ -425,9 +486,9 @@ BUILD COMPLETE → CAMERA INTAKE (per piece) → VISION ID + CONFIRM → INVENTO
 **What exists:**
 - Production jobs at `shirglassworks/admin/jobs/{jobId}` — independent from order build jobs
 - 6 job purposes: `fulfillment`, `custom`, `inventory-general`, `wholesale`, `experimental`, `inventory-event`
-- Work types: `flamework`, `fusing`, `coldwork`, `mixed`
+- Work types: `flameshop`, `hotshop`, `hybrid`, `other`
 - Priority levels: `urgent`, `high`, `normal`, `low`
-- Job lifecycle: `draft` → `active` → `completed` (or `cancelled`)
+- Job lifecycle: `definition` → `in-progress` → `completed` (or `cancelled`, `on-hold`)
 - Multi-build tracking: each job has multiple builds (production sessions) at `jobs/{jobId}/builds/{buildId}`
 - Build lifecycle: `in-progress` → `completed`, with start/end timestamps, duration, operators
 - Line items with `targetQuantity` and per-build tally tracking (`completedQuantity`, `lossQuantity`)
@@ -531,6 +592,8 @@ payment_failed → cancelled
 
 1. **No unbounded Firebase listeners** — all reads must use `limitToLast(N)` or `.once('value')` to prevent billing spikes.
 2. **Admin writes go through auth check** — Firebase rules enforce `auth.uid` check for admin operations. Public pages have anonymous read access.
+3. **All CUD operations must call `writeAudit()`** — every create, update, and delete writes an immutable audit entry. Audit calls are non-blocking (never throw).
+4. **Permission checks via `hasPermission(entity, action)`** — UI features and data operations must check RBAC permissions before executing. Default deny.
 
 ---
 
@@ -554,10 +617,15 @@ payment_failed → cancelled
 | Production jobs | Firebase RTDB: `shirglassworks/admin/jobs/` | Live |
 | Production requests | Firebase RTDB: `shirglassworks/admin/productionRequests/` | Live |
 | Coupons | Firebase RTDB: `shirglassworks/admin/coupons/` | Live |
+| RBAC roles | Firebase RTDB: `shirglassworks/admin/roles/` | Live |
+| RBAC users | Firebase RTDB: `shirglassworks/admin/users/` | Live |
+| Audit log (global) | Firebase RTDB: `shirglassworks/admin/auditLog/` | Live |
+| Audit index (per-entity) | Firebase RTDB: `shirglassworks/admin/auditIndex/` | Live |
 | Order counter | Firebase RTDB: `shirglassworks/admin/orderCounter` | Live |
 | Stories (public) | Firebase RTDB: `shirglassworks/public/stories/` | Live |
 | Image library | Firebase RTDB: `shirglassworks/images/` + Firebase Storage | Live |
 | Square config | Firebase RTDB: `shirglassworks/config/square` | Live |
+| Studio locations (GPS) | Firebase RTDB: `shirglassworks/config/studioLocations` | Live |
 | Etsy config + tokens | Firebase RTDB: `shirglassworks/config/etsy` | Live |
 | `shirSubmitOrder` | Cloud Functions (callable) | Deployed |
 | `shirSquareWebhook` | Cloud Functions (HTTP) | Deployed |
@@ -638,6 +706,14 @@ payment_failed → cancelled
 | Receipt delivery via SendGrid email + Twilio SMS | Receipts | Phase D |
 | Vision API attribute extraction for intake/training contexts | Vision | Phase D |
 | Auto-save visual descriptions for progressive classification improvement | Vision | Phase D |
+| Three-tier RBAC model (Admin/User/Guest) with 16-entity permission matrix | Security | Phase E |
+| Auto-provisioning: known UIDs → admin, all others → guest | Security | Phase E |
+| Dual-path audit storage (global log + per-entity index) for O(1) record history | Audit | Phase E |
+| Immutable append-only audit entries (Firebase rules enforce `!data.exists()`) | Audit | Phase E |
+| Non-blocking audit writes (never throw, catch internally) | Audit | Phase E |
+| GPS mode derived from activeEventId (fair vs studio context) | Audit | Phase E |
+| Permission matrix editor in Manage section (Employees & Permissions) | Admin | Phase E |
+| Audit log viewer with 5 independent filters and pagination | Admin | Phase E |
 
 ---
 
@@ -697,5 +773,5 @@ Full end-to-end "day in the life" walkthrough covering: Production → Inventory
 - **Refund integration:** Square Refunds API for order cancellations after payment.
 - **Customer order lookup:** Public page for customers to check order status by email + order number.
 - **Inventory display on public site:** Show In Stock / Made to Order badges on public product cards.
-- **Inventory audit trail:** History of stock changes beyond current guard flags.
 - **SendGrid/Twilio configuration:** Store API keys in Firebase Functions config; admin UI for from-email and phone number settings.
+- **Per-record history embedding:** Wire `renderRecordHistory()` into order detail, product detail, and inventory views to show inline change history.
