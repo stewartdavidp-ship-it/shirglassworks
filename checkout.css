@@ -552,3 +552,57 @@
     flex: 1;
   }
 }
+
+/* ========= TEST MODE BANNER ========= */
+.test-mode-banner {
+  background: #FFF3E0;
+  border: 1px solid #F5A623;
+  color: #8B5E00;
+  text-align: center;
+  padding: 8px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* ========= GOOGLE PLACES AUTOCOMPLETE ========= */
+.pac-container {
+  font-family: 'DM Sans', sans-serif;
+  border: 1px solid #E0D8CC;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 10001;
+}
+.pac-item {
+  font-size: 0.85rem;
+  color: #1A1A1A;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.pac-item:hover {
+  background: #FFF9F3;
+}
+.pac-item-query {
+  color: #C4853C;
+}
+
+/* ========= CSV DOWNLOAD BUTTON ========= */
+.checkout-btn-secondary {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #1A1A1A;
+  color: #FFF9F3;
+  border: none;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+.checkout-btn-secondary:hover {
+  background: #333;
+}

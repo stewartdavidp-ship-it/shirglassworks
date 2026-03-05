@@ -19,8 +19,21 @@
     taxState: ''
   };
 
-  var shippingRates = null; // cached from Firebase
+  var shippingConfigCache = null; // cached flat-rate config
   var isSubmitting = false;
+  var placesLoaded = false;
+  var placesApiKey = null;
+
+  // ── Shipping defaults ──
+  var DEFAULT_SHIPPING_CONFIG = {
+    small:     { rate: 6,  boxL: 6,  boxW: 6,  boxH: 6 },
+    medium:    { rate: 10, boxL: 10, boxW: 8,  boxH: 6 },
+    large:     { rate: 15, boxL: 14, boxW: 12, boxH: 8 },
+    oversized: { rate: 22, boxL: 20, boxW: 16, boxH: 12 },
+    additionalItemSurcharge: 2,
+    freeThreshold: 100,
+    packingBufferOz: 8
+  };
 
   // US states for dropdown
   var US_STATES = [
@@ -67,14 +80,64 @@
     return app ? app.database() : null;
   }
 
-  function fetchShippingRates(callback) {
-    if (shippingRates) { callback(shippingRates); return; }
+  function fetchShippingConfig(callback) {
+    if (shippingConfigCache) { callback(shippingConfigCache); return; }
     var db = getDb();
-    if (!db) { callback({}); return; }
-    db.ref('shirglassworks/public/shipping').once('value').then(function (snap) {
-      shippingRates = snap.val() || {};
-      callback(shippingRates);
-    }).catch(function () { callback({}); });
+    if (!db) { callback(DEFAULT_SHIPPING_CONFIG); return; }
+    db.ref('shirglassworks/public/config/shippingRates').once('value').then(function (snap) {
+      shippingConfigCache = snap.val() || DEFAULT_SHIPPING_CONFIG;
+      callback(shippingConfigCache);
+    }).catch(function () { callback(DEFAULT_SHIPPING_CONFIG); });
+  }
+
+  function fetchProductShippingData(pids, callback) {
+    var db = getDb();
+    if (!db || pids.length === 0) { callback({}); return; }
+    var result = {};
+    var remaining = pids.length;
+    for (var i = 0; i < pids.length; i++) {
+      (function (pid) {
+        db.ref('shirglassworks/public/products/' + pid).once('value').then(function (snap) {
+          var prod = snap.val();
+          if (prod) {
+            result[pid] = { weightOz: prod.weightOz || 16, shippingCategory: prod.shippingCategory || 'small' };
+          } else {
+            result[pid] = { weightOz: 16, shippingCategory: 'small' };
+          }
+          remaining--;
+          if (remaining === 0) callback(result);
+        }).catch(function () {
+          result[pid] = { weightOz: 16, shippingCategory: 'small' };
+          remaining--;
+          if (remaining === 0) callback(result);
+        });
+      })(pids[i]);
+    }
+  }
+
+  function calculateShipping(items, productMap, config) {
+    var subtotal = calcSubtotal();
+    var threshold = config.freeThreshold != null ? config.freeThreshold : 100;
+    if (subtotal >= threshold) {
+      return { price: 0, label: 'Free Shipping', description: 'Free shipping on orders over ' + formatMoney(threshold), category: 'free' };
+    }
+    var catOrder = ['small', 'medium', 'large', 'oversized'];
+    var highestIdx = 0;
+    var totalItems = 0;
+    for (var i = 0; i < items.length; i++) {
+      var ps = productMap[items[i].pid] || { shippingCategory: 'small' };
+      var idx = catOrder.indexOf(ps.shippingCategory || 'small');
+      if (idx > highestIdx) highestIdx = idx;
+      totalItems += (items[i].qty || 1);
+    }
+    var cat = catOrder[highestIdx];
+    var catConfig = config[cat] || DEFAULT_SHIPPING_CONFIG[cat];
+    var baseRate = catConfig ? catConfig.rate : 6;
+    var additional = Math.max(totalItems - 1, 0) * (config.additionalItemSurcharge || 2);
+    var price = Math.round((baseRate + additional) * 100) / 100;
+    var desc = cat.charAt(0).toUpperCase() + cat.slice(1) + ' package';
+    if (totalItems > 1) desc += ' + ' + (totalItems - 1) + ' additional item' + (totalItems > 2 ? 's' : '');
+    return { price: price, label: 'Standard Shipping', description: desc, category: cat };
   }
 
   function fetchTaxRate(state, callback) {
@@ -223,6 +286,14 @@
 
     body.innerHTML = html;
 
+    // Test mode banner
+    checkTestMode(function (isSandbox) {
+      if (isSandbox) showTestBanner(body);
+    });
+
+    // Attach Google Places autocomplete if loaded
+    attachPlacesAutocomplete();
+
     // Footer
     footer.style.display = '';
     footer.innerHTML =
@@ -317,6 +388,27 @@
       check('billZip', 'ZIP code required');
     }
 
+    // Google Places address validation (soft gate)
+    if (valid && placesLoaded && !checkoutData._addressValidated) {
+      if (!checkoutData._addressValidateAttempts) {
+        checkoutData._addressValidateAttempts = 1;
+        var addrEl = document.getElementById('shipAddr1');
+        if (addrEl) {
+          addrEl.classList.add('error');
+          var warnDiv = document.createElement('div');
+          warnDiv.className = 'checkout-error-msg';
+          warnDiv.style.color = '#B3742E';
+          warnDiv.textContent = 'Please select an address from the dropdown to validate. Click Continue again to skip.';
+          addrEl.parentNode.appendChild(warnDiv);
+          addrEl.focus();
+        }
+        valid = false;
+      } else {
+        // Second attempt — let them through
+        checkoutData._addressValidateAttempts = 0;
+      }
+    }
+
     return valid;
   }
 
@@ -328,81 +420,74 @@
     if (!body || !footer) return;
 
     body.innerHTML = stepIndicatorHtml('shipping') +
-      '<div class="checkout-section"><div style="text-align:center;color:#9B958E;padding:2rem 0;">Loading shipping options...</div></div>';
+      '<div class="checkout-section"><div style="text-align:center;color:#9B958E;padding:2rem 0;">Calculating shipping...</div></div>';
 
-    fetchShippingRates(function (rates) {
-      var subtotal = calcSubtotal();
+    var items = window.ShirCart.getItems();
+    var pids = [];
+    for (var i = 0; i < items.length; i++) {
+      if (pids.indexOf(items[i].pid) === -1) pids.push(items[i].pid);
+    }
 
-      // Also fetch tax for the shipping state
-      fetchTaxRate(checkoutData.shipping.state, function (rate) {
-        checkoutData.taxRate = rate;
-        checkoutData.taxState = checkoutData.shipping.state;
+    // Fetch product shipping data, shipping config, and tax in parallel
+    fetchProductShippingData(pids, function (productMap) {
+      fetchShippingConfig(function (config) {
+        fetchTaxRate(checkoutData.shipping.state, function (rate) {
+          checkoutData.taxRate = rate;
+          checkoutData.taxState = checkoutData.shipping.state;
 
-        var html = stepIndicatorHtml('shipping');
+          // Store for CSV generation later
+          checkoutData.itemShippingData = productMap;
+          checkoutData.shippingConfig = config;
 
-        // Shipping options
-        html += '<div class="checkout-section">' +
-          '<div class="checkout-section-title">Shipping Method</div>' +
-          '<div class="shipping-options" id="shippingOptions">';
+          // Calculate flat-rate shipping
+          var shipResult = calculateShipping(items, productMap, config);
+          checkoutData.shippingMethod = {
+            key: 'calculated',
+            label: shipResult.label,
+            description: shipResult.description,
+            price: shipResult.price
+          };
 
-        var keys = Object.keys(rates);
-        // Sort by price ascending
-        keys.sort(function (a, b) { return (rates[a].price || 0) - (rates[b].price || 0); });
+          var subtotal = calcSubtotal();
+          var html = stepIndicatorHtml('shipping');
 
-        for (var i = 0; i < keys.length; i++) {
-          var r = rates[keys[i]];
-          var sel = checkoutData.shippingMethod && checkoutData.shippingMethod.key === keys[i] ? ' selected' : '';
-          html += '<div class="shipping-option' + sel + '" data-ship-key="' + esc(keys[i]) + '">' +
-            '<div class="shipping-option-radio"></div>' +
-            '<div class="shipping-option-details">' +
-              '<div class="shipping-option-label">' + esc(r.label) + '</div>' +
-              '<div class="shipping-option-desc">' + esc(r.description) + '</div>' +
+          // Display calculated shipping (single line, no radio options)
+          html += '<div class="checkout-section">' +
+            '<div class="checkout-section-title">Shipping</div>' +
+            '<div class="shipping-option selected" style="cursor:default;">' +
+              '<div class="shipping-option-details">' +
+                '<div class="shipping-option-label">' + esc(shipResult.label) + '</div>' +
+                '<div class="shipping-option-desc">' + esc(shipResult.description) + '</div>' +
+              '</div>' +
+              '<div class="shipping-option-price">' + (shipResult.price === 0 ? 'FREE' : formatMoney(shipResult.price)) + '</div>' +
             '</div>' +
-            '<div class="shipping-option-price">' + formatMoney(r.price || 0) + '</div>' +
           '</div>';
-        }
-        html += '</div></div>';
 
-        // Coupon
-        html += '<div class="checkout-section">' +
-          '<div class="checkout-section-title">Coupon Code</div>' +
-          '<div class="coupon-row">' +
-            '<input class="checkout-input" id="coCouponInput" type="text" placeholder="Enter code" value="' +
-              (checkoutData.coupon ? esc(checkoutData.coupon.code) : '') + '">' +
-            '<button class="coupon-apply-btn" data-co="apply-coupon">Apply</button>' +
-          '</div>' +
-          '<div id="coCouponMsg"></div>' +
-        '</div>';
+          // Coupon
+          html += '<div class="checkout-section">' +
+            '<div class="checkout-section-title">Coupon Code</div>' +
+            '<div class="coupon-row">' +
+              '<input class="checkout-input" id="coCouponInput" type="text" placeholder="Enter code" value="' +
+                (checkoutData.coupon ? esc(checkoutData.coupon.code) : '') + '">' +
+              '<button class="coupon-apply-btn" data-co="apply-coupon">Apply</button>' +
+            '</div>' +
+            '<div id="coCouponMsg"></div>' +
+          '</div>';
 
-        // Totals
-        html += '<div class="checkout-section">' + buildTotalsHtml(subtotal) + '</div>';
+          // Totals
+          html += '<div class="checkout-section">' + buildTotalsHtml(subtotal) + '</div>';
 
-        body.innerHTML = html;
+          body.innerHTML = html;
 
-        // Show existing coupon if any
-        if (checkoutData.coupon) {
-          var msgEl = document.getElementById('coCouponMsg');
-          if (msgEl) {
-            msgEl.innerHTML = '<div class="coupon-success">Coupon ' + esc(checkoutData.coupon.code) +
-              ' applied: -' + formatMoney(checkoutData.coupon.discount) + '</div>';
+          // Show existing coupon if any
+          if (checkoutData.coupon) {
+            var msgEl = document.getElementById('coCouponMsg');
+            if (msgEl) {
+              msgEl.innerHTML = '<div class="coupon-success">Coupon ' + esc(checkoutData.coupon.code) +
+                ' applied: -' + formatMoney(checkoutData.coupon.discount) + '</div>';
+            }
           }
-        }
-
-        // Select first shipping option if none selected
-        if (!checkoutData.shippingMethod && keys.length > 0) {
-          var firstEl = document.querySelector('.shipping-option');
-          if (firstEl) {
-            firstEl.classList.add('selected');
-            var firstKey = keys[0];
-            checkoutData.shippingMethod = {
-              key: firstKey,
-              label: rates[firstKey].label,
-              description: rates[firstKey].description,
-              price: rates[firstKey].price
-            };
-            updateTotals();
-          }
-        }
+        });
       });
     });
 
@@ -610,7 +695,7 @@
       items: items.map(function (it) {
         return { pid: it.pid, name: it.name, options: it.options, price: it.price, qty: it.qty };
       }),
-      shippingMethodKey: checkoutData.shippingMethod.key,
+      shippingMethodKey: 'calculated',
       couponCode: checkoutData.coupon ? checkoutData.coupon.code : null,
       uid: user ? user.uid : 'anonymous'
     };
@@ -623,7 +708,11 @@
           sessionStorage.setItem('shir_pending_order', JSON.stringify({
             orderId: result.orderId,
             orderNumber: result.orderNumber,
-            email: checkoutData.email
+            email: checkoutData.email,
+            items: payload.items,
+            shipping: checkoutData.shipping,
+            itemShippingData: checkoutData.itemShippingData || {},
+            shippingConfig: checkoutData.shippingConfig || DEFAULT_SHIPPING_CONFIG
           }));
         } catch (e) { /* sessionStorage not available */ }
 
@@ -734,7 +823,7 @@
       } else if (action === 'addr-back') {
         saveAddressData(); cancelCheckout();
       } else if (action === 'ship-next') {
-        if (!checkoutData.shippingMethod) { window.ShirCart.showToast('Please select a shipping method'); return; }
+        if (!checkoutData.shippingMethod) { window.ShirCart.showToast('Shipping is still loading, please wait'); return; }
         renderReview();
       } else if (action === 'ship-back') {
         renderAddress();
@@ -750,22 +839,11 @@
         renderShipping();
       }
 
-      // Shipping option selection
-      var shipOpt = e.target.closest('[data-ship-key]');
-      if (shipOpt && shippingRates) {
-        var allOpts = body.querySelectorAll('.shipping-option');
-        for (var k = 0; k < allOpts.length; k++) allOpts[k].classList.remove('selected');
-        shipOpt.classList.add('selected');
-        var key = shipOpt.getAttribute('data-ship-key');
-        if (shippingRates[key]) {
-          checkoutData.shippingMethod = {
-            key: key,
-            label: shippingRates[key].label,
-            description: shippingRates[key].description,
-            price: shippingRates[key].price
-          };
-          updateTotals();
-        }
+      // CSV download button
+      if (action === 'download-csv') {
+        var csvData = sessionStorage.getItem('shir_csv_data');
+        var csvName = sessionStorage.getItem('shir_csv_name') || 'pirateship-order.csv';
+        if (csvData) downloadCSV(csvData, csvName);
       }
     }
 
@@ -811,12 +889,12 @@
       }
 
       setTimeout(function () {
-        renderPaymentConfirmation(orderNumber, email);
+        renderPaymentConfirmation(orderNumber, email, orderId, pendingOrder);
       }, 150);
     }
   }
 
-  function renderPaymentConfirmation(orderNumber, email) {
+  function renderPaymentConfirmation(orderNumber, email, orderId, pendingOrder) {
     currentStep = 'confirmation';
     attachDelegate();
     var body = document.getElementById('cartDrawerBody');
@@ -837,6 +915,7 @@
           'Thank you for your order!' +
           (email ? ' A confirmation will be sent to <strong>' + esc(email) + '</strong>.' : '') +
         '</div>' +
+        '<div id="csvStatus" style="font-size:0.8rem;color:#9B958E;margin-top:12px;">Preparing shipping label data...</div>' +
       '</div>';
 
     if (footer) {
@@ -845,7 +924,191 @@
         '<button class="checkout-btn-primary" data-co="conf-done">Continue Shopping</button>';
     }
 
+    // Watch for order status to become 'placed' and generate CSV
+    if (orderId && pendingOrder && pendingOrder.items) {
+      watchOrderAndDownloadCSV(orderId, pendingOrder);
+    }
+
     trackCheckoutEvent('payment_success');
+  }
+
+  // ── Google Places Integration ──
+  function loadGooglePlaces(callback) {
+    if (placesLoaded) { callback(); return; }
+    if (!placesApiKey) {
+      var db = getDb();
+      if (!db) { callback(); return; }
+      db.ref('shirglassworks/public/config/googleMapsApiKey').once('value').then(function (snap) {
+        placesApiKey = snap.val();
+        if (!placesApiKey) { callback(); return; }
+        injectPlacesScript(callback);
+      }).catch(function () { callback(); });
+    } else {
+      injectPlacesScript(callback);
+    }
+  }
+
+  function injectPlacesScript(callback) {
+    var script = document.createElement('script');
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + placesApiKey + '&libraries=places&callback=__shirPlacesReady';
+    window.__shirPlacesReady = function () {
+      placesLoaded = true;
+      callback();
+    };
+    script.onerror = function () { callback(); };
+    document.head.appendChild(script);
+  }
+
+  function attachPlacesAutocomplete() {
+    if (!window.google || !google.maps || !google.maps.places) return;
+    var input = document.getElementById('shipAddr1');
+    if (!input) return;
+    var autocomplete = new google.maps.places.Autocomplete(input, {
+      types: ['address'],
+      componentRestrictions: { country: 'us' }
+    });
+    autocomplete.addListener('place_changed', function () {
+      var place = autocomplete.getPlace();
+      if (place && place.address_components) {
+        fillAddressFromPlace(place);
+        checkoutData._addressValidated = true;
+      }
+    });
+    // Reset validation if user manually edits
+    ['shipAddr1', 'shipCity', 'shipState', 'shipZip'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', function () { checkoutData._addressValidated = false; });
+    });
+  }
+
+  function fillAddressFromPlace(place) {
+    var components = {};
+    for (var i = 0; i < place.address_components.length; i++) {
+      var c = place.address_components[i];
+      for (var j = 0; j < c.types.length; j++) {
+        components[c.types[j]] = c;
+      }
+    }
+    var streetNum = components.street_number ? components.street_number.long_name : '';
+    var route = components.route ? components.route.long_name : '';
+    var setVal = function (id, val) { var el = document.getElementById(id); if (el) el.value = val; };
+    setVal('shipAddr1', (streetNum + ' ' + route).trim());
+    setVal('shipCity', components.locality ? components.locality.long_name : (components.sublocality_level_1 ? components.sublocality_level_1.long_name : ''));
+    var stateEl = document.getElementById('shipState');
+    if (stateEl && components.administrative_area_level_1) stateEl.value = components.administrative_area_level_1.short_name;
+    setVal('shipZip', components.postal_code ? components.postal_code.long_name : '');
+  }
+
+  // ── Test Mode Banner ──
+  function checkTestMode(callback) {
+    var db = getDb();
+    if (!db) { callback(false); return; }
+    db.ref('shirglassworks/public/config/testMode').once('value').then(function (snap) {
+      callback(snap.val() === true);
+    }).catch(function () { callback(false); });
+  }
+
+  function showTestBanner(container) {
+    if (document.getElementById('testModeBanner')) return;
+    var banner = document.createElement('div');
+    banner.id = 'testModeBanner';
+    banner.className = 'test-mode-banner';
+    banner.innerHTML = '&#9888; TEST MODE &mdash; No real charges will be made';
+    container.insertBefore(banner, container.firstChild);
+  }
+
+  // ── Pirate Ship CSV Generation ──
+  function generatePirateShipCSV(orderData) {
+    var s = orderData.shipping || {};
+    var items = orderData.items || [];
+    var productMap = orderData.itemShippingData || {};
+    var config = orderData.shippingConfig || DEFAULT_SHIPPING_CONFIG;
+
+    var totalWeightOz = 0;
+    var highestCat = 'small';
+    var catOrder = ['small', 'medium', 'large', 'oversized'];
+
+    for (var i = 0; i < items.length; i++) {
+      var ps = productMap[items[i].pid] || { weightOz: 16, shippingCategory: 'small' };
+      var qty = items[i].qty || 1;
+      totalWeightOz += (ps.weightOz || 16) * qty + (config.packingBufferOz || 8) * qty;
+      var catIdx = catOrder.indexOf(ps.shippingCategory || 'small');
+      if (catIdx > catOrder.indexOf(highestCat)) highestCat = ps.shippingCategory || 'small';
+    }
+
+    var box = config[highestCat] || DEFAULT_SHIPPING_CONFIG[highestCat];
+    var desc = items.map(function (it) { return it.name + ' x' + (it.qty || 1); }).join(', ');
+    if (desc.length > 100) desc = desc.substring(0, 97) + '...';
+
+    var headers = ['Name', 'Company', 'Address1', 'Address2', 'City', 'State', 'Zip', 'Country', 'Phone', 'Weight_oz', 'Length', 'Width', 'Height', 'Description', 'Order_ID'];
+    var row = [
+      s.name || '', '', s.address1 || '', s.address2 || '', s.city || '', s.state || '', s.zip || '',
+      'US', '', Math.ceil(totalWeightOz),
+      box.boxL || 6, box.boxW || 6, box.boxH || 6,
+      desc, orderData.orderNumber || orderData.orderId || ''
+    ];
+
+    function csvEsc(val) {
+      var str = String(val);
+      if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
+    return headers.map(csvEsc).join(',') + '\n' + row.map(csvEsc).join(',') + '\n';
+  }
+
+  function downloadCSV(content, filename) {
+    var blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  }
+
+  function watchOrderAndDownloadCSV(orderId, pendingOrder) {
+    var db = getDb();
+    if (!db || !pendingOrder) return;
+
+    var ref = db.ref('shirglassworks/orders/' + orderId + '/status');
+    var handler = ref.on('value', function (snap) {
+      var status = snap.val();
+      if (status === 'placed') {
+        ref.off('value', handler);
+        var csv = generatePirateShipCSV(pendingOrder);
+        var csvName = 'pirateship-' + (pendingOrder.orderNumber || orderId) + '.csv';
+
+        // Store for re-download via button
+        try {
+          sessionStorage.setItem('shir_csv_data', csv);
+          sessionStorage.setItem('shir_csv_name', csvName);
+        } catch (e) { /* silent */ }
+
+        downloadCSV(csv, csvName);
+        showCSVDownloadButton();
+      }
+    });
+    // Safety: auto-detach after 90 seconds
+    setTimeout(function () { ref.off('value', handler); }, 90000);
+  }
+
+  function showCSVDownloadButton() {
+    var container = document.querySelector('.checkout-confirmation');
+    if (!container || document.getElementById('csvDownloadBtn')) return;
+
+    var wrapper = document.createElement('div');
+    wrapper.style.cssText = 'margin-top:16px;text-align:center;';
+    wrapper.innerHTML =
+      '<button id="csvDownloadBtn" class="checkout-btn-secondary" data-co="download-csv" style="font-size:0.85rem;">' +
+        '&#128230; Download Shipping CSV' +
+      '</button>' +
+      '<div style="font-size:0.75rem;color:#9B958E;margin-top:4px;">For Pirate Ship import</div>';
+    container.appendChild(wrapper);
   }
 
   // ── Public API ──
@@ -853,7 +1116,10 @@
     start: function () {
       attachDelegate();
       trackCheckoutEvent('checkout_start');
-      renderAddress();
+      // Load Google Places lazily, then render address
+      loadGooglePlaces(function () {
+        renderAddress();
+      });
     },
     goToStep: function (step) {
       attachDelegate();

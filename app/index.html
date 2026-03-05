@@ -2782,7 +2782,7 @@
         <div class="sidebar-item" data-route="employees" onclick="navigateTo('employees')">Employees &amp; Permissions</div>
         <div class="sidebar-item" data-route="auditlog" onclick="navigateTo('auditlog')">Audit Log</div>
         <div class="sidebar-item muted" data-route="financials" onclick="navigateTo('financials')">Financials <span class="sidebar-badge new">New</span></div>
-        <div class="sidebar-item" data-route="settings" onclick="navigateTo('settings')">Settings &amp; Integrations</div>
+        <div class="sidebar-item" data-route="settings" onclick="navigateTo('settings')">Settings &amp; Integrations <span id="settingsSandboxBadge" style="display:none;background:#f59e0b;color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:700;vertical-align:middle;">SANDBOX</span></div>
       </div>
     </div>
     <!-- Teach -->
@@ -3359,26 +3359,61 @@
         <div class="form-group">
           <label style="font-size:1.1rem;font-weight:600;">Square Payments</label>
           <p style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:16px;">
-            Configure Square payment integration for checkout. Start with sandbox credentials for testing, then switch to production.
+            Configure Square payment integration. Save credentials for both environments, then toggle the active one.
           </p>
 
-          <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Environment</label>
-          <select id="squareEnvironment" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;margin-bottom:12px;">
+          <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Active Environment</label>
+          <select id="squareEnvironment" onchange="onSquareEnvToggle()" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;margin-bottom:12px;">
             <option value="sandbox">Sandbox (Testing)</option>
             <option value="production">Production (Live)</option>
           </select>
+          <div id="squareSandboxBanner" style="display:none;background:#f59e0b;color:#fff;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:0.85rem;font-weight:600;text-align:center;">
+            SANDBOX MODE — Test payments only, no real charges
+          </div>
 
-          <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Access Token</label>
-          <input type="password" id="squareAccessToken" placeholder="EAAAl..."
-            style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;margin-bottom:12px;box-sizing:border-box;">
+          <div style="background:var(--cream,#faf8f5);border:1px solid #e8e0d4;border-radius:8px;padding:16px;margin-bottom:12px;">
+            <div style="font-size:0.9rem;font-weight:700;margin-bottom:12px;color:var(--warm-gray,#6b6359);">Sandbox Credentials</div>
+            <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Access Token</label>
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+              <input type="password" id="sqSandboxToken" placeholder="EAAAl..."
+                style="flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;box-sizing:border-box;">
+              <button type="button" onclick="toggleReveal('sqSandboxToken',this)" class="btn btn-small" style="font-size:0.75rem;padding:6px 10px;white-space:nowrap;">Show</button>
+            </div>
+            <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Location ID</label>
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+              <input type="password" id="sqSandboxLocation" placeholder="L..."
+                style="flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;box-sizing:border-box;">
+              <button type="button" onclick="toggleReveal('sqSandboxLocation',this)" class="btn btn-small" style="font-size:0.75rem;padding:6px 10px;white-space:nowrap;">Show</button>
+            </div>
+            <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Webhook Signature Key</label>
+            <div style="display:flex;gap:6px;">
+              <input type="password" id="sqSandboxWebhook" placeholder="webhook-signature-key..."
+                style="flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;box-sizing:border-box;">
+              <button type="button" onclick="toggleReveal('sqSandboxWebhook',this)" class="btn btn-small" style="font-size:0.75rem;padding:6px 10px;white-space:nowrap;">Show</button>
+            </div>
+          </div>
 
-          <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Location ID</label>
-          <input type="text" id="squareLocationId" placeholder="L..."
-            style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;margin-bottom:12px;box-sizing:border-box;">
-
-          <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Webhook Signature Key</label>
-          <input type="password" id="squareWebhookSignatureKey" placeholder="webhook-signature-key..."
-            style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;margin-bottom:12px;box-sizing:border-box;">
+          <div style="background:var(--cream,#faf8f5);border:1px solid #e8e0d4;border-radius:8px;padding:16px;margin-bottom:12px;">
+            <div style="font-size:0.9rem;font-weight:700;margin-bottom:12px;color:var(--warm-gray,#6b6359);">Production Credentials</div>
+            <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Access Token</label>
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+              <input type="password" id="sqProdToken" placeholder="EAAAl..."
+                style="flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;box-sizing:border-box;">
+              <button type="button" onclick="toggleReveal('sqProdToken',this)" class="btn btn-small" style="font-size:0.75rem;padding:6px 10px;white-space:nowrap;">Show</button>
+            </div>
+            <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Location ID</label>
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+              <input type="password" id="sqProdLocation" placeholder="L..."
+                style="flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;box-sizing:border-box;">
+              <button type="button" onclick="toggleReveal('sqProdLocation',this)" class="btn btn-small" style="font-size:0.75rem;padding:6px 10px;white-space:nowrap;">Show</button>
+            </div>
+            <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Webhook Signature Key</label>
+            <div style="display:flex;gap:6px;">
+              <input type="password" id="sqProdWebhook" placeholder="webhook-signature-key..."
+                style="flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;box-sizing:border-box;">
+              <button type="button" onclick="toggleReveal('sqProdWebhook',this)" class="btn btn-small" style="font-size:0.75rem;padding:6px 10px;white-space:nowrap;">Show</button>
+            </div>
+          </div>
 
           <label style="font-size:0.85rem;font-weight:600;margin-bottom:4px;display:block;">Site URL</label>
           <p style="font-size:0.8rem;color:var(--warm-gray);margin-bottom:4px;">
@@ -3391,6 +3426,108 @@
             <button class="btn btn-primary" onclick="saveSquareConfig()">Save</button>
           </div>
           <div id="squareConfigStatus" style="margin-top:8px;font-size:0.85rem;"></div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+
+        <div class="form-group">
+          <label style="font-size:1.1rem;font-weight:600;">Shipping Configuration</label>
+          <p style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:16px;">
+            Flat-rate shipping by product category. Customers see a single calculated rate at checkout.
+          </p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div>
+              <label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">Small</label>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                <input type="number" id="shipRateSmall" min="0" step="0.01" placeholder="6.00" style="width:70px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:0.85rem;">
+                <span style="font-size:0.75rem;color:var(--warm-gray);align-self:center;">$/rate</span>
+              </div>
+              <div style="display:flex;gap:4px;margin-top:4px;">
+                <input type="number" id="shipBoxSmallL" min="0" placeholder="6" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;" title="Length">
+                <input type="number" id="shipBoxSmallW" min="0" placeholder="6" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;" title="Width">
+                <input type="number" id="shipBoxSmallH" min="0" placeholder="6" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;" title="Height">
+              </div>
+              <span style="font-size:0.7rem;color:var(--warm-gray);">L x W x H (in)</span>
+            </div>
+            <div>
+              <label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">Medium</label>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                <input type="number" id="shipRateMedium" min="0" step="0.01" placeholder="10.00" style="width:70px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:0.85rem;">
+                <span style="font-size:0.75rem;color:var(--warm-gray);align-self:center;">$/rate</span>
+              </div>
+              <div style="display:flex;gap:4px;margin-top:4px;">
+                <input type="number" id="shipBoxMediumL" min="0" placeholder="10" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;">
+                <input type="number" id="shipBoxMediumW" min="0" placeholder="8" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;">
+                <input type="number" id="shipBoxMediumH" min="0" placeholder="6" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;">
+              </div>
+              <span style="font-size:0.7rem;color:var(--warm-gray);">L x W x H (in)</span>
+            </div>
+            <div>
+              <label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">Large</label>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                <input type="number" id="shipRateLarge" min="0" step="0.01" placeholder="15.00" style="width:70px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:0.85rem;">
+                <span style="font-size:0.75rem;color:var(--warm-gray);align-self:center;">$/rate</span>
+              </div>
+              <div style="display:flex;gap:4px;margin-top:4px;">
+                <input type="number" id="shipBoxLargeL" min="0" placeholder="14" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;">
+                <input type="number" id="shipBoxLargeW" min="0" placeholder="12" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;">
+                <input type="number" id="shipBoxLargeH" min="0" placeholder="8" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;">
+              </div>
+              <span style="font-size:0.7rem;color:var(--warm-gray);">L x W x H (in)</span>
+            </div>
+            <div>
+              <label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">Oversized</label>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                <input type="number" id="shipRateOversized" min="0" step="0.01" placeholder="22.00" style="width:70px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:0.85rem;">
+                <span style="font-size:0.75rem;color:var(--warm-gray);align-self:center;">$/rate</span>
+              </div>
+              <div style="display:flex;gap:4px;margin-top:4px;">
+                <input type="number" id="shipBoxOversizedL" min="0" placeholder="20" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;">
+                <input type="number" id="shipBoxOversizedW" min="0" placeholder="16" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;">
+                <input type="number" id="shipBoxOversizedH" min="0" placeholder="12" style="width:40px;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:0.8rem;">
+              </div>
+              <span style="font-size:0.7rem;color:var(--warm-gray);">L x W x H (in)</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+            <div>
+              <label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">Additional Item Surcharge ($)</label>
+              <input type="number" id="shipAdditionalSurcharge" min="0" step="0.01" placeholder="2.00" style="width:80px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">Free Shipping Threshold ($)</label>
+              <input type="number" id="shipFreeThreshold" min="0" step="1" placeholder="100" style="width:80px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:0.85rem;">
+            </div>
+            <div>
+              <label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">Packing Buffer (oz/item)</label>
+              <input type="number" id="shipPackingBuffer" min="0" step="1" placeholder="8" style="width:80px;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:0.85rem;">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" onclick="saveShippingConfig()">Save</button>
+          </div>
+          <div id="shippingConfigStatus" style="margin-top:8px;font-size:0.85rem;"></div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+
+        <div class="form-group">
+          <label style="font-size:1.1rem;font-weight:600;">Google Maps API Key</label>
+          <p style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:16px;">
+            Used for address autocomplete at checkout. Restrict by HTTP referrer in Google Cloud Console.
+          </p>
+          <div style="display:flex;gap:6px;margin-bottom:12px;">
+            <input type="password" id="googleMapsApiKey" placeholder="AIza..."
+              style="flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.9rem;box-sizing:border-box;">
+            <button type="button" onclick="toggleReveal('googleMapsApiKey',this)" class="btn btn-small" style="font-size:0.75rem;padding:6px 10px;white-space:nowrap;">Show</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" onclick="saveGoogleConfig()">Save</button>
+          </div>
+          <div id="googleConfigStatus" style="margin-top:8px;font-size:0.85rem;"></div>
         </div>
 
         <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
@@ -4571,6 +4708,8 @@ function loadSettings() {
     }
   });
   loadSquareConfig();
+  loadShippingConfig();
+  loadGoogleConfig();
   loadEtsyConfig();
 }
 
@@ -4589,28 +4728,92 @@ async function toggleDarkMode() {
 // ============================================================
 // Square Config Management
 // ============================================================
-async function saveSquareConfig() {
-  var config = {
-    accessToken: document.getElementById('squareAccessToken').value.trim(),
-    locationId: document.getElementById('squareLocationId').value.trim(),
-    environment: document.getElementById('squareEnvironment').value,
-    webhookSignatureKey: document.getElementById('squareWebhookSignatureKey').value.trim(),
-    siteUrl: document.getElementById('squareSiteUrl').value.trim(),
-    updatedAt: new Date().toISOString()
-  };
+function maskValue(val) {
+  if (!val || val.length <= 6) return val ? '••••••' : '';
+  return '••••••' + val.slice(-6);
+}
 
-  if (!config.accessToken || !config.locationId) {
-    showToast('Access Token and Location ID are required.', true);
+function toggleReveal(inputId, btn) {
+  var el = document.getElementById(inputId);
+  if (!el) return;
+  if (el.type === 'password') {
+    el.type = 'text';
+    btn.textContent = 'Hide';
+  } else {
+    el.type = 'password';
+    btn.textContent = 'Show';
+  }
+}
+
+function onSquareEnvToggle() {
+  var env = document.getElementById('squareEnvironment').value;
+  var banner = document.getElementById('squareSandboxBanner');
+  var badge = document.getElementById('settingsSandboxBadge');
+  if (banner) banner.style.display = env === 'sandbox' ? 'block' : 'none';
+  if (badge) badge.style.display = env === 'sandbox' ? 'inline' : 'none';
+}
+
+function setMaskedField(inputId, value) {
+  var el = document.getElementById(inputId);
+  if (!el || !value) return;
+  el.value = '';
+  el.placeholder = maskValue(value) + '  (saved)';
+  el.dataset.saved = value;
+}
+
+function getFieldValue(inputId) {
+  var el = document.getElementById(inputId);
+  if (!el) return '';
+  // If user typed something, use that; otherwise keep saved value
+  var typed = el.value.trim();
+  if (typed) return typed;
+  return el.dataset.saved || '';
+}
+
+async function saveSquareConfig() {
+  var env = document.getElementById('squareEnvironment').value;
+
+  var sandboxToken = getFieldValue('sqSandboxToken');
+  var sandboxLocation = getFieldValue('sqSandboxLocation');
+  var sandboxWebhook = getFieldValue('sqSandboxWebhook');
+  var prodToken = getFieldValue('sqProdToken');
+  var prodLocation = getFieldValue('sqProdLocation');
+  var prodWebhook = getFieldValue('sqProdWebhook');
+  var siteUrl = document.getElementById('squareSiteUrl').value.trim();
+
+  // Validate active environment has required fields
+  if (env === 'sandbox' && (!sandboxToken || !sandboxLocation)) {
+    showToast('Sandbox Access Token and Location ID are required.', true);
+    return;
+  }
+  if (env === 'production' && (!prodToken || !prodLocation)) {
+    showToast('Production Access Token and Location ID are required.', true);
     return;
   }
 
+  // Build config — cloud function resolves active creds from environment field
+  var activeToken = env === 'sandbox' ? sandboxToken : prodToken;
+  var activeLocation = env === 'sandbox' ? sandboxLocation : prodLocation;
+  var activeWebhook = env === 'sandbox' ? sandboxWebhook : prodWebhook;
+
+  var config = {
+    environment: env,
+    accessToken: activeToken,
+    locationId: activeLocation,
+    webhookSignatureKey: activeWebhook,
+    siteUrl: siteUrl,
+    sandbox: { accessToken: sandboxToken, locationId: sandboxLocation, webhookSignatureKey: sandboxWebhook },
+    production: { accessToken: prodToken, locationId: prodLocation, webhookSignatureKey: prodWebhook },
+    updatedAt: new Date().toISOString()
+  };
+
   try {
     await db.ref(SQUARE_CONFIG_PATH).set(config);
+    await db.ref('shirglassworks/public/config/testMode').set(env === 'sandbox');
     await writeAudit('update', 'settings', 'squareConfig');
-    // Clear password fields after save
-    document.getElementById('squareAccessToken').value = '';
-    document.getElementById('squareWebhookSignatureKey').value = '';
-    document.getElementById('squareConfigStatus').innerHTML = '<span style="color:var(--teal);">&#10003; Square config saved (' + config.environment + ')</span>';
+    // Re-mask all fields after save
+    loadSquareConfig();
+    document.getElementById('squareConfigStatus').innerHTML = '<span style="color:var(--teal);">&#10003; Square config saved (' + env + ')</span>';
     showToast('Square configuration saved.');
   } catch (err) {
     showToast('Error saving Square config: ' + err.message, true);
@@ -4625,19 +4828,139 @@ function loadSquareConfig() {
       if (statusEl) statusEl.innerHTML = '<span style="color:var(--warm-gray-light);">No Square config set. Payment checkout will not work until configured.</span>';
       return;
     }
-    // Populate non-sensitive fields
+
+    // Set environment toggle
     var envEl = document.getElementById('squareEnvironment');
-    var locEl = document.getElementById('squareLocationId');
-    var urlEl = document.getElementById('squareSiteUrl');
     if (envEl && config.environment) envEl.value = config.environment;
-    if (locEl && config.locationId) locEl.value = config.locationId;
+
+    // Load per-environment credentials with masking
+    var sb = config.sandbox || {};
+    var pr = config.production || {};
+    // Migrate: if no sandbox/production sub-objects, use flat fields as production
+    if (!config.sandbox && config.accessToken) {
+      pr = { accessToken: config.accessToken, locationId: config.locationId, webhookSignatureKey: config.webhookSignatureKey };
+    }
+    setMaskedField('sqSandboxToken', sb.accessToken);
+    setMaskedField('sqSandboxLocation', sb.locationId);
+    setMaskedField('sqSandboxWebhook', sb.webhookSignatureKey);
+    setMaskedField('sqProdToken', pr.accessToken);
+    setMaskedField('sqProdLocation', pr.locationId);
+    setMaskedField('sqProdWebhook', pr.webhookSignatureKey);
+
+    // Site URL (not sensitive)
+    var urlEl = document.getElementById('squareSiteUrl');
     if (urlEl && config.siteUrl) urlEl.value = config.siteUrl;
-    // Show masked indicators for sensitive fields
-    var tokenEl = document.getElementById('squareAccessToken');
-    var sigEl = document.getElementById('squareWebhookSignatureKey');
-    if (tokenEl && config.accessToken) tokenEl.placeholder = '••••••••  (saved)';
-    if (sigEl && config.webhookSignatureKey) sigEl.placeholder = '••••••••  (saved)';
+
+    // Sandbox indicators
+    onSquareEnvToggle();
+
     if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);">&#10003; Configured (' + config.environment + ') — updated ' + new Date(config.updatedAt).toLocaleDateString() + '</span>';
+  });
+}
+
+// ============================================================
+// Shipping Config Management
+// ============================================================
+var SHIPPING_CONFIG_PATH = 'shirglassworks/public/config/shippingRates';
+
+async function saveShippingConfig() {
+  var categories = ['small', 'medium', 'large', 'oversized'];
+  var config = { additionalItemSurcharge: 2, freeThreshold: 100, packingBufferOz: 8 };
+
+  categories.forEach(function(cat) {
+    var capCat = cat.charAt(0).toUpperCase() + cat.slice(1);
+    var rateEl = document.getElementById('shipRate' + capCat);
+    var lEl = document.getElementById('shipBox' + capCat + 'L');
+    var wEl = document.getElementById('shipBox' + capCat + 'W');
+    var hEl = document.getElementById('shipBox' + capCat + 'H');
+    config[cat] = {
+      rate: rateEl && rateEl.value !== '' ? parseFloat(rateEl.value) : null,
+      boxL: lEl && lEl.value !== '' ? parseInt(lEl.value) : null,
+      boxW: wEl && wEl.value !== '' ? parseInt(wEl.value) : null,
+      boxH: hEl && hEl.value !== '' ? parseInt(hEl.value) : null
+    };
+  });
+
+  var surchargeEl = document.getElementById('shipAdditionalSurcharge');
+  var thresholdEl = document.getElementById('shipFreeThreshold');
+  var bufferEl = document.getElementById('shipPackingBuffer');
+  if (surchargeEl && surchargeEl.value !== '') config.additionalItemSurcharge = parseFloat(surchargeEl.value);
+  if (thresholdEl && thresholdEl.value !== '') config.freeThreshold = parseFloat(thresholdEl.value);
+  if (bufferEl && bufferEl.value !== '') config.packingBufferOz = parseInt(bufferEl.value);
+  config.updatedAt = new Date().toISOString();
+
+  try {
+    await db.ref(SHIPPING_CONFIG_PATH).set(config);
+    await writeAudit('update', 'settings', 'shippingConfig');
+    document.getElementById('shippingConfigStatus').innerHTML = '<span style="color:var(--teal);">&#10003; Shipping config saved</span>';
+    showToast('Shipping configuration saved.');
+  } catch (err) {
+    showToast('Error saving shipping config: ' + err.message, true);
+  }
+}
+
+function loadShippingConfig() {
+  db.ref(SHIPPING_CONFIG_PATH).once('value').then(function(snap) {
+    var config = snap.val();
+    var statusEl = document.getElementById('shippingConfigStatus');
+    if (!config) {
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--warm-gray-light);">Using defaults (Small $6, Medium $10, Large $15, Oversized $22).</span>';
+      return;
+    }
+    var categories = ['small', 'medium', 'large', 'oversized'];
+    categories.forEach(function(cat) {
+      var capCat = cat.charAt(0).toUpperCase() + cat.slice(1);
+      var catData = config[cat];
+      if (!catData) return;
+      var rateEl = document.getElementById('shipRate' + capCat);
+      var lEl = document.getElementById('shipBox' + capCat + 'L');
+      var wEl = document.getElementById('shipBox' + capCat + 'W');
+      var hEl = document.getElementById('shipBox' + capCat + 'H');
+      if (rateEl && catData.rate != null) rateEl.value = catData.rate;
+      if (lEl && catData.boxL != null) lEl.value = catData.boxL;
+      if (wEl && catData.boxW != null) wEl.value = catData.boxW;
+      if (hEl && catData.boxH != null) hEl.value = catData.boxH;
+    });
+    var surchargeEl = document.getElementById('shipAdditionalSurcharge');
+    var thresholdEl = document.getElementById('shipFreeThreshold');
+    var bufferEl = document.getElementById('shipPackingBuffer');
+    if (surchargeEl && config.additionalItemSurcharge != null) surchargeEl.value = config.additionalItemSurcharge;
+    if (thresholdEl && config.freeThreshold != null) thresholdEl.value = config.freeThreshold;
+    if (bufferEl && config.packingBufferOz != null) bufferEl.value = config.packingBufferOz;
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);">&#10003; Configured — updated ' + new Date(config.updatedAt).toLocaleDateString() + '</span>';
+  });
+}
+
+// ============================================================
+// Google Maps API Key Management
+// ============================================================
+var GOOGLE_CONFIG_PATH = 'shirglassworks/public/config/googleMapsApiKey';
+
+async function saveGoogleConfig() {
+  var key = getFieldValue('googleMapsApiKey');
+  if (!key) { showToast('API key is required.', true); return; }
+
+  try {
+    await db.ref(GOOGLE_CONFIG_PATH).set(key);
+    await writeAudit('update', 'settings', 'googleMapsApiKey');
+    setMaskedField('googleMapsApiKey', key);
+    document.getElementById('googleConfigStatus').innerHTML = '<span style="color:var(--teal);">&#10003; Google Maps API key saved</span>';
+    showToast('Google Maps API key saved.');
+  } catch (err) {
+    showToast('Error saving Google config: ' + err.message, true);
+  }
+}
+
+function loadGoogleConfig() {
+  db.ref(GOOGLE_CONFIG_PATH).once('value').then(function(snap) {
+    var key = snap.val();
+    var statusEl = document.getElementById('googleConfigStatus');
+    if (key) {
+      setMaskedField('googleMapsApiKey', key);
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);">&#10003; API key configured</span>';
+    } else {
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--warm-gray-light);">No API key set. Address autocomplete will not work.</span>';
+    }
   });
 }
 
@@ -5360,6 +5683,18 @@ function renderProductDetail(pid) {
         '<div class="form-group" style="min-width:150px;"><label>Cost to Build ($)</label><input type="text" id="pdCostToBuild" value="' + currentCostToBuild + '" placeholder="e.g. 15.00"></div>' +
       '</div>' +
       '<div class="form-group"><label>Materials / Techniques Notes</label><textarea id="pdMaterials" rows="3" placeholder="e.g. Borosilicate glass, lampwork technique">' + esc(product.materials || '') + '</textarea></div>' +
+      '<div class="product-detail-section-title" style="margin-top:16px;">Shipping</div>' +
+      '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
+        '<div class="form-group" style="min-width:150px;"><label>Shipping Category</label>' +
+          '<select id="pdShippingCategory">' +
+            '<option value=""' + (!product.shippingCategory ? ' selected' : '') + '>Not set (defaults to Small)</option>' +
+            '<option value="small"' + (product.shippingCategory === 'small' ? ' selected' : '') + '>Small</option>' +
+            '<option value="medium"' + (product.shippingCategory === 'medium' ? ' selected' : '') + '>Medium</option>' +
+            '<option value="large"' + (product.shippingCategory === 'large' ? ' selected' : '') + '>Large</option>' +
+            '<option value="oversized"' + (product.shippingCategory === 'oversized' ? ' selected' : '') + '>Oversized</option>' +
+          '</select></div>' +
+        '<div class="form-group" style="min-width:150px;"><label>Weight (oz)</label><input type="number" id="pdWeightOz" min="0" step="0.1" value="' + (product.weightOz != null ? product.weightOz : '') + '" placeholder="e.g. 12"></div>' +
+      '</div>' +
     '</div>';
 
     // Price history (read-only display)
@@ -5377,6 +5712,8 @@ function renderProductDetail(pid) {
         '<span style="color:var(--warm-gray);">Build Time</span><span>' + (product.buildTime ? product.buildTime + ' min' : '—') + '</span>' +
         '<span style="color:var(--warm-gray);">Cost to Build</span><span>' + (product.costToBuild ? formatPriceCents(product.costToBuild) : '—') + '</span>' +
         '<span style="color:var(--warm-gray);">Materials</span><span>' + esc(product.materials || '—') + '</span>' +
+        '<span style="color:var(--warm-gray);">Shipping Category</span><span>' + esc(product.shippingCategory || '—') + '</span>' +
+        '<span style="color:var(--warm-gray);">Weight</span><span>' + (product.weightOz ? product.weightOz + ' oz' : '—') + '</span>' +
       '</div></div>';
   }
   prodHtml += '</div>';
@@ -5500,6 +5837,10 @@ async function saveProduct(pid) {
     var costToBuild = costToBuildEl ? parsePriceToCents(costToBuildEl.value) : null;
     var materialsEl = document.getElementById('pdMaterials');
     var materials = materialsEl ? materialsEl.value.trim() : '';
+    var shippingCatEl = document.getElementById('pdShippingCategory');
+    var shippingCategory = shippingCatEl && shippingCatEl.value ? shippingCatEl.value : null;
+    var weightOzEl = document.getElementById('pdWeightOz');
+    var weightOz = weightOzEl && weightOzEl.value !== '' ? parseFloat(weightOzEl.value) : null;
 
     // Collect variant options from DOM
     var options = [];
@@ -5540,6 +5881,8 @@ async function saveProduct(pid) {
       buildTime: buildTime,
       costToBuild: costToBuild,
       materials: materials,
+      shippingCategory: shippingCategory,
+      weightOz: weightOz,
       introducedAt: introducedAt,
       discontinuedAt: availability === 'discontinued' ? (existing && existing.discontinuedAt ? existing.discontinuedAt : new Date().toISOString().split('T')[0]) : null
     };
