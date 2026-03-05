@@ -3322,6 +3322,88 @@ var selectedProductPid = null;
 var productEditMode = false; // false = view, true = editing/creating
 var productCreateMode = false; // true when creating new product
 var productEditTab = 'details'; // details | variants | images | production | inventory
+
+// ============================================================
+// RBAC — Roles & Permissions (Phase E1)
+// ============================================================
+var ROLES_PATH = 'shirglassworks/admin/roles';
+var ADMIN_USERS_PATH = 'shirglassworks/admin/users';
+var currentUserRole = null;   // 'admin' | 'user' | 'guest' | null
+var currentRoleConfig = null; // Full role record with permissions map
+var rbacReady = false;        // True once role + permissions loaded
+
+// Default role definitions — seeded on first admin bootstrap
+var DEFAULT_ROLES = {
+  admin: {
+    name: 'Admin',
+    description: 'Full access to all system functions.',
+    isDefault: true,
+    permissions: {
+      orders:       { create: true, read: true, update: true, delete: true },
+      products:     { create: true, read: true, update: true, delete: true },
+      inventory:    { create: true, read: true, update: true, delete: true },
+      jobs:         { create: true, read: true, update: true, delete: true },
+      buildJobs:    { create: true, read: true, update: true, delete: true },
+      salesEvents:  { create: true, read: true, update: true, delete: true },
+      gallery:      { create: true, read: true, update: true, delete: true },
+      schedule:     { create: true, read: true, update: true, delete: true },
+      locations:    { create: true, read: true, update: true, delete: true },
+      coupons:      { create: true, read: true, update: true, delete: true },
+      settings:     { create: true, read: true, update: true, delete: true },
+      users:        { create: true, read: true, update: true, delete: true },
+      roles:        { create: true, read: true, update: true, delete: true },
+      auditLog:     { create: false, read: true, update: false, delete: false },
+      pos:          { create: true, read: true, update: true, delete: true },
+      receipts:     { create: true, read: true, update: true, delete: true }
+    }
+  },
+  user: {
+    name: 'User',
+    description: 'Operational access — PoS, inventory, fulfillment. No pricing, settings, or user management.',
+    isDefault: true,
+    permissions: {
+      orders:       { create: true, read: true, update: true, delete: false },
+      products:     { create: false, read: true, update: false, delete: false },
+      inventory:    { create: true, read: true, update: true, delete: false },
+      jobs:         { create: true, read: true, update: true, delete: false },
+      buildJobs:    { create: true, read: true, update: true, delete: false },
+      salesEvents:  { create: false, read: true, update: true, delete: false },
+      gallery:      { create: false, read: true, update: false, delete: false },
+      schedule:     { create: false, read: true, update: false, delete: false },
+      locations:    { create: false, read: true, update: false, delete: false },
+      coupons:      { create: false, read: true, update: false, delete: false },
+      settings:     { create: false, read: false, update: false, delete: false },
+      users:        { create: false, read: false, update: false, delete: false },
+      roles:        { create: false, read: false, update: false, delete: false },
+      auditLog:     { create: false, read: false, update: false, delete: false },
+      pos:          { create: true, read: true, update: true, delete: false },
+      receipts:     { create: true, read: true, update: false, delete: false }
+    }
+  },
+  guest: {
+    name: 'Guest',
+    description: 'Customer-facing — own orders and profile only.',
+    isDefault: true,
+    permissions: {
+      orders:       { create: false, read: true, update: false, delete: false },
+      products:     { create: false, read: true, update: false, delete: false },
+      inventory:    { create: false, read: false, update: false, delete: false },
+      jobs:         { create: false, read: false, update: false, delete: false },
+      buildJobs:    { create: false, read: false, update: false, delete: false },
+      salesEvents:  { create: false, read: false, update: false, delete: false },
+      gallery:      { create: false, read: false, update: false, delete: false },
+      schedule:     { create: false, read: true, update: false, delete: false },
+      locations:    { create: false, read: false, update: false, delete: false },
+      coupons:      { create: false, read: false, update: false, delete: false },
+      settings:     { create: false, read: false, update: false, delete: false },
+      users:        { create: false, read: false, update: false, delete: false },
+      roles:        { create: false, read: false, update: false, delete: false },
+      auditLog:     { create: false, read: false, update: false, delete: false },
+      pos:          { create: false, read: false, update: false, delete: false },
+      receipts:     { create: false, read: false, update: false, delete: false }
+    }
+  }
+};
 var imageLibrary = {};
 var imageLibraryLoaded = false;
 var imageLibraryListener = null;
@@ -3461,6 +3543,125 @@ function formatFileSize(bytes) {
 }
 
 // ============================================================
+// RBAC Utilities (Phase E1)
+// ============================================================
+
+/**
+ * Check if the current user has permission for an entity+action.
+ * Returns false if RBAC not loaded yet or permission not found (default deny).
+ *
+ * Usage: if (hasPermission('orders', 'delete')) { ... }
+ */
+function hasPermission(entity, action) {
+  if (!rbacReady || !currentRoleConfig || !currentRoleConfig.permissions) return false;
+  var entityPerms = currentRoleConfig.permissions[entity];
+  if (!entityPerms) return false;
+  return entityPerms[action] === true;
+}
+
+/** Convenience: is current user an admin? */
+function isAdmin() {
+  return currentUserRole === 'admin';
+}
+
+/** Convenience: is current user at least a staff member (admin or user)? */
+function isStaff() {
+  return currentUserRole === 'admin' || currentUserRole === 'user';
+}
+
+/**
+ * Load user record from Firebase, auto-provision as guest if new.
+ * Then load and cache the role's permission config.
+ * Returns the role string ('admin', 'user', 'guest').
+ */
+async function loadUserRole(uid) {
+  try {
+    var userSnap = await db.ref(ADMIN_USERS_PATH + '/' + uid).once('value');
+    var userData = userSnap.val();
+
+    if (!userData) {
+      // Determine initial role:
+      // - Known admin UIDs (ALLOWED_UIDS) bootstrap as admin (migration path)
+      // - Everyone else auto-provisions as guest
+      var initialRole = ALLOWED_UIDS.includes(uid) ? 'admin' : 'guest';
+      userData = {
+        uid: uid,
+        displayName: currentUser.displayName || '',
+        email: currentUser.email || '',
+        photoURL: currentUser.photoURL || '',
+        role: initialRole,
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        lastLoginAt: firebase.database.ServerValue.TIMESTAMP
+      };
+      await db.ref(ADMIN_USERS_PATH + '/' + uid).set(userData);
+    } else {
+      // Update lastLoginAt only — don't overwrite role (may have been elevated)
+      await db.ref(ADMIN_USERS_PATH + '/' + uid + '/lastLoginAt')
+        .set(firebase.database.ServerValue.TIMESTAMP);
+    }
+
+    currentUserRole = userData.role || 'guest';
+
+    // Load role permission config
+    var roleSnap = await db.ref(ROLES_PATH + '/' + currentUserRole).once('value');
+    currentRoleConfig = roleSnap.val();
+
+    // Fallback: if role config missing in Firebase, use built-in defaults
+    if (!currentRoleConfig && DEFAULT_ROLES[currentUserRole]) {
+      currentRoleConfig = DEFAULT_ROLES[currentUserRole];
+    }
+
+    rbacReady = true;
+    return currentUserRole;
+  } catch (err) {
+    console.error('RBAC load failed:', err);
+    // Fail closed — no permissions
+    currentUserRole = null;
+    currentRoleConfig = null;
+    rbacReady = false;
+    return null;
+  }
+}
+
+/**
+ * One-time admin bootstrap: seed default roles and create admin user record.
+ * Safe to call multiple times — skips if roles already exist.
+ */
+async function seedRolesAndAdminUser() {
+  try {
+    var rolesSnap = await db.ref(ROLES_PATH).once('value');
+    if (rolesSnap.exists()) {
+      console.log('RBAC: Roles already seeded, skipping.');
+      return false;
+    }
+
+    // Seed all three default roles
+    await db.ref(ROLES_PATH).set(DEFAULT_ROLES);
+
+    // Create admin user record for current user (must be the original admin)
+    if (currentUser && currentUser.uid) {
+      await db.ref(ADMIN_USERS_PATH + '/' + currentUser.uid).set({
+        uid: currentUser.uid,
+        displayName: currentUser.displayName || 'Admin',
+        email: currentUser.email || '',
+        photoURL: currentUser.photoURL || '',
+        role: 'admin',
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        lastLoginAt: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+
+    console.log('RBAC: Default roles and admin user seeded.');
+    showToast('RBAC initialized — roles seeded');
+    return true;
+  } catch (err) {
+    console.error('RBAC seed failed:', err);
+    showToast('RBAC seed failed: ' + err.message, true);
+    return false;
+  }
+}
+
+// ============================================================
 // Auth
 // ============================================================
 function googleSignIn() {
@@ -3488,10 +3689,13 @@ if (TEST_MODE) {
   // Bypass auth on localhost for preview/testing
   // Deferred so all var assignments (ROUTE_MAP, etc.) complete first
   currentUser = { uid: 'test', photoURL: '', displayName: 'Test User' };
+  currentUserRole = 'admin';
+  currentRoleConfig = DEFAULT_ROLES.admin;
+  rbacReady = true;
   setTimeout(enterAuthorizedState, 0);
 }
 
-auth.onAuthStateChanged(function(user) {
+auth.onAuthStateChanged(async function(user) {
   if (TEST_MODE) return; // Already handled above
   currentUser = user;
   const authScreen = document.getElementById('authScreen');
@@ -3505,10 +3709,18 @@ auth.onAuthStateChanged(function(user) {
     hideSidebar();
     hideAdminTabs();
     detachListeners();
+    // Reset RBAC state on sign-out
+    currentUserRole = null;
+    currentRoleConfig = null;
+    rbacReady = false;
     return;
   }
 
-  if (!ALLOWED_UIDS.includes(user.uid)) {
+  // Load user role from Firebase (auto-provisions as guest if new)
+  var role = await loadUserRole(user.uid);
+
+  if (!role) {
+    // RBAC load failed — fail closed
     authScreen.style.display = 'none';
     deniedScreen.style.display = '';
     header.style.display = 'none';
@@ -3518,7 +3730,19 @@ auth.onAuthStateChanged(function(user) {
     return;
   }
 
-  // Authorized
+  if (!isStaff()) {
+    // Guest role — show denied screen with guest message for now
+    // (Guest portal UI is a future phase)
+    authScreen.style.display = 'none';
+    deniedScreen.style.display = '';
+    header.style.display = 'none';
+    hideSidebar();
+    hideAdminTabs();
+    detachListeners();
+    return;
+  }
+
+  // Staff (Admin or User) — enter authorized state
   authScreen.style.display = 'none';
   deniedScreen.style.display = 'none';
   header.style.display = 'flex';
@@ -3536,7 +3760,11 @@ auth.onAuthStateChanged(function(user) {
   // Load settings (events count, dark mode)
   loadSettings();
 
-  // Legacy seed/migration functions removed — all completed, flags set in RTDB.
+  // One-time RBAC seed — creates default roles if they don't exist yet.
+  // Only runs for admin users, safe to call repeatedly (idempotent).
+  if (isAdmin()) {
+    seedRolesAndAdminUser();
+  }
 });
 
 // ============================================================
