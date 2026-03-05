@@ -4791,24 +4791,29 @@ async function saveSquareConfig() {
     return;
   }
 
-  // Build config — cloud function resolves active creds from environment field
-  var activeToken = env === 'sandbox' ? sandboxToken : prodToken;
-  var activeLocation = env === 'sandbox' ? sandboxLocation : prodLocation;
-  var activeWebhook = env === 'sandbox' ? sandboxWebhook : prodWebhook;
+  // Build secrets object (only include non-masked values)
+  var secrets = {};
+  if (sandboxToken && !sandboxToken.includes('••••')) secrets['shir-square-sandbox-access-token'] = sandboxToken;
+  if (sandboxWebhook && !sandboxWebhook.includes('••••')) secrets['shir-square-sandbox-webhook-signature-key'] = sandboxWebhook;
+  if (prodToken && !prodToken.includes('••••')) secrets['shir-square-production-access-token'] = prodToken;
+  if (prodWebhook && !prodWebhook.includes('••••')) secrets['shir-square-production-webhook-signature-key'] = prodWebhook;
 
-  var config = {
+  // Non-secret metadata for RTDB
+  var metadata = {
     environment: env,
-    accessToken: activeToken,
-    locationId: activeLocation,
-    webhookSignatureKey: activeWebhook,
     siteUrl: siteUrl,
-    sandbox: { accessToken: sandboxToken, locationId: sandboxLocation, webhookSignatureKey: sandboxWebhook },
-    production: { accessToken: prodToken, locationId: prodLocation, webhookSignatureKey: prodWebhook },
+    sandbox: { locationId: sandboxLocation },
+    production: { locationId: prodLocation },
     updatedAt: new Date().toISOString()
   };
 
   try {
-    await db.ref(SQUARE_CONFIG_PATH).set(config);
+    await firebase.functions().httpsCallable('shirSecretsManager')({
+      action: 'write',
+      service: 'square',
+      secrets: secrets,
+      metadata: metadata
+    });
     await db.ref('shirglassworks/public/config/testMode').set(env === 'sandbox');
     await writeAudit('update', 'settings', 'squareConfig');
     // Re-mask all fields after save
@@ -4821,10 +4826,13 @@ async function saveSquareConfig() {
 }
 
 function loadSquareConfig() {
-  db.ref(SQUARE_CONFIG_PATH).once('value').then(function(snap) {
-    var config = snap.val();
-    var statusEl = document.getElementById('squareConfigStatus');
-    if (!config) {
+  var statusEl = document.getElementById('squareConfigStatus');
+  firebase.functions().httpsCallable('shirSecretsManager')({
+    action: 'read',
+    service: 'square'
+  }).then(function(result) {
+    var config = result.data;
+    if (!config || (!config.sandbox.accessToken && !config.production.accessToken)) {
       if (statusEl) statusEl.innerHTML = '<span style="color:var(--warm-gray-light);">No Square config set. Payment checkout will not work until configured.</span>';
       return;
     }
@@ -4833,13 +4841,9 @@ function loadSquareConfig() {
     var envEl = document.getElementById('squareEnvironment');
     if (envEl && config.environment) envEl.value = config.environment;
 
-    // Load per-environment credentials with masking
+    // Server returns masked secrets — display them as placeholders
     var sb = config.sandbox || {};
     var pr = config.production || {};
-    // Migrate: if no sandbox/production sub-objects, use flat fields as production
-    if (!config.sandbox && config.accessToken) {
-      pr = { accessToken: config.accessToken, locationId: config.locationId, webhookSignatureKey: config.webhookSignatureKey };
-    }
     setMaskedField('sqSandboxToken', sb.accessToken);
     setMaskedField('sqSandboxLocation', sb.locationId);
     setMaskedField('sqSandboxWebhook', sb.webhookSignatureKey);
@@ -4854,7 +4858,34 @@ function loadSquareConfig() {
     // Sandbox indicators
     onSquareEnvToggle();
 
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);">&#10003; Configured (' + config.environment + ') — updated ' + new Date(config.updatedAt).toLocaleDateString() + '</span>';
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);">&#10003; Configured (' + config.environment + ') — updated ' + (config.updatedAt ? new Date(config.updatedAt).toLocaleDateString() : 'unknown') + '</span>';
+  }).catch(function(err) {
+    // Fallback to direct RTDB read (pre-migration)
+    console.warn('shirSecretsManager read failed, falling back to RTDB:', err.message);
+    db.ref(SQUARE_CONFIG_PATH).once('value').then(function(snap) {
+      var config = snap.val();
+      if (!config) {
+        if (statusEl) statusEl.innerHTML = '<span style="color:var(--warm-gray-light);">No Square config set.</span>';
+        return;
+      }
+      var envEl = document.getElementById('squareEnvironment');
+      if (envEl && config.environment) envEl.value = config.environment;
+      var sb = config.sandbox || {};
+      var pr = config.production || {};
+      if (!config.sandbox && config.accessToken) {
+        pr = { accessToken: config.accessToken, locationId: config.locationId, webhookSignatureKey: config.webhookSignatureKey };
+      }
+      setMaskedField('sqSandboxToken', sb.accessToken);
+      setMaskedField('sqSandboxLocation', sb.locationId);
+      setMaskedField('sqSandboxWebhook', sb.webhookSignatureKey);
+      setMaskedField('sqProdToken', pr.accessToken);
+      setMaskedField('sqProdLocation', pr.locationId);
+      setMaskedField('sqProdWebhook', pr.webhookSignatureKey);
+      var urlEl = document.getElementById('squareSiteUrl');
+      if (urlEl && config.siteUrl) urlEl.value = config.siteUrl;
+      onSquareEnvToggle();
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);">&#10003; Configured (' + config.environment + ')</span>';
+    });
   });
 }
 
@@ -4976,9 +5007,13 @@ async function connectEtsy() {
     return;
   }
 
-  // Save API key before starting OAuth
+  // Save API key via Secret Manager
   try {
-    await db.ref(ETSY_CONFIG_PATH + '/apiKey').set(apiKey);
+    await firebase.functions().httpsCallable('shirSecretsManager')({
+      action: 'write',
+      service: 'etsy',
+      secrets: { 'shir-etsy-api-key': apiKey }
+    });
     await writeAudit('update', 'settings', 'etsyApiKey');
   } catch (err) {
     showToast('Error saving API key: ' + err.message, true);
@@ -5003,6 +5038,7 @@ async function disconnectEtsy() {
   if (!confirm('Disconnect Etsy? You will need to re-authorize to sync orders again.')) return;
   try {
     await writeAudit('delete', 'settings', 'etsyConfig');
+    // Remove metadata from RTDB (secrets in Secret Manager become stale — overwritten on reconnect)
     await db.ref(ETSY_CONFIG_PATH).remove();
     loadEtsyConfig();
     showToast('Etsy disconnected.');
@@ -5012,13 +5048,17 @@ async function disconnectEtsy() {
 }
 
 function loadEtsyConfig() {
-  db.ref(ETSY_CONFIG_PATH).once('value').then(function(snap) {
-    var config = snap.val();
-    var statusEl = document.getElementById('etsyConfigStatus');
-    var connectedEl = document.getElementById('etsyConnected');
-    var disconnectedEl = document.getElementById('etsyDisconnected');
+  var statusEl = document.getElementById('etsyConfigStatus');
+  var connectedEl = document.getElementById('etsyConnected');
+  var disconnectedEl = document.getElementById('etsyDisconnected');
 
-    if (config && config.accessToken && config.shopId) {
+  firebase.functions().httpsCallable('shirSecretsManager')({
+    action: 'read',
+    service: 'etsy'
+  }).then(function(result) {
+    var config = result.data;
+
+    if (config && config.connected && config.shopId) {
       // Connected
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
@@ -5032,12 +5072,26 @@ function loadEtsyConfig() {
       if (disconnectedEl) disconnectedEl.style.display = 'block';
       if (connectedEl) connectedEl.style.display = 'none';
       if (statusEl) statusEl.innerHTML = '<span style="color:var(--warm-gray-light);">Not connected. Click "Connect Etsy Shop" to link your Etsy account.</span>';
-      // Pre-fill API key if we have one
-      if (config && config.apiKey) {
-        var keyEl = document.getElementById('etsyApiKey');
-        if (keyEl) keyEl.value = config.apiKey;
-      }
     }
+  }).catch(function(err) {
+    // Fallback to RTDB (pre-migration)
+    console.warn('shirSecretsManager Etsy read failed, falling back:', err.message);
+    db.ref(ETSY_CONFIG_PATH).once('value').then(function(snap) {
+      var config = snap.val();
+      if (config && config.accessToken && config.shopId) {
+        if (disconnectedEl) disconnectedEl.style.display = 'none';
+        if (connectedEl) connectedEl.style.display = 'block';
+        var shopName = config.shopName || 'Shop #' + config.shopId;
+        var lastSync = config.lastSyncAt ? new Date(config.lastSyncAt).toLocaleString() : 'Never';
+        if (statusEl) statusEl.innerHTML =
+          '<span style="color:var(--teal);">&#10003; Connected to <strong>' + shopName + '</strong></span>' +
+          '<br><span style="color:var(--warm-gray);">Last sync: ' + lastSync + '</span>';
+      } else {
+        if (disconnectedEl) disconnectedEl.style.display = 'block';
+        if (connectedEl) connectedEl.style.display = 'none';
+        if (statusEl) statusEl.innerHTML = '<span style="color:var(--warm-gray-light);">Not connected.</span>';
+      }
+    });
   });
 
   // Check for ?etsy=connected param (returning from OAuth)
