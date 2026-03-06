@@ -214,7 +214,7 @@ Bringing a vendor, partner, gallery, or other business contact into the system s
 1. Open the admin app and go to Manage → Contacts
 2. Click Add Contact
 3. Enter the contact name, category (Supplier, Gallery, Event Organizer, etc.), and optional notes
-4. Optionally paste their Google Drive folder link for document access
+4. Optionally paste their Google Drive folder link for document access (Studio won't create a folder automatically — paste a link to an existing folder)
 5. Save — the contact is created in Studio and synced to Google Contacts automatically
 6. A "Shir Glassworks" label is added to the contact in Google Contacts
 
@@ -227,9 +227,8 @@ Recording a call, meeting, payment, or other touchpoint so there's a full histor
 2. Find the contact and open their record
 3. Click Log Interaction
 4. Set the date (defaults to today), type (Call, Email, Meeting, etc.), and add notes on what happened
-5. Optionally attach a document — paste a Drive link or upload a file directly
+5. Optionally attach a document — paste a Google Drive link to attach file metadata to the interaction
 6. Save — the interaction appears in the contact's timeline, newest first
-7. Any uploaded document is saved to the contact's Google Drive folder automatically
 
 ### Sync Contacts from Google
 **Status:** Live
