@@ -128,10 +128,12 @@ Closing out a build job once the pieces are finished and ready for sale.
 
 1. Open the admin app and go to Make → Production → Jobs
 2. Find the job and open it
-3. Review the finished quantities — adjust if any pieces didn't turn out
-4. Mark the job as Complete
-5. Inventory is updated automatically with the finished quantities
-6. Pieces are now available for sale online and at events
+3. While the job is in progress, update completed and loss quantities inline on each line item — changes save automatically
+4. Review the finished quantities before completing — adjust if any pieces didn't turn out
+5. Mark the job as Complete
+6. Inventory is updated automatically — each line item's completed quantity (minus losses) is added to stock
+7. A confirmation toast shows how many products were updated
+8. Pieces are now available for sale online and at events
 
 ---
 
