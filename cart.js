@@ -13,7 +13,7 @@
   // ── Constants ──
   var STORAGE_KEY = 'shir_cart';
   var FIREBASE_CONFIG = {
-    apiKey: 'FIREBASE_API_KEY_PLACEHOLDER',
+    apiKey: 'AIzaSyDZevV_F87F1AKGqUPKuNIrHMybOc61D7s',
     authDomain: 'shir-glassworks.firebaseapp.com',
     databaseURL: 'https://shir-glassworks-default-rtdb.firebaseio.com',
     projectId: "shir-glassworks"
