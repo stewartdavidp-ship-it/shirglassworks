@@ -963,22 +963,37 @@
 
   function callFunction(name, data, callback) {
     var url = FUNCTION_BASE + name;
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState !== 4) return;
-      try {
-        var resp = JSON.parse(xhr.responseText);
-        callback(resp.result || resp);
-      } catch (e) {
-        callback({ success: false, error: 'Network error' });
+
+    function sendRequest(token) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', url, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      if (token) {
+        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
       }
-    };
-    xhr.onerror = function() {
-      callback({ success: false, error: 'Network error' });
-    };
-    xhr.send(JSON.stringify({ data: data }));
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState !== 4) return;
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          callback(resp.result || resp);
+        } catch (e) {
+          callback({ success: false, error: 'Network error' });
+        }
+      };
+      xhr.onerror = function() {
+        callback({ success: false, error: 'Network error' });
+      };
+      xhr.send(JSON.stringify({ data: data }));
+    }
+
+    var currentUser = auth.currentUser;
+    if (currentUser) {
+      currentUser.getIdToken().then(sendRequest).catch(function() {
+        sendRequest(null);
+      });
+    } else {
+      sendRequest(null);
+    }
   }
 
   // ── Payment Confirmation ──
