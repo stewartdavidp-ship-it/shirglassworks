@@ -370,13 +370,33 @@ Handling a customer request for a custom or commission piece — from initial in
 
 ---
 
+## Forecasting
+
+### Forecasting — What to Build Next
+**Status:** Live
+
+Use the Forecast view to see what's selling, what's running low, and what to build next — all in one place.
+
+1. Open the admin app and go to Make → Production
+2. Click the Forecast tab (Owner and Manager only — Staff cannot see this tab)
+3. If there are upcoming events within 60 days, a banner appears at the top — click it to review the event
+4. The Suggested Builds section shows cards for products that are selling faster than current stock
+5. Each card shows current stock, monthly sales rate, and weeks of coverage remaining
+6. Click Create Job on a card to open a pre-filled production job with the suggested quantity
+7. Below stocked products, any Made-to-Order products with high demand (10+ orders in 90 days) appear under "Consider Stocking"
+8. The Demand Overview table shows all production products with order history — sortable by any column
+9. Use the time horizon toggle (Adaptive / 30d / 90d / All) to change the Sold column display
+10. Click any row to jump to the product detail
+11. The Slow/No Movement section (collapsed by default) lists products with stock but no recent orders
+
+---
+
 ## Not Yet Built
 
 The following workflows have been identified but not yet designed or built. These are candidates for the next planning session with Ori and Madeline.
 
 | Workflow | Notes |
 |---|---|
-| Forecasting — What to Build Next | View demand vs. inventory to plan the next production run. Data model is designed, UI not started. |
 | Promo Photo Shoot | Guided lightbox shoot for website and Etsy photos. Studio Companion currently handles Vision training only. |
 | Etsy / Wholesale Order Management | Handling orders from channels outside the website. Not yet designed. |
 | Customer Follow-Up | Sending updates or follow-up messages to buyers. Not yet designed. |

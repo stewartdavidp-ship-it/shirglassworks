@@ -3444,6 +3444,7 @@
         <button id="prodSubQueue" class="view-tab" onclick="switchProductionSubView('queue')">Queue <span id="queueBadge" style="background:#E65100;color:white;border-radius:10px;padding:1px 6px;font-size:0.7rem;margin-left:4px;display:none;">0</span></button>
         <button id="prodSubJobs" class="view-tab active" onclick="switchProductionSubView('jobs')">Jobs</button>
         <button id="prodSubInventory" class="view-tab" onclick="switchProductionSubView('inventory')">Inventory</button>
+        <button id="prodSubForecast" class="view-tab" onclick="switchProductionSubView('forecast')" style="display:none;">Forecast</button>
       </div>
       <div id="productionQueueView" style="display:none;">
         <div id="productionQueueEmpty" style="text-align:center;padding:48px 20px;color:var(--warm-gray);">
@@ -3489,6 +3490,12 @@
       <div id="productionBuildView" style="display:none;"></div>
       <div id="productionInventoryView" style="display:none;">
         <div id="inventoryOverviewContent"></div>
+      </div>
+      <div id="productionForecastView" style="display:none;">
+        <div id="forecastEventBanner"></div>
+        <div id="forecastSuggestedBuilds"></div>
+        <div id="forecastDemandOverview"></div>
+        <div id="forecastSlowMovement"></div>
       </div>
     </div>
 
@@ -4206,7 +4213,8 @@ var DEFAULT_ROLES = {
       auditLog:     { create: false, read: true, update: false, delete: false },
       pos:          { create: true, read: true, update: true, delete: true },
       receipts:     { create: true, read: true, update: true, delete: true },
-      contacts:     { create: true, read: true, update: true, delete: true }
+      contacts:     { create: true, read: true, update: true, delete: true },
+      forecast:     { create: false, read: true, update: false, delete: false }
     }
   },
   user: {
@@ -4230,7 +4238,8 @@ var DEFAULT_ROLES = {
       auditLog:     { create: false, read: false, update: false, delete: false },
       pos:          { create: true, read: true, update: true, delete: false },
       receipts:     { create: true, read: true, update: false, delete: false },
-      contacts:     { create: true, read: true, update: true, delete: false }
+      contacts:     { create: true, read: true, update: true, delete: false },
+      forecast:     { create: false, read: true, update: false, delete: false }
     }
   },
   guest: {
@@ -4254,7 +4263,8 @@ var DEFAULT_ROLES = {
       auditLog:     { create: false, read: false, update: false, delete: false },
       pos:          { create: false, read: false, update: false, delete: false },
       receipts:     { create: false, read: false, update: false, delete: false },
-      contacts:     { create: false, read: false, update: false, delete: false }
+      contacts:     { create: false, read: false, update: false, delete: false },
+      forecast:     { create: false, read: false, update: false, delete: false }
     }
   }
 };
@@ -5634,6 +5644,531 @@ function getItemComboKey(pid, itemOptions) {
   });
   if (values.some(function(v) { return !v; })) return '_default';
   return comboKey(values);
+}
+
+// ============================================================
+// Forecast View (Production tab — Owner/Manager only)
+// ============================================================
+
+var forecastData = null;       // Cached computation result
+var forecastOrdersLoaded = false;
+var forecastOrders = {};       // Separate read with limitToLast(500)
+var forecastTimeHorizon = 'adaptive'; // 'adaptive' | '30d' | '90d' | 'all'
+var forecastDemandSort = { col: 'trending', asc: false };
+var forecastSlowExpanded = false;
+
+function loadAndRenderForecast() {
+  // Ensure products and inventory are loaded
+  if (!productsLoaded) loadProducts();
+  if (!salesEventsLoaded) loadSalesEvents();
+  // Load orders with limitToLast(500) for forecast (separate from main orders listener)
+  if (!forecastOrdersLoaded) {
+    db.ref(ORDERS_PATH).limitToLast(500).once('value').then(function(snap) {
+      forecastOrders = snap.val() || {};
+      forecastOrdersLoaded = true;
+      computeAndRenderForecast();
+    }).catch(function(err) {
+      showToast('Error loading order history for forecast: ' + err.message, true);
+    });
+  } else {
+    computeAndRenderForecast();
+  }
+}
+
+function computeAndRenderForecast() {
+  if (!productsLoaded || !forecastOrdersLoaded) return;
+
+  var now = Date.now();
+  var DAY_MS = 86400000;
+  var d30 = now - 30 * DAY_MS;
+  var d90 = now - 90 * DAY_MS;
+  var d150 = now - 150 * DAY_MS; // 90d window + 60d prior
+
+  // Build per-product order tallies from forecastOrders
+  var productSales = {}; // pid → { last30: qty, last90: qty, prior60of30: qty, prior60of90: qty, lastOrdered: ISO, allTime: qty }
+
+  Object.keys(forecastOrders).forEach(function(ordKey) {
+    var ord = forecastOrders[ordKey];
+    if (!ord.items || !ord.items.length) return;
+    var ts = new Date(ord.placedAt || ord.createdAt || '').getTime();
+    if (isNaN(ts)) return;
+    ord.items.forEach(function(item) {
+      if (!item.pid) return;
+      var qty = item.qty || 1;
+      if (!productSales[item.pid]) {
+        productSales[item.pid] = { last30: 0, last90: 0, prior60of30: 0, prior60of90: 0, lastOrdered: null, allTime: 0 };
+      }
+      var ps = productSales[item.pid];
+      ps.allTime += qty;
+      if (ts >= d90) { ps.last90 += qty; }
+      if (ts >= d30) { ps.last30 += qty; }
+      // Prior 60d for 30d window: days 31-90
+      if (ts >= d90 && ts < d30) { ps.prior60of30 += qty; }
+      // Prior 60d for 90d window: days 91-150
+      if (ts >= d150 && ts < d90) { ps.prior60of90 += qty; }
+      if (!ps.lastOrdered || (ord.placedAt || ord.createdAt) > ps.lastOrdered) {
+        ps.lastOrdered = ord.placedAt || ord.createdAt;
+      }
+    });
+  });
+
+  // Build forecast per production product
+  var forecasts = [];
+  productsData.forEach(function(p) {
+    // Filter: production line only (production or missing businessLine)
+    if (p.businessLine === 'sculpture') return;
+
+    var pid = p.pid;
+    var inv = inventory[pid] || {};
+    var stock = (inv.stock && inv.stock._default) ? (inv.stock._default.available || 0) : 0;
+    var ps = productSales[pid] || { last30: 0, last90: 0, prior60of30: 0, prior60of90: 0, lastOrdered: null, allTime: 0 };
+
+    // Adaptive windowing: classify velocity
+    var avgPerMonth90 = ps.last90 / 3;
+    var isFastMover = avgPerMonth90 >= 10;
+    var windowDays = isFastMover ? 30 : 90;
+    var windowWeeks = windowDays / 7;
+    var recentSold = isFastMover ? ps.last30 : ps.last90;
+    var priorAvgMonthly = isFastMover ? (ps.prior60of30 / 2) : (ps.prior60of90 / 2);
+    var weeksCoverage = recentSold > 0 ? Math.round((stock / (recentSold / windowWeeks)) * 10) / 10 : (stock > 0 ? 999 : 0);
+
+    // Trending detection
+    var prior30Avg = ps.prior60of30 / 2; // avg per 30d from prior 60d
+    var trending = ps.last30 >= 3 && prior30Avg > 0 && ps.last30 >= 1.5 * prior30Avg;
+    var declining = prior30Avg > 0 && ps.last30 < 0.67 * prior30Avg;
+
+    // Stock type
+    var isStocked = !p.madeToOrder;
+    var isMTO = !!p.madeToOrder;
+
+    // Suggested build trigger
+    var suggestBuild = isStocked && stock < recentSold && recentSold > 0;
+    var suggestedQty = suggestBuild ? Math.ceil((recentSold - stock) / 5) * 5 : 0;
+    if (suggestedQty < 5 && suggestBuild) suggestedQty = 5;
+
+    // MTO "consider stocking" — trending threshold >=10 in 90d
+    var considerStocking = isMTO && ps.last90 >= 10;
+
+    // Slow/no movement
+    var noMovement = stock > 0 && recentSold === 0;
+
+    // Monthly rate for display
+    var monthlyRate = recentSold / (windowDays / 30);
+
+    forecasts.push({
+      pid: pid,
+      name: p.name,
+      categories: p.categories || [],
+      images: p.images || [],
+      stock: stock,
+      recentSold: recentSold,
+      priorAvgMonthly: priorAvgMonthly,
+      monthlyRate: Math.round(monthlyRate * 10) / 10,
+      weeksCoverage: weeksCoverage,
+      trending: trending,
+      declining: declining,
+      isStocked: isStocked,
+      isMTO: isMTO,
+      suggestBuild: suggestBuild,
+      suggestedQty: suggestedQty,
+      considerStocking: considerStocking,
+      noMovement: noMovement,
+      lastOrdered: ps.lastOrdered,
+      allTimeSold: ps.allTime,
+      windowDays: windowDays,
+      isFastMover: isFastMover,
+      // Raw data for time horizon override display
+      last30: ps.last30,
+      last90: ps.last90
+    });
+  });
+
+  forecastData = forecasts;
+
+  // Render all sections
+  renderForecastEventBanner();
+  renderForecastSuggestedBuilds();
+  renderForecastDemandTable();
+  renderForecastSlowMovement();
+}
+
+// ---- Event Banner ----
+function renderForecastEventBanner() {
+  var el = document.getElementById('forecastEventBanner');
+  if (!el) return;
+  el.innerHTML = '';
+
+  var now = Date.now();
+  var DAY_MS = 86400000;
+  var cutoff60 = now + 60 * DAY_MS;
+
+  // Find upcoming events within 60 days
+  var upcoming = [];
+  Object.keys(salesEventsData).forEach(function(k) {
+    var ev = salesEventsData[k];
+    if (ev.status === 'complete' || ev.status === 'completed') return;
+    var evDate = new Date(ev.date).getTime();
+    if (isNaN(evDate)) return;
+    if (evDate > now && evDate <= cutoff60) {
+      var daysAway = Math.ceil((evDate - now) / DAY_MS);
+      upcoming.push({ key: k, name: ev.name || ev.eventName || 'Unnamed Event', date: ev.date, daysAway: daysAway });
+    }
+  });
+
+  if (upcoming.length === 0) return;
+
+  // Check for seasonal products (trending now, also sold well in same month prior year)
+  var seasonalProducts = [];
+  if (forecastData) {
+    var currentMonth = new Date().getMonth();
+    var priorYearStart = new Date();
+    priorYearStart.setFullYear(priorYearStart.getFullYear() - 1);
+    priorYearStart.setDate(1);
+    var priorYearEnd = new Date(priorYearStart);
+    priorYearEnd.setMonth(priorYearEnd.getMonth() + 1);
+
+    forecastData.forEach(function(f) {
+      if (!f.trending) return;
+      // Check prior year same month orders
+      var priorMonthSales = 0;
+      Object.keys(forecastOrders).forEach(function(ordKey) {
+        var ord = forecastOrders[ordKey];
+        if (!ord.items) return;
+        var ts = new Date(ord.placedAt || ord.createdAt || '').getTime();
+        var ordDate = new Date(ts);
+        if (ordDate.getMonth() === currentMonth && ordDate.getFullYear() === new Date().getFullYear() - 1) {
+          ord.items.forEach(function(item) {
+            if (item.pid === f.pid) priorMonthSales += (item.qty || 1);
+          });
+        }
+      });
+      // "Above average" = prior year same month had > priorAvgMonthly
+      if (priorMonthSales > f.priorAvgMonthly && priorMonthSales > 0) {
+        seasonalProducts.push(f.name);
+      }
+    });
+  }
+
+  var html = '';
+  upcoming.sort(function(a, b) { return a.daysAway - b.daysAway; });
+  upcoming.forEach(function(ev) {
+    var isUrgent = ev.daysAway <= 14;
+    var bgColor = isUrgent ? '#FFF3E0' : '#FFF9C4';
+    var borderColor = isUrgent ? '#E65100' : '#F9A825';
+    html += '<div style="background:' + bgColor + ';border:1px solid ' + borderColor + ';border-radius:8px;padding:12px 16px;margin-bottom:12px;cursor:pointer;" onclick="navigateTo(\'events\')">' +
+      '<div style="font-weight:600;color:#333;">&#x1F4C5; ' + esc(ev.name) + ' in ' + ev.daysAway + ' days &mdash; review your inventory before building.</div>' +
+    '</div>';
+  });
+
+  if (seasonalProducts.length > 0) {
+    html += '<div style="background:#E8F5E9;border:1px solid #4CAF50;border-radius:8px;padding:12px 16px;margin-bottom:12px;">' +
+      '<div style="font-weight:600;color:#333;">Trending products that spiked before past events: ' + seasonalProducts.map(function(n) { return esc(n); }).join(', ') + '</div>' +
+    '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+// ---- Suggested Builds ----
+function renderForecastSuggestedBuilds() {
+  var el = document.getElementById('forecastSuggestedBuilds');
+  if (!el || !forecastData) return;
+
+  // Check for upcoming events
+  var now = Date.now();
+  var DAY_MS = 86400000;
+  var hasUpcomingEvent = Object.keys(salesEventsData).some(function(k) {
+    var ev = salesEventsData[k];
+    if (ev.status === 'complete' || ev.status === 'completed') return false;
+    var evDate = new Date(ev.date).getTime();
+    return !isNaN(evDate) && evDate > now && evDate <= now + 60 * DAY_MS;
+  });
+
+  var stocked = forecastData.filter(function(f) { return f.suggestBuild; });
+  var mtoConsider = forecastData.filter(function(f) { return f.considerStocking; });
+
+  if (stocked.length === 0 && mtoConsider.length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+
+  // Sort: trending first, then by weeksCoverage ascending
+  stocked.sort(function(a, b) {
+    if (a.trending !== b.trending) return a.trending ? -1 : 1;
+    return a.weeksCoverage - b.weeksCoverage;
+  });
+
+  var html = '<h3 style="margin:24px 0 12px 0;font-size:1.1rem;">Suggested Builds</h3>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">';
+
+  stocked.forEach(function(f) {
+    var imgUrl = (f.images && f.images.length) ? f.images[0] : '';
+    var catBadge = (f.categories && f.categories.length) ? f.categories[0] : '';
+    var reasons = [];
+    if (f.stock < f.recentSold) reasons.push('Low Stock');
+    if (f.trending) reasons.push('Trending &#x2191;');
+    if (hasUpcomingEvent) reasons.push('Upcoming Event');
+
+    html += '<div style="background:white;border:1px solid var(--cream-dark,#e8e0d4);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px;">' +
+      '<div style="display:flex;gap:12px;align-items:flex-start;">' +
+        (imgUrl ? '<img src="' + esc(imgUrl) + '" style="width:56px;height:56px;border-radius:8px;object-fit:cover;" loading="lazy">' : '<div style="width:56px;height:56px;border-radius:8px;background:var(--cream,#f5f0e8);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">&#x1F3A8;</div>') +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-weight:600;font-size:0.95rem;">' + esc(f.name) + '</div>' +
+          (catBadge ? '<span style="background:var(--cream,#f5f0e8);padding:2px 8px;border-radius:4px;font-size:0.72rem;color:var(--warm-gray);">' + esc(catBadge) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:0.82rem;color:var(--warm-gray);">' +
+        f.stock + ' in stock &middot; Selling ' + f.monthlyRate + '/mo &middot; ~' + (f.weeksCoverage < 999 ? f.weeksCoverage + ' weeks' : '&#x221E;') + ' of stock' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+        reasons.map(function(r) {
+          var bg = r.indexOf('Trending') >= 0 ? '#E8F5E9' : r.indexOf('Event') >= 0 ? '#FFF3E0' : '#FFF9C4';
+          var color = r.indexOf('Trending') >= 0 ? '#2E7D32' : r.indexOf('Event') >= 0 ? '#E65100' : '#F57F17';
+          return '<span style="background:' + bg + ';color:' + color + ';padding:2px 8px;border-radius:4px;font-size:0.72rem;font-weight:600;">' + r + '</span>';
+        }).join('') +
+      '</div>' +
+      '<button class="btn btn-primary" style="font-size:0.82rem;padding:6px 14px;align-self:flex-start;margin-top:4px;" onclick="openForecastJobModal(\'' + esc(f.pid) + '\',' + f.suggestedQty + ')">Create Job (' + f.suggestedQty + ' pcs)</button>' +
+    '</div>';
+  });
+
+  html += '</div>';
+
+  // MTO "Consider Stocking" section
+  if (mtoConsider.length > 0) {
+    html += '<h4 style="margin:24px 0 8px 0;font-size:0.95rem;color:var(--warm-gray);">Consider Stocking</h4>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">';
+    mtoConsider.forEach(function(f) {
+      var imgUrl = (f.images && f.images.length) ? f.images[0] : '';
+      html += '<div style="background:white;border:1px solid var(--cream-dark,#e8e0d4);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px;">' +
+        '<div style="display:flex;gap:12px;align-items:flex-start;">' +
+          (imgUrl ? '<img src="' + esc(imgUrl) + '" style="width:56px;height:56px;border-radius:8px;object-fit:cover;" loading="lazy">' : '<div style="width:56px;height:56px;border-radius:8px;background:var(--cream,#f5f0e8);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">&#x1F3A8;</div>') +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-weight:600;font-size:0.95rem;">' + esc(f.name) + '</div>' +
+            '<span style="background:#E3F2FD;padding:2px 8px;border-radius:4px;font-size:0.72rem;color:#1565C0;">MTO</span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="font-size:0.82rem;color:var(--warm-gray);">' + f.last90 + ' ordered in 90 days &middot; Selling ' + f.monthlyRate + '/mo</div>' +
+        '<button class="btn btn-secondary" style="font-size:0.82rem;padding:6px 14px;align-self:flex-start;" onclick="navigateTo(\'products\')">Update Product Type &#x2192;</button>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function openForecastJobModal(pid, suggestedQty) {
+  var product = productsData.find(function(p) { return p.pid === pid; });
+  var name = product ? product.name : pid;
+  var purposeButtons = Object.keys(PURPOSE_LABELS).map(function(key) {
+    return '<button class="btn btn-secondary" style="font-size:0.85rem;padding:8px 14px;margin:4px;" onclick="doCreateForecastJob(\'' + esc(pid) + '\',' + suggestedQty + ',\'' + key + '\')">' +
+      PURPOSE_LABELS[key] + '</button>';
+  }).join('');
+  var html = '<div style="max-width:450px;">' +
+    '<h3>New Production Job</h3>' +
+    '<div class="form-group">' +
+      '<label class="field-required">Job Name</label>' +
+      '<input type="text" id="newJobName" value="Build ' + esc(name) + ' (' + suggestedQty + ' pcs)">' +
+    '</div>' +
+    '<div style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:12px;">Suggested: ' + suggestedQty + ' pieces of ' + esc(name) + '</div>' +
+    '<div class="form-group">' +
+      '<label>Purpose</label>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:0;">' + purposeButtons + '</div>' +
+    '</div>' +
+    '<div style="margin-top:16px;text-align:right;">' +
+      '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
+    '</div>' +
+  '</div>';
+  openModal(html);
+}
+
+async function doCreateForecastJob(pid, suggestedQty, purpose) {
+  var nameInput = document.getElementById('newJobName');
+  var name = nameInput ? nameInput.value.trim() : '';
+  if (!validateRequired([{ el: 'newJobName', msg: 'Job name is required' }])) {
+    showToast('Enter a job name', true); return;
+  }
+  try {
+    var product = productsData.find(function(p) { return p.pid === pid; });
+    var jobRef = db.ref(PRODUCTION_JOBS_PATH).push();
+    var jobId = jobRef.key;
+    var lineItemId = db.ref(PRODUCTION_JOBS_PATH + '/' + jobId + '/lineItems').push().key;
+    await jobRef.set({
+      name: name,
+      description: 'Auto-suggested from Forecast view',
+      purpose: purpose,
+      workType: 'flameshop',
+      priority: 'medium',
+      status: 'definition',
+      deadline: null,
+      eventName: null,
+      orderId: null,
+      customerId: null,
+      createdAt: new Date().toISOString(),
+      startedAt: null,
+      completedAt: null,
+      lineItems: {}
+    });
+    // Add pre-populated line item
+    await db.ref(PRODUCTION_JOBS_PATH + '/' + jobId + '/lineItems/' + lineItemId).set({
+      productId: pid,
+      productName: product ? product.name : pid,
+      targetQuantity: suggestedQty,
+      completedQuantity: 0,
+      notes: ''
+    });
+    await writeAudit('create', 'jobs', jobId);
+    closeModal();
+    viewProductionJob(jobId);
+    showToast('Job created with ' + suggestedQty + ' ' + (product ? product.name : '') + ' pre-added');
+  } catch (err) {
+    showToast('Error creating job: ' + err.message, true);
+  }
+}
+
+// ---- Demand Overview Table ----
+function renderForecastDemandTable() {
+  var el = document.getElementById('forecastDemandOverview');
+  if (!el || !forecastData) return;
+
+  // Filter: production products with at least 1 all-time order
+  var rows = forecastData.filter(function(f) { return f.allTimeSold > 0; });
+
+  // Sort
+  rows.sort(function(a, b) {
+    var col = forecastDemandSort.col;
+    var dir = forecastDemandSort.asc ? 1 : -1;
+    if (col === 'name') return dir * a.name.localeCompare(b.name);
+    if (col === 'stock') return dir * (a.stock - b.stock);
+    if (col === 'sold') {
+      var aVal = forecastTimeHorizon === '30d' ? a.last30 : forecastTimeHorizon === '90d' ? a.last90 : forecastTimeHorizon === 'all' ? a.allTimeSold : a.recentSold;
+      var bVal = forecastTimeHorizon === '30d' ? b.last30 : forecastTimeHorizon === '90d' ? b.last90 : forecastTimeHorizon === 'all' ? b.allTimeSold : b.recentSold;
+      return dir * (aVal - bVal);
+    }
+    if (col === 'priorAvg') return dir * (a.priorAvgMonthly - b.priorAvgMonthly);
+    if (col === 'trending') {
+      var aT = a.trending ? 2 : a.declining ? 0 : 1;
+      var bT = b.trending ? 2 : b.declining ? 0 : 1;
+      if (aT !== bT) return dir * (aT - bT);
+      return dir * (a.recentSold - b.recentSold);
+    }
+    if (col === 'type') return dir * ((a.isStocked ? 0 : 1) - (b.isStocked ? 0 : 1));
+    if (col === 'lastOrdered') return dir * ((a.lastOrdered || '').localeCompare(b.lastOrdered || ''));
+    return 0;
+  });
+
+  var sortArrow = function(col) {
+    if (forecastDemandSort.col !== col) return '';
+    return forecastDemandSort.asc ? ' &#x25B2;' : ' &#x25BC;';
+  };
+
+  var horizonLabel = forecastTimeHorizon === '30d' ? '30d' : forecastTimeHorizon === '90d' ? '90d' : forecastTimeHorizon === 'all' ? 'All' : 'Adaptive';
+
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px 0;">' +
+    '<h3 style="margin:0;font-size:1.1rem;">Demand Overview</h3>' +
+    '<div style="display:flex;gap:4px;">' +
+      ['adaptive','30d','90d','all'].map(function(h) {
+        var label = h === 'adaptive' ? 'Adaptive' : h === 'all' ? 'All' : h;
+        var active = forecastTimeHorizon === h;
+        return '<button class="btn ' + (active ? 'btn-primary' : 'btn-secondary') + '" style="font-size:0.72rem;padding:4px 10px;" onclick="setForecastHorizon(\'' + h + '\')">' + label + '</button>';
+      }).join('') +
+    '</div>' +
+  '</div>';
+
+  html += '<div style="overflow-x:auto;">' +
+    '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;">' +
+    '<thead><tr style="border-bottom:2px solid var(--cream-dark,#e8e0d4);text-align:left;">' +
+      '<th style="padding:8px;cursor:pointer;white-space:nowrap;" onclick="sortForecastDemand(\'name\')">Product' + sortArrow('name') + '</th>' +
+      '<th style="padding:8px;cursor:pointer;text-align:right;" onclick="sortForecastDemand(\'stock\')">In Stock' + sortArrow('stock') + '</th>' +
+      '<th style="padding:8px;cursor:pointer;text-align:right;" onclick="sortForecastDemand(\'sold\')">Sold (' + horizonLabel + ')' + sortArrow('sold') + '</th>' +
+      '<th style="padding:8px;cursor:pointer;text-align:right;" onclick="sortForecastDemand(\'priorAvg\')">Prior Avg/mo' + sortArrow('priorAvg') + '</th>' +
+      '<th style="padding:8px;cursor:pointer;text-align:center;" onclick="sortForecastDemand(\'trending\')">Trending' + sortArrow('trending') + '</th>' +
+      '<th style="padding:8px;cursor:pointer;text-align:center;" onclick="sortForecastDemand(\'type\')">Type' + sortArrow('type') + '</th>' +
+      '<th style="padding:8px;cursor:pointer;" onclick="sortForecastDemand(\'lastOrdered\')">Last Ordered' + sortArrow('lastOrdered') + '</th>' +
+    '</tr></thead><tbody>';
+
+  rows.forEach(function(f) {
+    var soldVal = forecastTimeHorizon === '30d' ? f.last30 : forecastTimeHorizon === '90d' ? f.last90 : forecastTimeHorizon === 'all' ? f.allTimeSold : f.recentSold;
+    var imgUrl = (f.images && f.images.length) ? f.images[0] : '';
+    var trendBadge = f.trending
+      ? '<span style="background:#E8F5E9;color:#2E7D32;padding:2px 8px;border-radius:4px;font-size:0.72rem;font-weight:600;">&#x2191;</span>'
+      : f.declining
+        ? '<span style="background:#FFEBEE;color:#C62828;padding:2px 8px;border-radius:4px;font-size:0.72rem;font-weight:600;">&#x2193;</span>'
+        : '<span style="color:var(--warm-gray);">&mdash;</span>';
+    var typeBadge = f.isStocked
+      ? '<span style="background:#E8F5E9;color:#2E7D32;padding:2px 8px;border-radius:4px;font-size:0.72rem;">Stocked</span>'
+      : '<span style="background:#E3F2FD;color:#1565C0;padding:2px 8px;border-radius:4px;font-size:0.72rem;">MTO</span>';
+
+    html += '<tr style="border-bottom:1px solid var(--cream-dark,#e8e0d4);cursor:pointer;" onclick="navigateTo(\'products\')">' +
+      '<td style="padding:8px;">' +
+        '<div style="display:flex;gap:8px;align-items:center;">' +
+          (imgUrl ? '<img src="' + esc(imgUrl) + '" style="width:32px;height:32px;border-radius:6px;object-fit:cover;" loading="lazy">' : '') +
+          '<span>' + esc(f.name) + '</span>' +
+        '</div>' +
+      '</td>' +
+      '<td style="padding:8px;text-align:right;">' + f.stock + '</td>' +
+      '<td style="padding:8px;text-align:right;">' + soldVal + '</td>' +
+      '<td style="padding:8px;text-align:right;">' + (Math.round(f.priorAvgMonthly * 10) / 10) + '</td>' +
+      '<td style="padding:8px;text-align:center;">' + trendBadge + '</td>' +
+      '<td style="padding:8px;text-align:center;">' + typeBadge + '</td>' +
+      '<td style="padding:8px;">' + (f.lastOrdered ? formatOrderDate(f.lastOrdered) : '<span style="color:var(--warm-gray);font-style:italic;">Never</span>') + '</td>' +
+    '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+function sortForecastDemand(col) {
+  if (forecastDemandSort.col === col) {
+    forecastDemandSort.asc = !forecastDemandSort.asc;
+  } else {
+    forecastDemandSort.col = col;
+    forecastDemandSort.asc = col === 'name';
+  }
+  renderForecastDemandTable();
+}
+
+function setForecastHorizon(h) {
+  forecastTimeHorizon = h;
+  renderForecastDemandTable();
+}
+
+// ---- Slow/No Movement ----
+function renderForecastSlowMovement() {
+  var el = document.getElementById('forecastSlowMovement');
+  if (!el || !forecastData) return;
+
+  var slow = forecastData.filter(function(f) { return f.noMovement; });
+  if (slow.length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+
+  var html = '<div style="margin-top:24px;border:1px solid var(--cream-dark,#e8e0d4);border-radius:8px;overflow:hidden;">';
+  html += '<div style="padding:12px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:var(--cream,#f5f0e8);" onclick="toggleForecastSlow()">' +
+    '<span style="font-weight:600;font-size:0.9rem;">' + slow.length + ' product' + (slow.length !== 1 ? 's' : '') + ' with no recent orders</span>' +
+    '<span id="forecastSlowArrow" style="font-size:0.8rem;">' + (forecastSlowExpanded ? '&#x25BC;' : '&#x25B6;') + '</span>' +
+  '</div>';
+
+  html += '<div id="forecastSlowList" style="display:' + (forecastSlowExpanded ? '' : 'none') + ';padding:8px 16px;">';
+  slow.forEach(function(f) {
+    html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--cream-dark,#e8e0d4);font-size:0.85rem;">' +
+      '<span>' + esc(f.name) + '</span>' +
+      '<span style="color:var(--warm-gray);">' + f.stock + ' in stock &middot; ' + (f.lastOrdered ? 'Last: ' + formatOrderDate(f.lastOrdered) : 'Never ordered') + '</span>' +
+    '</div>';
+  });
+  html += '</div></div>';
+
+  el.innerHTML = html;
+}
+
+function toggleForecastSlow() {
+  forecastSlowExpanded = !forecastSlowExpanded;
+  var list = document.getElementById('forecastSlowList');
+  var arrow = document.getElementById('forecastSlowArrow');
+  if (list) list.style.display = forecastSlowExpanded ? '' : 'none';
+  if (arrow) arrow.innerHTML = forecastSlowExpanded ? '&#x25BC;' : '&#x25B6;';
 }
 
 // ---- Inventory Overview (Production tab) ----
@@ -12562,6 +13097,11 @@ function loadProduction() {
   renderProductionQueue();
   renderProductionJobs();
   updateQueueBadge();
+  // Show Forecast tab for Owner/Manager only (not Staff)
+  var forecastBtn = document.getElementById('prodSubForecast');
+  if (forecastBtn) {
+    forecastBtn.style.display = hasPermission('forecast', 'read') ? '' : 'none';
+  }
 }
 
 function loadOperators() {
@@ -12632,17 +13172,22 @@ function switchProductionSubView(view) {
   var detailView = document.getElementById('productionJobDetail');
   var buildView = document.getElementById('productionBuildView');
   var invView = document.getElementById('productionInventoryView');
+  var forecastView = document.getElementById('productionForecastView');
   queueView.style.display = 'none';
   jobsView.style.display = 'none';
   detailView.style.display = 'none';
   buildView.style.display = 'none';
   invView.style.display = 'none';
+  if (forecastView) forecastView.style.display = 'none';
   if (view === 'queue') {
     queueView.style.display = '';
     renderProductionQueue();
   } else if (view === 'inventory') {
     invView.style.display = '';
     renderInventoryOverview();
+  } else if (view === 'forecast') {
+    if (forecastView) forecastView.style.display = '';
+    loadAndRenderForecast();
   } else {
     jobsView.style.display = '';
     selectedProductionJobId = null;
