@@ -55,7 +55,7 @@ How a customer buys from shirglassworks.com — from browsing to payment confirm
 ## Order Fulfillment
 
 ### Process and Ship a Website Order
-**Status:** In Progress
+**Status:** Live
 
 What Ori or Madeline does after a customer places an order online — from confirming the order through to dropping it at the post office.
 
@@ -64,13 +64,13 @@ What Ori or Madeline does after a customer places an order online — from confi
 3. Review the order details — items, options, shipping address
 4. If the item is in stock: click Confirm Order (status moves to Packing)
 5. If the item needs to be made: a production job is created automatically
-6. Pack the order
+6. Pack the order — scan the QR label to mark it packed in the system
 7. Click Download Shipping CSV on the confirmed order
 8. Open Pirate Ship (pirateships.com) and import the CSV
 9. Purchase the shipping label in Pirate Ship
 10. Print the label and attach it to the package
-11. Return to the order in the admin app and click Mark Shipped
-12. Enter the tracking number and select the carrier (USPS or UPS)
+11. Return to the admin app and scan packages at drop-off to bundle them
+12. Confirm drop-off — carrier and location are recorded
 13. Customer receives notification that their order is on its way
 
 ---
@@ -200,10 +200,49 @@ Uploading photos to the image library and assigning them to products or website 
 
 ---
 
+## Contacts & Relationships
+
+### Add a New Contact
+**Status:** Live
+
+Bringing a vendor, partner, gallery, or other business contact into the system so interactions can be tracked over time.
+
+1. Open the admin app and go to Manage → Contacts
+2. Click Add Contact
+3. Enter the contact name, category (Supplier, Gallery, Event Organizer, etc.), and optional notes
+4. Optionally paste their Google Drive folder link for document access
+5. Save — the contact is created in Studio and synced to Google Contacts automatically
+6. A "Shir Glassworks" label is added to the contact in Google Contacts
+
+### Log an Interaction with a Contact
+**Status:** Live
+
+Recording a call, meeting, payment, or other touchpoint so there's a full history of the relationship.
+
+1. Open the admin app and go to Manage → Contacts
+2. Find the contact and open their record
+3. Click Log Interaction
+4. Set the date (defaults to today), type (Call, Email, Meeting, etc.), and add notes on what happened
+5. Optionally attach a document — paste a Drive link or upload a file directly
+6. Save — the interaction appears in the contact's timeline, newest first
+7. Any uploaded document is saved to the contact's Google Drive folder automatically
+
+### Sync Contacts from Google
+**Status:** Live
+
+Pulling in contacts that were added directly to the "Shir Glassworks" group in Google Contacts, rather than through Studio.
+
+1. Open the admin app and go to Manage → Contacts
+2. Click Sync from Google Contacts
+3. Studio fetches all contacts in the "Shir Glassworks" group and creates any missing records
+4. New contacts appear with category set to "Other" — update their category as needed
+
+---
+
 ## Admin
 
 ### Configure Square Payment Settings
-**Status:** In Progress
+**Status:** Live
 
 Switching between sandbox (test) mode and live payments, and updating Square credentials. Sandbox mode is for testing only — no real money moves.
 
@@ -248,3 +287,4 @@ The following workflows have been identified but not yet designed or built. Thes
 | Etsy / Wholesale Order Management | Handling orders from channels outside the website. Not yet designed. |
 | Customer Follow-Up | Sending updates or follow-up messages to buyers. Not yet designed. |
 | End-of-Year Financials Summary | Pulling together sales, costs, and reconciliation. Not yet designed. |
+| Contact History Import | Retroactive import of existing Google Drive documents into contact interaction timelines. Deferred pending proof of value from Phase 1. |
