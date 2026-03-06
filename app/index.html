@@ -4039,13 +4039,13 @@
 // Firebase Init
 // ============================================================
 const firebaseConfig = {
-  apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
-  authDomain: "word-boxing.firebaseapp.com",
-  databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
-  projectId: "word-boxing"
+  apiKey: "FIREBASE_API_KEY_PLACEHOLDER",
+  authDomain: "shir-glassworks.firebaseapp.com",
+  databaseURL: "https://shir-glassworks-default-rtdb.firebaseio.com",
+  projectId: "shir-glassworks"
 };
 
-firebaseConfig.storageBucket = "word-boxing.firebasestorage.app";
+firebaseConfig.storageBucket = "shir-glassworks.firebasestorage.app";
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
@@ -4272,7 +4272,7 @@ var DEFAULT_ROLES = {
 var imageLibrary = {};
 var imageLibraryLoaded = false;
 var imageLibraryListener = null;
-var CLOUD_FUNCTIONS_BASE = 'https://us-central1-word-boxing.cloudfunctions.net';
+var CLOUD_FUNCTIONS_BASE = 'https://us-central1-shir-glassworks.cloudfunctions.net';
 
 var ORDER_VALID_TRANSITIONS = {
   pending_payment: ['cancelled'],
@@ -12500,7 +12500,7 @@ async function capturePackingPhoto() {
   try {
     var token = await auth.currentUser.getIdToken();
     var catalogForApi = buildProductCatalogForVision();
-    var resp = await fetch('https://us-central1-word-boxing.cloudfunctions.net/shirClassifyImage', {
+    var resp = await fetch('https://us-central1-shir-glassworks.cloudfunctions.net/shirClassifyImage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ image: base64, catalog: catalogForApi, context: 'inventory' })
@@ -15155,7 +15155,7 @@ async function loadStorageInfo() {
     el.innerHTML = '<div style="display:flex;gap:24px;flex-wrap:wrap;">' +
       '<div>📷 <strong>' + totalPhotos + '</strong> photos</div>' +
       '<div>💾 <strong>' + sizeMb + ' MB</strong> stored</div>' +
-      '<div style="font-size:0.78rem;color:var(--warm-gray);">Bucket: word-boxing.firebasestorage.app</div>' +
+      '<div style="font-size:0.78rem;color:var(--warm-gray);">Bucket: shir-glassworks.firebasestorage.app</div>' +
     '</div>';
   } catch (err) {
     el.innerHTML = 'Error loading storage info.';
@@ -17201,7 +17201,7 @@ async function sendCommissionProposal(commId) {
     if (!user) { showToast('Sign in required', true); return; }
     var token = await user.getIdToken();
 
-    var resp = await fetch('https://us-central1-word-boxing.cloudfunctions.net/shirCommissionProposal', {
+    var resp = await fetch('https://us-central1-shir-glassworks.cloudfunctions.net/shirCommissionProposal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({

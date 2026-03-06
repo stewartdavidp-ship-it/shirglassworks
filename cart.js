@@ -13,10 +13,10 @@
   // ── Constants ──
   var STORAGE_KEY = 'shir_cart';
   var FIREBASE_CONFIG = {
-    apiKey: 'AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM',
-    authDomain: 'word-boxing.firebaseapp.com',
-    databaseURL: 'https://word-boxing-default-rtdb.firebaseio.com',
-    projectId: 'word-boxing'
+    apiKey: 'FIREBASE_API_KEY_PLACEHOLDER',
+    authDomain: 'shir-glassworks.firebaseapp.com',
+    databaseURL: 'https://shir-glassworks-default-rtdb.firebaseio.com',
+    projectId: "shir-glassworks"
   };
   var MAX_QTY = 10;
 

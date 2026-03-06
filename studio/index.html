@@ -406,12 +406,12 @@
 // Firebase Init
 // ============================================================
 var firebaseConfig = {
-  apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
-  authDomain: "word-boxing.firebaseapp.com",
-  databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
-  projectId: "word-boxing"
+  apiKey: "FIREBASE_API_KEY_PLACEHOLDER",
+  authDomain: "shir-glassworks.firebaseapp.com",
+  databaseURL: "https://shir-glassworks-default-rtdb.firebaseio.com",
+  projectId: "shir-glassworks"
 };
-firebaseConfig.storageBucket = "word-boxing.firebasestorage.app";
+firebaseConfig.storageBucket = "shir-glassworks.firebasestorage.app";
 firebase.initializeApp(firebaseConfig);
 
 var auth = firebase.auth();
@@ -420,9 +420,9 @@ var storage = firebase.storage();
 
 var PRODUCTS_PATH = 'shirglassworks/public/products';
 var TRAINING_IMAGES_PATH = 'shirglassworks/admin/training-images';
-var CLASSIFY_FUNCTION_URL = 'https://us-central1-word-boxing.cloudfunctions.net/shirClassifyImage';
-var UPLOAD_FUNCTION_URL = 'https://us-central1-word-boxing.cloudfunctions.net/shirUploadTrainingImage';
-var SCAN_FUNCTION_URL = 'https://us-central1-word-boxing.cloudfunctions.net/shirScanCatalog';
+var CLASSIFY_FUNCTION_URL = 'https://us-central1-shir-glassworks.cloudfunctions.net/shirClassifyImage';
+var UPLOAD_FUNCTION_URL = 'https://us-central1-shir-glassworks.cloudfunctions.net/shirUploadTrainingImage';
+var SCAN_FUNCTION_URL = 'https://us-central1-shir-glassworks.cloudfunctions.net/shirScanCatalog';
 
 // ============================================================
 // State

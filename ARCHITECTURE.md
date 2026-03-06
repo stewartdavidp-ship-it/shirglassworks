@@ -5,7 +5,7 @@
 Shir Glassworks is a static website deployed via GitHub Pages with a Firebase Realtime Database backend. The public site (product catalog, gallery, checkout) uses vanilla JS with no framework. The admin app (`/app/index.html`) uses React 18 via CDN.
 
 **Repo:** `stewartdavidp-ship-it/shirglassworks`
-**Firebase project:** `word-boxing`
+**Firebase project:** `shir-glassworks`
 **Firebase paths:** `shirglassworks/public/` (anonymous read), `shirglassworks/admin/` (auth required), `shirglassworks/orders/` (mixed)
 **Cloud Functions:** `gameshelf-functions/functions/index.js` (shared with other projects)
 

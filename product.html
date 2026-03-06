@@ -971,11 +971,11 @@
   // Firebase — load product detail from URL param ?id=pXXX
   (function() {
     var app = firebase.initializeApp({
-      apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
-      authDomain: "word-boxing.firebaseapp.com",
-      databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
-      projectId: "word-boxing",
-      storageBucket: "word-boxing.firebasestorage.app"
+      apiKey: "FIREBASE_API_KEY_PLACEHOLDER",
+      authDomain: "shir-glassworks.firebaseapp.com",
+      databaseURL: "https://shir-glassworks-default-rtdb.firebaseio.com",
+      projectId: "shir-glassworks",
+      storageBucket: "shir-glassworks.firebasestorage.app"
     }, 'public-product');
     var db = app.database();
     window._productDb = db;
@@ -1403,7 +1403,7 @@
       var pieceName = pieceNames.join(', ') || 'Custom Piece';
 
       // Trigger notification (fire and forget)
-      fetch('https://us-central1-word-boxing.cloudfunctions.net/shirCommissionNotify', {
+      fetch('https://us-central1-shir-glassworks.cloudfunctions.net/shirCommissionNotify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ commissionId: commId, pieceName: pieceName, customerName: name, customerContact: contact, notes: notes, channel: 'web' })

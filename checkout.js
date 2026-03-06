@@ -153,7 +153,7 @@
     if (!app) { callback({ success: false, error: 'Firebase not available' }); return; }
 
     // Use Firebase callable function
-    var projectId = 'word-boxing';
+    var projectId = 'shir-glassworks';
     var url = 'https://us-central1-' + projectId + '.cloudfunctions.net/' + name;
 
     var xhr = new XMLHttpRequest();

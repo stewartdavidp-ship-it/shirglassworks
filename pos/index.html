@@ -295,19 +295,19 @@ body {
 // Firebase Init
 // ============================================================
 var firebaseApp = firebase.initializeApp({
-  apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
-  authDomain: "word-boxing.firebaseapp.com",
-  databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
-  projectId: "word-boxing",
-  storageBucket: "word-boxing.firebasestorage.app"
+  apiKey: "FIREBASE_API_KEY_PLACEHOLDER",
+  authDomain: "shir-glassworks.firebaseapp.com",
+  databaseURL: "https://shir-glassworks-default-rtdb.firebaseio.com",
+  projectId: "shir-glassworks",
+  storageBucket: "shir-glassworks.firebasestorage.app"
 }, 'pos-app');
 var db = firebaseApp.database();
 var auth = firebaseApp.auth();
 
 function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
-var CLASSIFY_URL = 'https://us-central1-word-boxing.cloudfunctions.net/shirClassifyImage';
-var UPLOAD_URL = 'https://us-central1-word-boxing.cloudfunctions.net/shirUploadImage';
+var CLASSIFY_URL = 'https://us-central1-shir-glassworks.cloudfunctions.net/shirClassifyImage';
+var UPLOAD_URL = 'https://us-central1-shir-glassworks.cloudfunctions.net/shirUploadImage';
 var PRODUCTS_PATH = 'shirglassworks/public/products';
 var SALES_PATH = 'shirglassworks/admin/sales';
 var SALES_EVENTS_PATH = 'shirglassworks/admin/salesEvents';
@@ -1042,7 +1042,7 @@ async function sendReceipt() {
   statusEl.textContent = '';
 
   var token = authToken;
-  var base = 'https://us-central1-word-boxing.cloudfunctions.net';
+  var base = 'https://us-central1-shir-glassworks.cloudfunctions.net';
   var results = [];
 
   try {
@@ -1097,7 +1097,7 @@ async function autoReconcileSquare(saleId, saleTimestamp) {
   if (paymentType !== 'square') return;
   try {
     var token = authToken;
-    var resp = await fetch('https://us-central1-word-boxing.cloudfunctions.net/shirReconcileSquarePayment', {
+    var resp = await fetch('https://us-central1-shir-glassworks.cloudfunctions.net/shirReconcileSquarePayment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ saleId: saleId, saleTimestamp: saleTimestamp, toleranceMinutes: 5 })
@@ -1200,7 +1200,7 @@ async function submitCommission(pid, pieceName) {
     try {
       var token = currentUser ? await currentUser.getIdToken() : null;
       if (token) {
-        fetch('https://us-central1-word-boxing.cloudfunctions.net/shirCommissionNotify', {
+        fetch('https://us-central1-shir-glassworks.cloudfunctions.net/shirCommissionNotify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
           body: JSON.stringify({ commissionId: commId, pieceName: pieceName, customerName: name, customerContact: contact, notes: notes, channel: 'pos' })

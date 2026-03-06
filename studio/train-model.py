@@ -41,9 +41,9 @@ except ImportError as e:
 # ============================================================
 # Config
 # ============================================================
-FIREBASE_PROJECT = "word-boxing"
-STORAGE_BUCKET = "word-boxing.firebasestorage.app"
-DB_URL = "https://word-boxing-default-rtdb.firebaseio.com"
+FIREBASE_PROJECT = "shir-glassworks"
+STORAGE_BUCKET = "shir-glassworks.firebasestorage.app"
+DB_URL = "https://shir-glassworks-default-rtdb.firebaseio.com"
 TRAINING_IMAGES_DB_PATH = "shirglassworks/admin/training-images"
 PRODUCTS_DB_PATH = "shirglassworks/public/products"
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "model")
