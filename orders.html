@@ -972,7 +972,6 @@
     var url = FUNCTION_BASE + name;
 
     function sendRequest(token) {
-      console.log('[callFunction] sendRequest called for', name, 'token?', !!token);
       var xhr = new XMLHttpRequest();
       xhr.open('POST', url, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
@@ -981,27 +980,24 @@
       }
       xhr.onreadystatechange = function() {
         if (xhr.readyState !== 4) return;
-        console.log('[callFunction] XHR complete for', name, 'status:', xhr.status, 'response:', xhr.responseText.substring(0, 200));
+        var parsed;
         try {
-          var resp = JSON.parse(xhr.responseText);
-          callback(resp.result || resp);
+          parsed = JSON.parse(xhr.responseText);
         } catch (e) {
-          console.error('[callFunction] Parse error for', name, ':', e.message);
           callback({ success: false, error: 'Network error' });
+          return;
         }
+        callback(parsed.result || parsed);
       };
       xhr.onerror = function() {
-        console.error('[callFunction] XHR onerror for', name, 'status:', xhr.status);
         callback({ success: false, error: 'Network error' });
       };
       xhr.send(JSON.stringify({ data: data }));
     }
 
     var currentUser = auth.currentUser;
-    console.log('[callFunction] called:', name, 'currentUser?', !!currentUser, 'uid:', currentUser ? currentUser.uid : 'none');
     if (currentUser) {
-      currentUser.getIdToken().then(sendRequest).catch(function(err) {
-        console.error('[callFunction] getIdToken FAILED for', name, ':', err.message);
+      currentUser.getIdToken().then(sendRequest).catch(function() {
         sendRequest(null);
       });
     } else {
@@ -1104,20 +1100,20 @@
     // Totals
     html += '<div class="order-detail-section"><div class="order-totals">';
     if (order.subtotal != null) html += '<div class="order-total-row"><span>Subtotal</span><span>' + formatPrice(order.subtotal) + '</span></div>';
-    if (order.shipping != null) html += '<div class="order-total-row"><span>Shipping</span><span>' + (order.shipping === 0 ? 'Free' : formatPrice(order.shipping)) + '</span></div>';
+    if (order.shippingCost != null) html += '<div class="order-total-row"><span>Shipping</span><span>' + (order.shippingCost === 0 ? 'Free' : formatPrice(order.shippingCost)) + '</span></div>';
     if (order.tax != null && order.tax > 0) html += '<div class="order-total-row"><span>Tax</span><span>' + formatPrice(order.tax) + '</span></div>';
     if (order.couponDiscount != null && order.couponDiscount > 0) html += '<div class="order-total-row"><span>Coupon Discount</span><span>-' + formatPrice(order.couponDiscount) + '</span></div>';
     if (order.total != null) html += '<div class="order-total-row grand-total"><span>Total</span><span>' + formatPrice(order.total) + '</span></div>';
     html += '</div></div>';
 
     // Shipping address
-    if (order.shippingAddress) {
-      var addr = order.shippingAddress;
+    var addr = order.shippingAddress || (typeof order.shipping === 'object' ? order.shipping : null);
+    if (addr) {
       html += '<div class="order-detail-section"><div class="order-detail-label">Ship To</div>' +
         '<div class="order-shipping-address">';
       if (addr.name) html += esc(addr.name) + '<br>';
-      if (addr.line1 || addr.street) html += esc(addr.line1 || addr.street) + '<br>';
-      if (addr.line2) html += esc(addr.line2) + '<br>';
+      if (addr.address1 || addr.line1 || addr.street) html += esc(addr.address1 || addr.line1 || addr.street) + '<br>';
+      if (addr.address2 || addr.line2) html += esc(addr.address2 || addr.line2) + '<br>';
       if (addr.city || addr.state || addr.zip) {
         html += esc((addr.city || '') + (addr.state ? ', ' + addr.state : '') + ' ' + (addr.zip || addr.postalCode || ''));
       }
@@ -1145,7 +1141,7 @@
     var date = formatDate(order.placedAt || order.pendingPaymentAt || order.createdAt);
     var total = order.total != null ? formatPrice(order.total) : '';
 
-    return '<div class="order-card" data-order-id="' + esc(order.id || '') + '">' +
+    return '<div class="order-card" data-order-id="' + esc(order.orderId || order.id || '') + '">' +
       '<div class="order-card-header" onclick="toggleOrderDetail(this)">' +
         '<div class="order-card-left">' +
           '<div class="order-number">' + esc(orderNum) + '</div>' +
@@ -1235,7 +1231,6 @@
 
   // ── Auth State (ensureCustomerAccount handled by cart.js) ──
   function handleAuthState(user) {
-    console.log('[handleAuthState] user?', !!user, 'isAnonymous?', user ? user.isAnonymous : 'n/a', 'uid:', user ? user.uid : 'none');
     var signedInSection = document.getElementById('signedInSection');
     var anonymousSection = document.getElementById('anonymousSection');
 
