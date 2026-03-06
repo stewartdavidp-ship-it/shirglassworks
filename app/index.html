@@ -2700,6 +2700,64 @@
     body.dark-mode .record-history-item { border-bottom-color: #333; }
     body.dark-mode .record-history-time { color: #666; }
     body.dark-mode .record-history-actor { color: #888; }
+
+    /* ===== Contacts ===== */
+    .contacts-filter-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .contacts-search { flex:1; min-width:180px; padding:7px 12px; border:1px solid #ddd; border-radius:6px; font-family:'DM Sans',sans-serif; font-size:0.85rem; }
+    .contacts-search:focus { outline:none; border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-glow); }
+    .contacts-table { width:100%; border-collapse:collapse; margin-top:12px; }
+    .contacts-table th { text-align:left; padding:8px 12px; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--warm-gray); border-bottom:2px solid var(--cream-dark); }
+    .contacts-table td { padding:10px 12px; border-bottom:1px solid var(--cream-dark); font-size:0.88rem; vertical-align:top; }
+    .contacts-table tr:hover { background:var(--cream); cursor:pointer; }
+    .contact-cat-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:0.72rem; font-weight:600; background:var(--cream-dark); color:var(--warm-gray); }
+    .contact-cat-badge.supplier { background:#dbeafe; color:#1e40af; }
+    .contact-cat-badge.facilities { background:#fef3c7; color:#92400e; }
+    .contact-cat-badge.gallery { background:#ede9fe; color:#5b21b6; }
+    .contact-cat-badge.marketplace { background:#d1fae5; color:#065f46; }
+    .contact-cat-badge.event-organizer { background:#fce7f3; color:#9d174d; }
+    .contact-cat-badge.partner { background:#e0e7ff; color:#3730a3; }
+    .contact-cat-badge.student { background:#ccfbf1; color:#0f766e; }
+    .contact-cat-badge.press { background:#fef9c3; color:#854d0e; }
+    .contact-last-interaction { font-size:0.8rem; color:var(--warm-gray); }
+    .contact-last-interaction .type-badge { font-weight:600; color:var(--charcoal); }
+
+    /* Contact Detail */
+    .contact-detail-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+    .contact-detail-name { font-size:1.4rem; font-weight:700; margin:0 0 4px; }
+    .contact-detail-notes { font-size:0.88rem; color:var(--warm-gray); margin-top:8px; max-width:600px; }
+    .contact-detail-links { display:flex; gap:12px; margin-top:8px; }
+    .contact-detail-links a { font-size:0.82rem; color:var(--teal); text-decoration:none; }
+    .contact-detail-links a:hover { text-decoration:underline; }
+
+    /* Interaction Timeline */
+    .interaction-timeline { margin-top:16px; }
+    .interaction-card { border:1px solid var(--cream-dark); border-radius:8px; padding:14px 16px; margin-bottom:10px; background:#fff; }
+    .interaction-card:hover { border-color:var(--amber-light); }
+    .interaction-header { display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
+    .interaction-date { font-weight:600; font-size:0.88rem; }
+    .interaction-type-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:0.72rem; font-weight:600; background:var(--cream-dark); color:var(--warm-gray); }
+    .interaction-type-badge.call { background:#dbeafe; color:#1e40af; }
+    .interaction-type-badge.email { background:#d1fae5; color:#065f46; }
+    .interaction-type-badge.meeting { background:#ede9fe; color:#5b21b6; }
+    .interaction-type-badge.site-visit { background:#fef3c7; color:#92400e; }
+    .interaction-type-badge.payment { background:#d1fae5; color:#065f46; }
+    .interaction-type-badge.signed-doc { background:#fce7f3; color:#9d174d; }
+    .interaction-notes { font-size:0.88rem; color:var(--charcoal); white-space:pre-wrap; }
+    .interaction-docs { margin-top:8px; display:flex; flex-direction:column; gap:4px; }
+    .interaction-doc-link { display:flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--teal); text-decoration:none; }
+    .interaction-doc-link:hover { text-decoration:underline; }
+    .interaction-doc-source { font-size:0.68rem; padding:1px 5px; border-radius:3px; font-weight:600; }
+    .interaction-doc-source.studio { background:#d1fae5; color:#065f46; }
+    .interaction-doc-source.historical { background:#e5e7eb; color:#6b7280; }
+
+    /* Dark mode — Contacts */
+    body.dark-mode .contacts-search { background:#2a2a2a; border-color:#444; color:#eee; }
+    body.dark-mode .contacts-table th { border-bottom-color:#444; color:#888; }
+    body.dark-mode .contacts-table td { border-bottom-color:#333; }
+    body.dark-mode .contacts-table tr:hover { background:#2a2a2a; }
+    body.dark-mode .interaction-card { background:#1e1e1e; border-color:#333; }
+    body.dark-mode .interaction-card:hover { border-color:var(--amber); }
+    body.dark-mode .interaction-notes { color:#ddd; }
   </style>
 </head>
 <body>
@@ -2783,6 +2841,7 @@
         <div class="sidebar-item muted" data-route="customers" onclick="navigateTo('customers')">Customers <span class="sidebar-badge new">New</span></div>
         <div class="sidebar-item" data-route="images" onclick="navigateTo('images')">Images</div>
         <div class="sidebar-item" data-route="employees" onclick="navigateTo('employees')">Employees &amp; Permissions</div>
+        <div class="sidebar-item" data-route="contacts" onclick="navigateTo('contacts')">Contacts</div>
         <div class="sidebar-item" data-route="auditlog" onclick="navigateTo('auditlog')">Audit Log</div>
         <div class="sidebar-item muted" data-route="financials" onclick="navigateTo('financials')">Financials <span class="sidebar-badge new">New</span></div>
         <div class="sidebar-item" data-route="settings" onclick="navigateTo('settings')">Settings &amp; Integrations <span id="settingsSandboxBadge" style="display:none;background:#f59e0b;color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:700;vertical-align:middle;">SANDBOX</span></div>
@@ -3799,6 +3858,59 @@
       </div>
     </div>
 
+    <!-- Admin: Contacts Tab -->
+    <div id="contactsTab" style="display:none;">
+      <!-- Contacts List View -->
+      <div id="contactsListView">
+        <div class="section-header">
+          <h2>Contacts</h2>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="products-stat" id="contactsCount"></span>
+            <button class="btn btn-secondary" style="font-size:0.82rem;padding:6px 12px;" onclick="syncGoogleContacts()" title="Sync from Google Contacts">&#x21bb; Sync Google</button>
+            <button class="btn btn-primary" style="font-size:0.82rem;padding:6px 16px;" onclick="openAddContactModal()">+ Add Contact</button>
+          </div>
+        </div>
+        <div class="contacts-filter-bar" style="margin-bottom:12px;">
+          <input type="text" class="contacts-search" id="contactsSearch" placeholder="Search by name..." oninput="renderContacts()">
+          <select id="contactsCategoryFilter" onchange="renderContacts()" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:0.85rem;">
+            <option value="all">All Categories</option>
+            <option value="Supplier">Supplier</option>
+            <option value="Facilities">Facilities</option>
+            <option value="Gallery">Gallery</option>
+            <option value="Marketplace">Marketplace</option>
+            <option value="Event Organizer">Event Organizer</option>
+            <option value="Partner">Partner</option>
+            <option value="Student">Student</option>
+            <option value="Press">Press</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div id="contactsLoading" class="loading" style="display:none;padding:40px;text-align:center;">Loading contacts...</div>
+        <div id="contactsEmpty" class="empty-state" style="display:none;padding:40px;text-align:center;">
+          <p style="color:var(--warm-gray);font-size:0.95rem;">No contacts yet. Add your first contact to get started.</p>
+        </div>
+        <table class="contacts-table" id="contactsTableWrap" style="display:none;">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Last Interaction</th>
+              <th>Drive</th>
+            </tr>
+          </thead>
+          <tbody id="contactsTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Contact Detail View -->
+      <div id="contactDetailView" style="display:none;">
+        <div style="margin-bottom:16px;">
+          <button class="btn btn-secondary" style="font-size:0.82rem;padding:5px 12px;" onclick="backToContactsList()">&#8592; Back to Contacts</button>
+        </div>
+        <div id="contactDetailContent"></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ===== MODAL ===== -->
@@ -3933,6 +4045,20 @@ var productCreateMode = false; // true when creating new product
 var productEditTab = 'details'; // details | variants | images | production | inventory
 
 // ============================================================
+// Contacts
+// ============================================================
+var CONTACTS_PATH = 'shirglassworks/admin/contacts';
+var contactsData = [];
+var contactsLoaded = false;
+var selectedContactId = null;
+var contactInteractions = [];
+var contactInteractionsLoaded = false;
+var googleOAuthToken = null; // In-memory only — Google API access token
+
+var CONTACT_CATEGORIES = ['Supplier', 'Facilities', 'Gallery', 'Marketplace', 'Event Organizer', 'Partner', 'Student', 'Press', 'Other'];
+var INTERACTION_TYPES = ['Call', 'Email', 'Meeting', 'Site Visit', 'Payment', 'Signed Doc', 'Other'];
+
+// ============================================================
 // Audit Trail (Phase E2)
 // ============================================================
 var AUDIT_LOG_PATH = 'shirglassworks/admin/auditLog';
@@ -3969,7 +4095,8 @@ var DEFAULT_ROLES = {
       roles:        { create: true, read: true, update: true, delete: true },
       auditLog:     { create: false, read: true, update: false, delete: false },
       pos:          { create: true, read: true, update: true, delete: true },
-      receipts:     { create: true, read: true, update: true, delete: true }
+      receipts:     { create: true, read: true, update: true, delete: true },
+      contacts:     { create: true, read: true, update: true, delete: true }
     }
   },
   user: {
@@ -3992,7 +4119,8 @@ var DEFAULT_ROLES = {
       roles:        { create: false, read: false, update: false, delete: false },
       auditLog:     { create: false, read: false, update: false, delete: false },
       pos:          { create: true, read: true, update: true, delete: false },
-      receipts:     { create: true, read: true, update: false, delete: false }
+      receipts:     { create: true, read: true, update: false, delete: false },
+      contacts:     { create: true, read: true, update: true, delete: false }
     }
   },
   guest: {
@@ -4015,7 +4143,8 @@ var DEFAULT_ROLES = {
       roles:        { create: false, read: false, update: false, delete: false },
       auditLog:     { create: false, read: false, update: false, delete: false },
       pos:          { create: false, read: false, update: false, delete: false },
-      receipts:     { create: false, read: false, update: false, delete: false }
+      receipts:     { create: false, read: false, update: false, delete: false },
+      contacts:     { create: false, read: false, update: false, delete: false }
     }
   }
 };
@@ -4465,6 +4594,7 @@ var ROUTE_MAP = {
   'customers':   { tab: null, placeholder: { name: 'Customers', desc: 'Contacts, collectors, purchase history.', badge: 'new' } },
   'images':      { tab: 'imagesTab' },
   'employees':   { tab: 'employeesTab', setup: function() { switchEmployeesView('users'); } },
+  'contacts':    { tab: 'contactsTab' },
   'auditlog':    { tab: 'auditLogTab' },
   'financials':  { tab: null, placeholder: { name: 'Financials', desc: 'Revenue, costs, P&L.', badge: 'new' } },
   'settings':    { tab: 'settingsTab' },
@@ -4483,10 +4613,10 @@ var SECTION_ROUTES = {
   'make':   ['production', 'procurement', 'commissions'],
   'sell':   ['pos', 'events', 'orders', 'wholesale', 'galleries', 'fulfillment', 'receipts'],
   'market': ['social', 'newsletter', 'stories', 'website'],
-  'manage': ['products', 'inventory', 'customers', 'images', 'employees', 'auditlog', 'financials', 'settings']
+  'manage': ['products', 'inventory', 'customers', 'images', 'employees', 'contacts', 'auditlog', 'financials', 'settings']
 };
 
-var ALL_TAB_IDS = ['scheduleTab', 'galleryTab', 'productsTab', 'ordersTab', 'salesTab', 'salesEventsTab', 'productionTab', 'couponsTab', 'analyticsTab', 'settingsTab', 'imagesTab', 'auditLogTab', 'employeesTab', 'fulfillmentTab', 'placeholderTab'];
+var ALL_TAB_IDS = ['scheduleTab', 'galleryTab', 'productsTab', 'ordersTab', 'salesTab', 'salesEventsTab', 'productionTab', 'couponsTab', 'analyticsTab', 'settingsTab', 'imagesTab', 'auditLogTab', 'employeesTab', 'contactsTab', 'fulfillmentTab', 'placeholderTab'];
 
 var currentRoute = 'dashboard';
 
@@ -4549,6 +4679,7 @@ function lazyLoadForRoute(route) {
   if (route === 'schedule') { /* schedule loads on auth */ }
   if (route === 'auditlog') { loadAuditLog(); }
   if (route === 'employees') { loadAdminUsers(); loadRoles(); }
+  if (route === 'contacts' && !contactsLoaded) loadContacts();
   if (route === 'fulfillment') {
     if (!ordersLoaded) loadOrders();
     if (!bundlesLoaded) loadBundles();
@@ -15088,6 +15219,569 @@ async function deleteCoupon(code) {
     closeModal();
   } catch (err) {
     showToast('Error deleting coupon: ' + err.message, true);
+  }
+}
+
+// ============================================================
+// Contacts — CRUD & Rendering
+// ============================================================
+
+async function loadContacts() {
+  var loading = document.getElementById('contactsLoading');
+  loading.style.display = '';
+  document.getElementById('contactsTableWrap').style.display = 'none';
+  document.getElementById('contactsEmpty').style.display = 'none';
+  try {
+    var snap = await db.ref(CONTACTS_PATH).once('value');
+    var val = snap.val();
+    contactsData = val ? Object.values(val) : [];
+    contactsData.sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+
+    // Pre-fetch last interaction for each contact
+    for (var i = 0; i < contactsData.length; i++) {
+      var c = contactsData[i];
+      try {
+        var iSnap = await db.ref(CONTACTS_PATH + '/' + c.id + '/interactions')
+          .orderByChild('date').limitToLast(1).once('value');
+        var iVal = iSnap.val();
+        c._lastInteraction = iVal ? Object.values(iVal)[0] : null;
+      } catch (e) {
+        c._lastInteraction = null;
+      }
+    }
+
+    contactsLoaded = true;
+    renderContacts();
+  } catch (err) {
+    console.error('Error loading contacts:', err);
+    document.getElementById('contactsTableBody').innerHTML = '<tr><td colspan="4" style="color:var(--danger);padding:20px;">Error loading contacts.</td></tr>';
+    document.getElementById('contactsTableWrap').style.display = '';
+  } finally {
+    loading.style.display = 'none';
+  }
+}
+
+function renderContacts() {
+  var searchText = (document.getElementById('contactsSearch').value || '').trim().toLowerCase();
+  var catFilter = document.getElementById('contactsCategoryFilter').value;
+
+  var filtered = contactsData.filter(function(c) {
+    if (searchText && (c.name || '').toLowerCase().indexOf(searchText) === -1) return false;
+    if (catFilter !== 'all' && c.category !== catFilter) return false;
+    return true;
+  });
+
+  document.getElementById('contactsCount').textContent = filtered.length + ' of ' + contactsData.length + ' contacts';
+
+  if (filtered.length === 0 && contactsData.length === 0) {
+    document.getElementById('contactsEmpty').style.display = '';
+    document.getElementById('contactsTableWrap').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('contactsEmpty').style.display = 'none';
+  document.getElementById('contactsTableWrap').style.display = '';
+
+  var tbody = document.getElementById('contactsTableBody');
+  tbody.innerHTML = '';
+
+  filtered.forEach(function(c) {
+    var tr = document.createElement('tr');
+    tr.onclick = function() { viewContact(c.id); };
+
+    var catClass = (c.category || 'other').toLowerCase().replace(/\s+/g, '-');
+    var lastInt = c._lastInteraction;
+    var lastIntHtml = lastInt
+      ? '<span class="contact-last-interaction"><span class="type-badge">' + esc(lastInt.type || '') + '</span> &mdash; ' + esc(lastInt.date || '') + '</span>'
+      : '<span style="color:var(--warm-gray-light);font-size:0.82rem;">None</span>';
+
+    var driveHtml = c.driveFolderLink
+      ? '<a href="' + esc(c.driveFolderLink) + '" target="_blank" rel="noopener" onclick="event.stopPropagation();" title="Open Drive folder" style="font-size:1.1rem;">&#128193;</a>'
+      : '';
+
+    tr.innerHTML =
+      '<td><strong>' + esc(c.name || '') + '</strong></td>' +
+      '<td><span class="contact-cat-badge ' + catClass + '">' + esc(c.category || 'Other') + '</span></td>' +
+      '<td>' + lastIntHtml + '</td>' +
+      '<td>' + driveHtml + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function openAddContactModal() {
+  var catOptions = CONTACT_CATEGORIES.map(function(c) {
+    return '<option value="' + esc(c) + '">' + esc(c) + '</option>';
+  }).join('');
+
+  var html = '' +
+    '<div class="modal-header"><h3>Add Contact</h3></div>' +
+    '<div class="modal-body">' +
+      '<div class="form-group"><label>Name *</label><input type="text" id="contactNameInput" placeholder="Company or person name"></div>' +
+      '<div class="form-group"><label>Category *</label><select id="contactCategoryInput">' + catOptions + '</select></div>' +
+      '<div class="form-group"><label>Notes</label><textarea id="contactNotesInput" rows="3" placeholder="Optional notes about this contact"></textarea></div>' +
+      '<div class="form-group"><label>Drive Folder Link</label><input type="text" id="contactDriveFolderInput" placeholder="https://drive.google.com/drive/folders/..."></div>' +
+    '</div>' +
+    '<div class="modal-footer">' +
+      '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="saveNewContact()">Save Contact</button>' +
+    '</div>';
+  openModal(html);
+}
+
+async function saveNewContact() {
+  var name = document.getElementById('contactNameInput').value.trim();
+  var category = document.getElementById('contactCategoryInput').value;
+  var notes = document.getElementById('contactNotesInput').value.trim();
+  var driveFolderLink = document.getElementById('contactDriveFolderInput').value.trim();
+
+  if (!name) { showToast('Contact name is required.', true); return; }
+
+  var id = 'contact_' + Date.now().toString(36);
+  var now = new Date().toISOString();
+  var contactData = {
+    id: id,
+    name: name,
+    category: category,
+    notes: notes || null,
+    googleContactId: null,
+    driveFolderLink: driveFolderLink || null,
+    createdAt: now,
+    createdBy: currentUser ? currentUser.uid : 'unknown',
+    updatedAt: now
+  };
+
+  try {
+    await db.ref(CONTACTS_PATH + '/' + id).set(contactData);
+    await writeAudit('create', 'contacts', id);
+    showToast('Contact created.');
+    closeModal();
+    contactsLoaded = false;
+    loadContacts();
+
+    // Try to create Google Contact in background
+    createGoogleContact(contactData);
+  } catch (err) {
+    showToast('Error saving contact: ' + err.message, true);
+  }
+}
+
+// ============================================================
+// Contact Detail View
+// ============================================================
+
+function viewContact(contactId) {
+  selectedContactId = contactId;
+  document.getElementById('contactsListView').style.display = 'none';
+  document.getElementById('contactDetailView').style.display = '';
+  loadContactDetail(contactId);
+}
+
+function backToContactsList() {
+  selectedContactId = null;
+  document.getElementById('contactDetailView').style.display = 'none';
+  document.getElementById('contactsListView').style.display = '';
+  // Refresh list to pick up any new interactions
+  if (contactsLoaded) {
+    contactsLoaded = false;
+    loadContacts();
+  }
+}
+
+async function loadContactDetail(contactId) {
+  var container = document.getElementById('contactDetailContent');
+  container.innerHTML = '<div class="loading" style="padding:40px;text-align:center;">Loading contact...</div>';
+
+  try {
+    // Load contact record
+    var cSnap = await db.ref(CONTACTS_PATH + '/' + contactId).once('value');
+    var contact = cSnap.val();
+    if (!contact) {
+      container.innerHTML = '<p style="color:var(--danger);">Contact not found.</p>';
+      return;
+    }
+
+    // Load interactions
+    var iSnap = await db.ref(CONTACTS_PATH + '/' + contactId + '/interactions')
+      .orderByChild('date').once('value');
+    var iVal = iSnap.val();
+    contactInteractions = iVal ? Object.values(iVal) : [];
+    // Sort newest first
+    contactInteractions.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+    contactInteractionsLoaded = true;
+
+    renderContactDetail(contact);
+  } catch (err) {
+    console.error('Error loading contact detail:', err);
+    container.innerHTML = '<p style="color:var(--danger);">Error loading contact: ' + esc(err.message) + '</p>';
+  }
+}
+
+function renderContactDetail(contact) {
+  var container = document.getElementById('contactDetailContent');
+  var catClass = (contact.category || 'other').toLowerCase().replace(/\s+/g, '-');
+
+  var linksHtml = '';
+  if (contact.driveFolderLink) {
+    linksHtml += '<a href="' + esc(contact.driveFolderLink) + '" target="_blank" rel="noopener">&#128193; Drive Folder</a>';
+  }
+  if (contact.googleContactId) {
+    linksHtml += '<a href="https://contacts.google.com/person/' + esc(contact.googleContactId.replace('people/', '')) + '" target="_blank" rel="noopener">&#128100; Google Contact</a>';
+  }
+
+  var notesHtml = contact.notes
+    ? '<div class="contact-detail-notes">' + esc(contact.notes) + '</div>'
+    : '';
+
+  var headerHtml = '' +
+    '<div class="contact-detail-header">' +
+      '<div>' +
+        '<h2 class="contact-detail-name">' + esc(contact.name || '') + '</h2>' +
+        '<span class="contact-cat-badge ' + catClass + '">' + esc(contact.category || 'Other') + '</span>' +
+        notesHtml +
+        (linksHtml ? '<div class="contact-detail-links">' + linksHtml + '</div>' : '') +
+      '</div>' +
+      '<button class="btn btn-primary" style="font-size:0.82rem;padding:6px 16px;white-space:nowrap;" onclick="openLogInteractionModal(\'' + esc(contact.id) + '\')">+ Log Interaction</button>' +
+    '</div>';
+
+  // Interaction timeline
+  var timelineHtml = '<div class="interaction-timeline">';
+  if (contactInteractions.length === 0) {
+    timelineHtml += '<p style="color:var(--warm-gray);font-size:0.9rem;padding:20px 0;">No interactions logged yet.</p>';
+  } else {
+    timelineHtml += '<h3 style="font-size:1rem;margin-bottom:12px;">Interaction History (' + contactInteractions.length + ')</h3>';
+    contactInteractions.forEach(function(inter) {
+      var typeClass = (inter.type || 'other').toLowerCase().replace(/\s+/g, '-');
+      var docsHtml = '';
+      if (inter.documents && inter.documents.length) {
+        docsHtml = '<div class="interaction-docs">';
+        inter.documents.forEach(function(doc) {
+          var sourceClass = (doc.source || 'studio');
+          docsHtml += '<a class="interaction-doc-link" href="' + esc(doc.webViewLink || '#') + '" target="_blank" rel="noopener">' +
+            '&#128196; ' + esc(doc.name || 'Document') +
+            ' <span class="interaction-doc-source ' + sourceClass + '">' + esc(doc.source || 'studio') + '</span>' +
+          '</a>';
+        });
+        docsHtml += '</div>';
+      }
+
+      timelineHtml += '' +
+        '<div class="interaction-card">' +
+          '<div class="interaction-header">' +
+            '<span class="interaction-date">' + esc(inter.date || '') + '</span>' +
+            '<span class="interaction-type-badge ' + typeClass + '">' + esc(inter.type || '') + '</span>' +
+          '</div>' +
+          (inter.notes ? '<div class="interaction-notes">' + esc(inter.notes) + '</div>' : '') +
+          docsHtml +
+        '</div>';
+    });
+  }
+  timelineHtml += '</div>';
+
+  container.innerHTML = headerHtml + timelineHtml;
+}
+
+function openLogInteractionModal(contactId) {
+  var typeOptions = INTERACTION_TYPES.map(function(t) {
+    return '<option value="' + esc(t) + '">' + esc(t) + '</option>';
+  }).join('');
+
+  var today = new Date().toISOString().slice(0, 10);
+  var html = '' +
+    '<div class="modal-header"><h3>Log Interaction</h3></div>' +
+    '<div class="modal-body">' +
+      '<div class="form-group"><label>Date</label><input type="date" id="interactionDateInput" value="' + today + '"></div>' +
+      '<div class="form-group"><label>Type</label><select id="interactionTypeInput">' + typeOptions + '</select></div>' +
+      '<div class="form-group"><label>Notes *</label><textarea id="interactionNotesInput" rows="4" placeholder="What happened? What was decided?"></textarea></div>' +
+      '<div class="form-group">' +
+        '<label>Attach Document (optional)</label>' +
+        '<input type="text" id="interactionDriveUrlInput" placeholder="Paste Google Drive file URL">' +
+        '<p style="font-size:0.75rem;color:var(--warm-gray);margin-top:4px;">Paste a Drive URL to attach file metadata to this interaction.</p>' +
+      '</div>' +
+    '</div>' +
+    '<div class="modal-footer">' +
+      '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="saveInteraction(\'' + esc(contactId) + '\')">Save Interaction</button>' +
+    '</div>';
+  openModal(html);
+}
+
+async function saveInteraction(contactId) {
+  var date = document.getElementById('interactionDateInput').value;
+  var type = document.getElementById('interactionTypeInput').value;
+  var notes = document.getElementById('interactionNotesInput').value.trim();
+  var driveUrl = document.getElementById('interactionDriveUrlInput').value.trim();
+
+  if (!notes) { showToast('Notes are required.', true); return; }
+  if (!date) { showToast('Date is required.', true); return; }
+
+  var documents = [];
+  if (driveUrl) {
+    // Try to fetch Drive file metadata
+    var docMeta = await fetchDriveFileMetadata(driveUrl);
+    if (docMeta) {
+      docMeta.attachedBy = currentUser ? currentUser.uid : 'unknown';
+      docMeta.source = 'studio';
+      docMeta.notes = '';
+      documents.push(docMeta);
+    }
+  }
+
+  var interactionId = 'int_' + Date.now().toString(36);
+  var interactionData = {
+    id: interactionId,
+    date: date,
+    loggedBy: currentUser ? currentUser.uid : 'unknown',
+    type: type,
+    notes: notes,
+    documents: documents,
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    await db.ref(CONTACTS_PATH + '/' + contactId + '/interactions/' + interactionId).set(interactionData);
+    await writeAudit('create', 'contacts', contactId);
+    showToast('Interaction logged.');
+    closeModal();
+    // Reload detail view
+    loadContactDetail(contactId);
+  } catch (err) {
+    showToast('Error saving interaction: ' + err.message, true);
+  }
+}
+
+// ============================================================
+// Google OAuth — Incremental Scopes
+// ============================================================
+
+async function requestGoogleOAuthToken(scope) {
+  // If we already have a token, return it
+  if (googleOAuthToken) return googleOAuthToken;
+
+  try {
+    // Use Firebase Auth's signInWithPopup with additional scopes
+    // This leverages the existing Google Auth configuration
+    var provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope(scope);
+
+    var result = await firebase.auth().signInWithPopup(provider);
+    if (result.credential && result.credential.accessToken) {
+      googleOAuthToken = result.credential.accessToken;
+      return googleOAuthToken;
+    }
+
+    showToast('Could not get Google API access token.', true);
+    return null;
+  } catch (err) {
+    console.error('OAuth token request failed:', err);
+    if (err.code === 'auth/popup-closed-by-user') {
+      showToast('Authorization cancelled.', true);
+    } else {
+      showToast('Google authorization failed: ' + (err.message || 'Unknown error'), true);
+    }
+    return null;
+  }
+}
+
+// ============================================================
+// Google Contacts Integration (People API)
+// ============================================================
+
+async function createGoogleContact(contactData) {
+  try {
+    var token = await requestGoogleOAuthToken('https://www.googleapis.com/auth/contacts');
+    if (!token) return; // User cancelled or error
+
+    // Ensure contact group exists
+    var groupId = await getOrCreateContactGroup(token, 'Shir Glassworks');
+    if (!groupId) return;
+
+    // Create the contact
+    var body = {
+      names: [{ givenName: contactData.name }],
+      organizations: [{ department: contactData.category }],
+      memberships: [
+        { contactGroupMembership: { contactGroupResourceName: groupId } }
+      ]
+    };
+
+    var response = await fetch('https://people.googleapis.com/v1/people:createContact?personFields=names,organizations,memberships', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      var errText = await response.text();
+      console.error('Failed to create Google Contact:', errText);
+      return;
+    }
+
+    var result = await response.json();
+    if (result.resourceName) {
+      // Update Firebase with the Google Contact ID
+      await db.ref(CONTACTS_PATH + '/' + contactData.id + '/googleContactId').set(result.resourceName);
+    }
+  } catch (err) {
+    // Silently fail — Google Contact creation is best-effort
+    console.error('Google Contact creation failed:', err);
+  }
+}
+
+async function getOrCreateContactGroup(token, groupName) {
+  try {
+    // List existing groups
+    var response = await fetch('https://people.googleapis.com/v1/contactGroups?pageSize=100', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!response.ok) return null;
+
+    var data = await response.json();
+    var groups = data.contactGroups || [];
+    var existing = groups.find(function(g) { return g.name === groupName; });
+    if (existing) return existing.resourceName;
+
+    // Create group
+    var createResponse = await fetch('https://people.googleapis.com/v1/contactGroups', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ contactGroup: { name: groupName } })
+    });
+    if (!createResponse.ok) return null;
+
+    var created = await createResponse.json();
+    return created.resourceName || null;
+  } catch (err) {
+    console.error('Contact group error:', err);
+    return null;
+  }
+}
+
+async function syncGoogleContacts() {
+  try {
+    var token = await requestGoogleOAuthToken('https://www.googleapis.com/auth/contacts');
+    if (!token) return;
+
+    showToast('Syncing Google Contacts...');
+
+    var groupId = await getOrCreateContactGroup(token, 'Shir Glassworks');
+    if (!groupId) {
+      showToast('Could not find or create "Shir Glassworks" contact group.', true);
+      return;
+    }
+
+    // Fetch contacts in this group
+    var response = await fetch(
+      'https://people.googleapis.com/v1/people/me/connections?personFields=names,organizations,emailAddresses,phoneNumbers,memberships&pageSize=500',
+      { headers: { 'Authorization': 'Bearer ' + token } }
+    );
+    if (!response.ok) {
+      showToast('Failed to fetch Google Contacts.', true);
+      return;
+    }
+
+    var data = await response.json();
+    var connections = data.connections || [];
+
+    // Filter to the Shir Glassworks group
+    var filtered = connections.filter(function(person) {
+      return (person.memberships || []).some(function(m) {
+        return m.contactGroupMembership && m.contactGroupMembership.contactGroupResourceName === groupId;
+      });
+    });
+
+    // Check existing contacts for googleContactId matches
+    var existingIds = {};
+    contactsData.forEach(function(c) {
+      if (c.googleContactId) existingIds[c.googleContactId] = true;
+    });
+
+    var created = 0;
+    for (var i = 0; i < filtered.length; i++) {
+      var person = filtered[i];
+      if (existingIds[person.resourceName]) continue;
+
+      var personName = (person.names && person.names[0]) ? person.names[0].displayName : 'Unknown';
+      var id = 'contact_' + Date.now().toString(36) + '_' + i;
+      var now = new Date().toISOString();
+      await db.ref(CONTACTS_PATH + '/' + id).set({
+        id: id,
+        name: personName,
+        category: 'Other',
+        notes: null,
+        googleContactId: person.resourceName,
+        driveFolderLink: null,
+        createdAt: now,
+        createdBy: currentUser ? currentUser.uid : 'unknown',
+        updatedAt: now
+      });
+      created++;
+    }
+
+    if (created > 0) {
+      showToast(created + ' contact(s) synced from Google.');
+      contactsLoaded = false;
+      loadContacts();
+    } else {
+      showToast('No new contacts to sync.');
+    }
+  } catch (err) {
+    showToast('Sync failed: ' + err.message, true);
+    console.error('Google Contacts sync error:', err);
+  }
+}
+
+// ============================================================
+// Google Drive Integration
+// ============================================================
+
+async function fetchDriveFileMetadata(driveUrl) {
+  // Extract file ID from various Drive URL formats
+  var fileId = null;
+  var match = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (match) fileId = match[1];
+  if (!fileId) {
+    match = driveUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (match) fileId = match[1];
+  }
+  if (!fileId) {
+    showToast('Could not extract file ID from Drive URL.', true);
+    return null;
+  }
+
+  try {
+    var token = await requestGoogleOAuthToken('https://www.googleapis.com/auth/drive.readonly');
+    if (!token) return null;
+
+    var response = await fetch(
+      'https://www.googleapis.com/drive/v3/files/' + fileId + '?fields=name,createdTime,modifiedTime,mimeType,webViewLink',
+      { headers: { 'Authorization': 'Bearer ' + token } }
+    );
+
+    if (!response.ok) {
+      var errText = await response.text();
+      console.error('Drive API error:', errText);
+      showToast('Could not fetch Drive file metadata.', true);
+      return null;
+    }
+
+    var meta = await response.json();
+    return {
+      name: meta.name || 'Unknown file',
+      createdTime: meta.createdTime || null,
+      modifiedTime: meta.modifiedTime || null,
+      mimeType: meta.mimeType || null,
+      webViewLink: meta.webViewLink || driveUrl
+    };
+  } catch (err) {
+    console.error('Drive metadata fetch failed:', err);
+    showToast('Drive file fetch failed.', true);
+    return null;
   }
 }
 
