@@ -194,7 +194,7 @@ body {
 </div>
 
 <!-- Event Banner (shown when linked to an event) -->
-<div id="eventBanner" style="display:none;background:#4CAF50;color:white;padding:8px 16px;font-size:13px;align-items:center;justify-content:space-between;">
+<div id="eventBanner" style="display:none;background:var(--green);color:white;padding:8px 16px;font-size:13px;align-items:center;justify-content:space-between;">
   <span>🎪 <strong id="eventBannerName">Event</strong> — <span id="eventBannerStats">0 packed, 0 sold</span></span>
 </div>
 
@@ -593,7 +593,7 @@ function loadEventContext() {
     eventData = snap.val();
     if (eventData) {
       document.getElementById('modeBadge').textContent = 'FAIR';
-      document.getElementById('modeBadge').style.background = '#4CAF50';
+      document.getElementById('modeBadge').style.background = 'var(--green)';
       var banner = document.getElementById('eventBanner');
       banner.style.display = 'flex';
       document.getElementById('eventBannerName').textContent = eventData.name || 'Event';
@@ -1061,7 +1061,7 @@ async function sendReceipt() {
       db.ref(SALES_PATH + '/' + lastSaleId).update(contactUpdate);
     }
 
-    statusEl.innerHTML = '<span style="color:#4CAF50;">' + results.join(' · ') + '</span>';
+    statusEl.innerHTML = '<span style="color:var(--green);">' + results.join(' · ') + '</span>';
     showToast(results.join(', '));
   } catch (err) {
     statusEl.innerHTML = '<span style="color:#f44336;">Error: ' + err.message + '</span>';
