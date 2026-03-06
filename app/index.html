@@ -27,6 +27,8 @@
       --warm-gray-light: #9B958E;
       --danger: #DC3545;
       --danger-hover: #c82333;
+      --gold: #C4853C;
+      --dark-brown: #5C3D2E;
     }
 
     * {
@@ -399,12 +401,82 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .section-header h2 {
       font-size: 1.6rem;
       font-weight: 500;
     }
+
+    /* ========== DATA TABLE (UNIFIED) ========== */
+    .data-table { margin-top: 12px; }
+    .data-table table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--warm-gray-light);
+      border-bottom: 1px solid var(--cream-dark);
+    }
+    .data-table td {
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      border-bottom: 1px solid var(--cream-dark);
+      vertical-align: middle;
+    }
+    .data-table tr { transition: background 0.15s; }
+    .data-table tbody tr:hover { background: rgba(196,133,60,0.04); }
+    .data-table tr:last-child td { border-bottom: none; }
+
+    /* ========== STATUS BADGE (UNIFIED) ========== */
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .status-badge.pill {
+      border-radius: 12px;
+      padding: 3px 10px;
+    }
+
+    /* ========== VIEW TABS ========== */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--cream-dark);
+      margin-bottom: 20px;
+    }
+    .view-tab {
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      color: var(--warm-gray);
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--charcoal); }
+    .view-tab.active {
+      color: var(--amber);
+      font-weight: 600;
+      border-bottom-color: var(--amber);
+    }
+    body.dark-mode .view-tabs { border-bottom-color: #444; }
+    body.dark-mode .view-tab { color: #888; }
+    body.dark-mode .view-tab:hover { color: #ccc; }
+    body.dark-mode .view-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
 
     /* ========== EVENTS TABLE ========== */
     .events-table {
@@ -817,6 +889,22 @@
       box-shadow: 0 0 0 3px var(--amber-glow);
     }
 
+    .field-required::after {
+      content: ' *';
+      color: #C62828;
+    }
+    .field-error {
+      border-color: #C62828 !important;
+      box-shadow: 0 0 0 3px rgba(198,40,40,0.12) !important;
+    }
+    .field-error-msg {
+      color: #C62828;
+      font-size: 0.78rem;
+      margin-top: 4px;
+      display: none;
+    }
+    .field-error-msg.visible { display: block; }
+
     .form-group textarea {
       min-height: 80px;
       resize: vertical;
@@ -930,17 +1018,37 @@
       padding: 60px 20px;
       color: var(--warm-gray);
     }
-
+    .empty-state .empty-icon {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+      opacity: 0.7;
+    }
     .empty-state p {
       font-size: 1rem;
     }
 
     /* ========== LOADING ========== */
+    @keyframes spin { to { transform: rotate(360deg); } }
     .loading {
       text-align: center;
       padding: 60px 20px;
       color: var(--warm-gray-light);
       font-size: 1rem;
+    }
+    .loading::before {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 32px;
+      margin: 0 auto 12px;
+      border: 3px solid var(--cream-dark);
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    body.dark-mode .loading::before {
+      border-color: #444;
+      border-top-color: var(--amber);
     }
 
     /* ========== EVENT CARDS (Mobile) ========== */
@@ -1142,6 +1250,9 @@
     }
     body.dark-mode .form-group label { color: #ccc; }
     body.dark-mode .toast { background: #333; color: #e0e0e0; }
+    body.dark-mode .data-table th { color: #999; border-bottom-color: #444; }
+    body.dark-mode .data-table td { color: #ccc; border-bottom-color: #333; }
+    body.dark-mode .data-table tbody tr:hover { background: rgba(196,133,60,0.08); }
     body.dark-mode .category-badge { opacity: 0.85; }
     body.dark-mode .upload-area {
       background: #333;
@@ -1299,15 +1410,7 @@
       gap: 8px;
       flex-wrap: wrap;
     }
-    .stock-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
+    .stock-badge { /* base from .status-badge */ }
     .stock-badge.in-stock { background: #E8F5E9; color: #2E7D32; }
     .stock-badge.low-stock { background: #FFF3E0; color: #E65100; }
     .stock-badge.out-of-stock { background: #F8D7DA; color: #9B2335; }
@@ -1397,13 +1500,7 @@
 
     /* ========== ORDERS ========== */
     .order-status {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      /* base from .status-badge.pill */
     }
     .order-status.pending_payment { background: #FFF3E0; color: #E65100; }
     .order-status.payment_failed { background: #FFEBEE; color: #C62828; }
@@ -1751,12 +1848,7 @@
     .prod-purpose-badge.wholesale { background: #E3F2FD; color: #1565C0; }
     .prod-purpose-badge.experimental { background: #F1F8E9; color: #558B2F; }
     .prod-status-pill {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
+      /* base from .status-badge */
     }
     .prod-status-pill.definition { background: #FFF3E0; color: #E65100; }
     .prod-status-pill.in-progress { background: #F3E5F5; color: #7B1FA2; }
@@ -2449,13 +2541,7 @@
     .audit-table tr { transition: background 0.15s; }
     .audit-table tbody tr:hover { background: rgba(196,133,60,0.04); }
     .audit-action-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      /* base from .status-badge */
     }
     .audit-action-badge.create { background: #E8F5E9; color: #2E7D32; }
     .audit-action-badge.update { background: #E3F2FD; color: #1565C0; }
@@ -2628,39 +2714,13 @@
       margin-right: 8px;
     }
     .role-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
+      /* base from .status-badge */
     }
     .role-badge.admin { background: #F3E5F5; color: #7B1FA2; }
     .role-badge.user { background: #E3F2FD; color: #1565C0; }
     .role-badge.guest { background: #FFF8E1; color: #F57F17; }
 
-    .emp-sub-nav {
-      display: flex;
-      gap: 0;
-      margin-bottom: 20px;
-      border-bottom: 2px solid var(--cream-dark);
-    }
-    .emp-sub-nav-item {
-      padding: 10px 20px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      color: var(--warm-gray);
-      transition: all 0.15s;
-    }
-    .emp-sub-nav-item:hover { color: var(--charcoal); }
-    .emp-sub-nav-item.active {
-      color: var(--gold);
-      border-bottom-color: var(--gold);
-      font-weight: 600;
-    }
+    /* emp-sub-nav replaced by .view-tabs */
 
     /* Mobile audit cards */
     @media (max-width: 768px) {
@@ -2674,9 +2734,7 @@
     }
 
     /* Dark mode overrides */
-    body.dark-mode .audit-table td { border-bottom-color: #333; color: #ccc; }
-    body.dark-mode .audit-table th { color: #999; border-bottom-color: #444; }
-    body.dark-mode .audit-table tbody tr:hover { background: rgba(196,133,60,0.08); }
+    /* audit-table dark mode handled by .data-table */
     body.dark-mode .audit-filters select,
     body.dark-mode .audit-filters input[type="date"] { background: #2a2a2a; color: #ccc; border-color: #444; }
     body.dark-mode .audit-action-badge.create { background: #1a3a1a; color: #66BB6A; }
@@ -2689,15 +2747,12 @@
     body.dark-mode .perm-matrix th { color: #999; border-bottom-color: #444; }
     body.dark-mode .perm-matrix td { border-bottom-color: #333; color: #ccc; }
     body.dark-mode .perm-matrix tr:hover { background: rgba(196,133,60,0.08); }
-    body.dark-mode .user-list-table th { color: #999; border-bottom-color: #444; }
-    body.dark-mode .user-list-table td { color: #ccc; border-bottom-color: #333; }
+    /* user-list-table dark mode handled by .data-table */
     body.dark-mode .user-role-select { background: #2a2a2a; color: #ccc; border-color: #444; }
     body.dark-mode .role-badge.admin { background: #2a1a3a; color: #CE93D8; }
     body.dark-mode .role-badge.user { background: #1a2a3a; color: #64B5F6; }
     body.dark-mode .role-badge.guest { background: #3a2e1a; color: #FFD54F; }
-    body.dark-mode .emp-sub-nav { border-bottom-color: #444; }
-    body.dark-mode .emp-sub-nav-item { color: #888; }
-    body.dark-mode .emp-sub-nav-item.active { color: var(--gold); }
+    /* emp-sub-nav dark mode replaced by .view-tabs */
     body.dark-mode .record-history { border-top-color: #333; }
     body.dark-mode .record-history-item { border-bottom-color: #333; }
     body.dark-mode .record-history-time { color: #666; }
@@ -2711,7 +2766,7 @@
     .contacts-table th { text-align:left; padding:8px 12px; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--warm-gray); border-bottom:2px solid var(--cream-dark); }
     .contacts-table td { padding:10px 12px; border-bottom:1px solid var(--cream-dark); font-size:0.88rem; vertical-align:top; }
     .contacts-table tr:hover { background:var(--cream); cursor:pointer; }
-    .contact-cat-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:0.72rem; font-weight:600; background:var(--cream-dark); color:var(--warm-gray); }
+    .contact-cat-badge { /* base from .status-badge */ background:var(--cream-dark); color:var(--warm-gray); }
     .contact-cat-badge.supplier { background:#dbeafe; color:#1e40af; }
     .contact-cat-badge.facilities { background:#fef3c7; color:#92400e; }
     .contact-cat-badge.gallery { background:#ede9fe; color:#5b21b6; }
@@ -2737,7 +2792,7 @@
     .interaction-card:hover { border-color:var(--amber-light); }
     .interaction-header { display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
     .interaction-date { font-weight:600; font-size:0.88rem; }
-    .interaction-type-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:0.72rem; font-weight:600; background:var(--cream-dark); color:var(--warm-gray); }
+    .interaction-type-badge { /* base from .status-badge */ background:var(--cream-dark); color:var(--warm-gray); }
     .interaction-type-badge.call { background:#dbeafe; color:#1e40af; }
     .interaction-type-badge.email { background:#d1fae5; color:#065f46; }
     .interaction-type-badge.meeting { background:#ede9fe; color:#5b21b6; }
@@ -2754,9 +2809,7 @@
 
     /* Dark mode — Contacts */
     body.dark-mode .contacts-search { background:#2a2a2a; border-color:#444; color:#eee; }
-    body.dark-mode .contacts-table th { border-bottom-color:#444; color:#888; }
-    body.dark-mode .contacts-table td { border-bottom-color:#333; }
-    body.dark-mode .contacts-table tr:hover { background:#2a2a2a; }
+    /* contacts-table dark mode handled by .data-table */
     body.dark-mode .interaction-card { background:#1e1e1e; border-color:#333; }
     body.dark-mode .interaction-card:hover { border-color:var(--amber); }
     body.dark-mode .interaction-notes { color:#ddd; }
@@ -2890,11 +2943,12 @@
       </div>
       <div id="eventsLoading" class="loading">Loading...</div>
       <div id="eventsEmpty" class="empty-state" style="display:none;">
+        <div class="empty-icon">&#128197;</div>
         <p>No events yet. Click "Add Event" to create one.</p>
       </div>
 
       <!-- Desktop Table -->
-      <div class="events-table" id="eventsTable" style="display:none;">
+      <div class="events-table data-table" id="eventsTable" style="display:none;">
         <table>
           <thead>
             <tr>
@@ -3007,9 +3061,9 @@
     <div id="ordersTab" style="display:none;">
       <!-- Order List View -->
       <div id="ordersListView">
-        <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div class="section-header">
           <div style="display:flex;align-items:center;gap:12px;">
-            <h2 style="margin:0;">Orders</h2>
+            <h2>Orders</h2>
             <span class="products-stat" id="ordersCount"></span>
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
@@ -3024,9 +3078,10 @@
         <div id="ordersFilterPills" class="order-filter-pills"></div>
         <div id="ordersLoading" class="loading">Loading...</div>
         <div id="ordersEmpty" class="empty-state" style="display:none;">
+          <div class="empty-icon">&#128230;</div>
           <p>No orders yet.</p>
         </div>
-        <div class="orders-table" id="ordersTable" style="display:none;">
+        <div class="orders-table data-table" id="ordersTable" style="display:none;">
           <table>
             <thead>
               <tr>
@@ -3050,14 +3105,14 @@
 
     <!-- Admin: Fulfillment Tab -->
     <div id="fulfillmentTab" style="display:none;">
-      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-        <h2 style="margin:0;">Fulfillment</h2>
-        <div style="display:flex;gap:6px;">
-          <button id="fulfSubPack" class="btn btn-primary" onclick="switchFulfillmentSubView('pack')">Pack Queue</button>
-          <button id="fulfSubScan" class="btn btn-secondary" onclick="switchFulfillmentSubView('scan')">Studio Scan</button>
-          <button id="fulfSubDeliver" class="btn btn-secondary" onclick="switchFulfillmentSubView('deliver')">Drop-off</button>
-          <button id="fulfSubBundles" class="btn btn-secondary" onclick="switchFulfillmentSubView('bundles')">Bundles</button>
-        </div>
+      <div class="section-header">
+        <h2>Fulfillment</h2>
+      </div>
+      <div class="view-tabs" id="fulfSubNav">
+        <button id="fulfSubPack" class="view-tab active" onclick="switchFulfillmentSubView('pack')">Pack Queue</button>
+        <button id="fulfSubScan" class="view-tab" onclick="switchFulfillmentSubView('scan')">Studio Scan</button>
+        <button id="fulfSubDeliver" class="view-tab" onclick="switchFulfillmentSubView('deliver')">Drop-off</button>
+        <button id="fulfSubBundles" class="view-tab" onclick="switchFulfillmentSubView('bundles')">Bundles</button>
       </div>
       <div id="fulfPackView"></div>
       <div id="fulfScanView" style="display:none;"></div>
@@ -3073,11 +3128,12 @@
       </div>
       <div id="couponsLoading" class="loading">Loading...</div>
       <div id="couponsEmpty" class="empty-state" style="display:none;">
+        <div class="empty-icon">&#127915;</div>
         <p>No coupons yet. Click "Add Coupon" to create one.</p>
       </div>
 
       <!-- Desktop Table -->
-      <div class="events-table coupons-table" id="couponsTable" style="display:none;">
+      <div class="events-table data-table coupons-table" id="couponsTable" style="display:none;">
         <table>
           <thead>
             <tr>
@@ -3099,9 +3155,9 @@
 
     <!-- ===== SALES TAB (PoS) ===== -->
     <div id="salesTab" style="display:none;">
-      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div class="section-header">
         <div style="display:flex;align-items:center;gap:12px;">
-          <h2 style="margin:0;" id="salesViewTitle">Sales</h2>
+          <h2 id="salesViewTitle">Sales</h2>
           <span class="products-stat" id="salesCount"></span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
@@ -3126,9 +3182,10 @@
         <!-- Sales Table -->
         <div id="salesLoading" class="loading">Loading...</div>
         <div id="salesEmpty" class="empty-state" style="display:none;">
+          <div class="empty-icon">&#128176;</div>
           <p>No sales recorded yet. Use the <a href="../pos/" style="color:var(--teal);">PoS app</a> to capture sales.</p>
         </div>
-        <div class="orders-table" id="salesTableWrap" style="display:none;">
+        <div class="orders-table data-table" id="salesTableWrap" style="display:none;">
           <table>
             <thead>
               <tr>
@@ -3164,9 +3221,10 @@
           </select>
         </div>
         <div id="squarePaymentsEmpty" class="empty-state" style="display:none;">
+          <div class="empty-icon">&#128179;</div>
           <p>No Square payments received yet. Payments appear here when processed through Square.</p>
         </div>
-        <div class="orders-table" id="squarePaymentsTableWrap" style="display:none;">
+        <div class="orders-table data-table" id="squarePaymentsTableWrap" style="display:none;">
           <table>
             <thead>
               <tr>
@@ -3187,9 +3245,9 @@
 
     <!-- ===== SALES EVENTS TAB ===== -->
     <div id="salesEventsTab" style="display:none;">
-      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div class="section-header">
         <div style="display:flex;align-items:center;gap:12px;">
-          <h2 style="margin:0;">Events</h2>
+          <h2>Events</h2>
           <span class="products-stat" id="salesEventsCount"></span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
@@ -3207,11 +3265,12 @@
       <!-- Events Loading / Empty -->
       <div id="salesEventsLoading" class="loading">Loading...</div>
       <div id="salesEventsEmpty" class="empty-state" style="display:none;">
+        <div class="empty-icon">&#127914;</div>
         <p>No events yet. Create your first craft fair event to start tracking inventory and sales.</p>
       </div>
 
       <!-- Events List -->
-      <div class="orders-table" id="salesEventsTableWrap" style="display:none;">
+      <div class="orders-table data-table" id="salesEventsTableWrap" style="display:none;">
         <table>
           <thead>
             <tr>
@@ -3335,16 +3394,14 @@
     <!-- Admin: Settings Tab -->
     <!-- ===== PRODUCTION TAB ===== -->
     <div id="productionTab" style="display:none;">
-      <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div class="section-header">
         <h2>Production</h2>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <div style="display:flex;border:1px solid var(--cream-dark);border-radius:6px;overflow:hidden;">
-            <button id="prodSubQueue" class="btn btn-secondary" style="border-radius:0;border:none;font-size:0.8rem;padding:6px 14px;" onclick="switchProductionSubView('queue')">Queue <span id="queueBadge" style="background:#E65100;color:white;border-radius:10px;padding:1px 6px;font-size:0.7rem;margin-left:4px;display:none;">0</span></button>
-            <button id="prodSubJobs" class="btn btn-primary" style="border-radius:0;border:none;font-size:0.8rem;padding:6px 14px;" onclick="switchProductionSubView('jobs')">Jobs</button>
-            <button id="prodSubInventory" class="btn btn-secondary" style="border-radius:0;border:none;font-size:0.8rem;padding:6px 14px;" onclick="switchProductionSubView('inventory')">Inventory</button>
-          </div>
-          <button class="btn btn-primary" onclick="openNewJobModal()">+ New Job</button>
-        </div>
+        <button class="btn btn-primary" onclick="openNewJobModal()">+ New Job</button>
+      </div>
+      <div class="view-tabs" id="prodSubNav">
+        <button id="prodSubQueue" class="view-tab" onclick="switchProductionSubView('queue')">Queue <span id="queueBadge" style="background:#E65100;color:white;border-radius:10px;padding:1px 6px;font-size:0.7rem;margin-left:4px;display:none;">0</span></button>
+        <button id="prodSubJobs" class="view-tab active" onclick="switchProductionSubView('jobs')">Jobs</button>
+        <button id="prodSubInventory" class="view-tab" onclick="switchProductionSubView('inventory')">Inventory</button>
       </div>
       <div id="productionQueueView" style="display:none;">
         <div id="productionQueueEmpty" style="text-align:center;padding:48px 20px;color:var(--warm-gray);">
@@ -3435,7 +3492,7 @@
           </label>
         </div>
 
-        <hr style="margin:32px 0;border:none;border-top:1px solid var(--warm-gray-light);opacity:0.3;">
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;margin:32px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--cream-dark);color:var(--charcoal);">Integrations</h3>
 
         <div class="form-group">
           <label style="font-size:1.1rem;font-weight:600;">Square Payments</label>
@@ -3641,7 +3698,7 @@
           </div>
         </div>
 
-        <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;margin:32px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--cream-dark);color:var(--charcoal);">Workshop</h3>
 
         <div class="form-group">
           <label style="font-size:1.1rem;font-weight:600;">Operators</label>
@@ -3771,9 +3828,10 @@
       <div class="audit-stats" id="auditStats"></div>
       <div id="auditLoading" class="loading" style="display:none;">Loading audit log...</div>
       <div id="auditEmpty" class="empty-state" style="display:none;">
+        <div class="empty-icon">&#128270;</div>
         <p>No audit entries found matching your filters.</p>
       </div>
-      <div class="audit-table" id="auditTableWrap">
+      <div class="audit-table data-table" id="auditTableWrap">
         <table>
           <thead>
             <tr>
@@ -3799,18 +3857,19 @@
       <div class="section-header">
         <h2>Employees &amp; Permissions</h2>
       </div>
-      <div class="emp-sub-nav" id="empSubNav">
-        <div class="emp-sub-nav-item active" onclick="switchEmployeesView('users')">Users</div>
-        <div class="emp-sub-nav-item" onclick="switchEmployeesView('roles')">Roles &amp; Permissions</div>
+      <div class="view-tabs" id="empSubNav">
+        <button class="view-tab active" onclick="switchEmployeesView('users')">Users</button>
+        <button class="view-tab" onclick="switchEmployeesView('roles')">Roles &amp; Permissions</button>
       </div>
 
       <!-- Users Sub-View -->
       <div id="empUsersView">
         <div id="usersLoading" class="loading" style="display:none;">Loading users...</div>
         <div id="usersEmpty" class="empty-state" style="display:none;">
+          <div class="empty-icon">&#128101;</div>
           <p>No users found.</p>
         </div>
-        <div class="user-list-table" id="usersTableWrap">
+        <div class="user-list-table data-table" id="usersTableWrap">
           <table>
             <thead>
               <tr>
@@ -3888,10 +3947,11 @@
           </select>
         </div>
         <div id="contactsLoading" class="loading" style="display:none;padding:40px;text-align:center;">Loading contacts...</div>
-        <div id="contactsEmpty" class="empty-state" style="display:none;padding:40px;text-align:center;">
-          <p style="color:var(--warm-gray);font-size:0.95rem;">No contacts yet. Add your first contact to get started.</p>
+        <div id="contactsEmpty" class="empty-state" style="display:none;">
+          <div class="empty-icon">&#128209;</div>
+          <p>No contacts yet. Add your first contact to get started.</p>
         </div>
-        <table class="contacts-table" id="contactsTableWrap" style="display:none;">
+        <table class="contacts-table data-table" id="contactsTableWrap" style="display:none;">
           <thead>
             <tr>
               <th>Name</th>
@@ -5350,7 +5410,7 @@ function renderProducts() {
     // Availability badge
     var availBadge = '';
     if (p.availability === 'discontinued') {
-      availBadge = '<span class="stock-badge out-of-stock" style="font-size:0.7rem;">Discontinued</span> ';
+      availBadge = '<span class="status-badge stock-badge out-of-stock" style="font-size:0.7rem;">Discontinued</span> ';
     }
 
     // Inventory info — always show on-hand count
@@ -5363,7 +5423,7 @@ function renderProducts() {
     var threshold = (inv && inv.lowStockThreshold) ? inv.lowStockThreshold : 2;
 
     // Stock type badge
-    var stockBadgeClass = 'stock-badge ';
+    var stockBadgeClass = 'status-badge stock-badge ';
     if (stockType === 'made-to-order') {
       stockBadgeClass += 'made-to-order';
       invHtml = '<span class="' + stockBadgeClass + '">Made to Order</span>';
@@ -5399,7 +5459,7 @@ function renderProducts() {
       + '</div></div>';
   });
 
-  document.getElementById('productsGrid').innerHTML = html || '<p class="empty-state">No products found.</p>';
+  document.getElementById('productsGrid').innerHTML = html || '<div class="empty-state"><div class="empty-icon">&#127912;</div><p>No products found.</p></div>';
 
   // Inventory summary bar
   var summaryBar = document.getElementById('inventorySummaryBar');
@@ -5613,7 +5673,7 @@ function renderInventoryOverview() {
   '</div>';
 
   // Table
-  var tableHtml = '<div class="inv-overview-table"><table>' +
+  var tableHtml = '<div class="inv-overview-table data-table"><table>' +
     '<thead><tr>' +
       '<th style="width:40px;"></th>' +
       '<th>Product</th>' +
@@ -5626,13 +5686,13 @@ function renderInventoryOverview() {
   rows.forEach(function(r) {
     var statusBadge = '';
     if (r.stockType === 'made-to-order') {
-      statusBadge = '<span class="stock-badge made-to-order" style="font-size:0.72rem;">Made to Order</span>';
+      statusBadge = '<span class="status-badge stock-badge made-to-order" style="font-size:0.72rem;">Made to Order</span>';
     } else if (r.available <= 0) {
-      statusBadge = '<span class="stock-badge out-of-stock" style="font-size:0.72rem;">Out of Stock</span>';
+      statusBadge = '<span class="status-badge stock-badge out-of-stock" style="font-size:0.72rem;">Out of Stock</span>';
     } else if (r.available <= r.threshold) {
-      statusBadge = '<span class="stock-badge low-stock" style="font-size:0.72rem;">Low Stock</span>';
+      statusBadge = '<span class="status-badge stock-badge low-stock" style="font-size:0.72rem;">Low Stock</span>';
     } else {
-      statusBadge = '<span class="stock-badge in-stock" style="font-size:0.72rem;">In Stock</span>';
+      statusBadge = '<span class="status-badge stock-badge in-stock" style="font-size:0.72rem;">In Stock</span>';
     }
 
     var imgHtml = r.imgSrc
@@ -5762,7 +5822,7 @@ function renderProductDetail(pid) {
       (product.priceCents ? '<div class="product-detail-price">' + formatPriceCents(product.priceCents) + '</div>' :
        product.price ? '<div class="product-detail-price">' + esc(product.price) + '</div>' :
        '<div style="color:var(--warm-gray);font-style:italic;margin-bottom:8px;">Price on request</div>') +
-      (product.availability === 'discontinued' ? '<span class="stock-badge out-of-stock">Discontinued</span>' : '') +
+      (product.availability === 'discontinued' ? '<span class="status-badge stock-badge out-of-stock">Discontinued</span>' : '') +
     '</div>' +
     (!isCreate ? '<button class="btn btn-secondary" style="font-size:0.8rem;" onclick="' + (isEditing ? 'productEditMode=false;renderProductDetail(\'' + esc(pid) + '\')' : 'editProduct(\'' + esc(pid) + '\')') + '">' + (isEditing ? 'Cancel Edit' : 'Edit Product') + '</button>' : '') +
   '</div>';
@@ -5776,10 +5836,10 @@ function renderProductDetail(pid) {
   ];
   if (!isCreate) tabs.push({ id: 'inventory', label: 'Inventory' });
 
-  var tabBarHtml = '<div style="display:flex;gap:0;border-bottom:2px solid var(--cream-dark);margin:16px 0 0 0;">';
+  var tabBarHtml = '<div class="view-tabs" style="margin:16px 0 0 0;">';
   tabs.forEach(function(t) {
     var active = t.id === tab;
-    tabBarHtml += '<button class="pd-tab-btn' + (active ? ' active' : '') + '" data-tab="' + t.id + '" onclick="switchProductTab(\'' + t.id + '\')" style="padding:8px 18px;border:none;background:none;cursor:pointer;font-size:0.85rem;font-weight:' + (active ? '600' : '400') + ';color:' + (active ? 'var(--teal)' : 'var(--warm-gray)') + ';border-bottom:2px solid ' + (active ? 'var(--teal)' : 'transparent') + ';margin-bottom:-2px;">' + t.label + '</button>';
+    tabBarHtml += '<button class="view-tab pd-tab-btn' + (active ? ' active' : '') + '" data-tab="' + t.id + '" onclick="switchProductTab(\'' + t.id + '\')">' + t.label + '</button>';
   });
   tabBarHtml += '</div>';
 
@@ -6029,7 +6089,9 @@ function addVariantOption() {
 async function saveProduct(pid) {
   try {
     var name = document.getElementById('pdName').value.trim();
-    if (!name) { showToast('Product name is required', true); return; }
+    if (!validateRequired([{ el: 'pdName', msg: 'Product name is required' }])) {
+      showToast('Product name is required', true); return;
+    }
 
     var priceStr = document.getElementById('pdPrice').value.trim();
     var priceCents = parsePriceToCents(priceStr);
@@ -7185,7 +7247,7 @@ function renderAuditLog() {
     var entityId = (e.event && e.event.entityId) || '—';
     var gpsMode = (e.context && e.context.gpsMode) || '—';
 
-    var actionBadge = '<span class="audit-action-badge ' + action + '">' + action + '</span>';
+    var actionBadge = '<span class="status-badge audit-action-badge ' + action + '">' + action + '</span>';
     var entityBadge = '<span class="audit-entity-badge">' + (ENTITY_LABELS[entity] || entity) + '</span>';
     var gpsBadge = gpsMode !== '—' ? '<span class="audit-gps-badge ' + gpsMode + '">' + gpsMode + '</span>' : '—';
 
@@ -7212,7 +7274,7 @@ function renderAuditLog() {
     var card = document.createElement('div');
     card.className = 'audit-card';
     card.innerHTML = '<div class="audit-card-header">' +
-      '<span class="audit-action-badge ' + action + '">' + action + '</span>' +
+      '<span class="status-badge audit-action-badge ' + action + '">' + action + '</span>' +
       '<span style="font-size:0.78rem;color:var(--warm-gray-light);">' + time + '</span>' +
     '</div>' +
     '<div class="audit-card-detail"><strong>' + actor + '</strong> — ' + (ENTITY_LABELS[entity] || entity) + '</div>' +
@@ -7262,7 +7324,7 @@ async function renderRecordHistory(entity, entityId) {
       html += '<div class="record-history-item">' +
         '<span class="record-history-time">' + time + '</span>' +
         '<span class="record-history-actor">' + actor + '</span>' +
-        '<span class="audit-action-badge ' + action + '">' + action + '</span>' +
+        '<span class="status-badge audit-action-badge ' + action + '">' + action + '</span>' +
       '</div>';
     });
     html += '</div>';
@@ -7317,7 +7379,7 @@ function loadRoles() {
 }
 
 function switchEmployeesView(view) {
-  var items = document.querySelectorAll('#empSubNav .emp-sub-nav-item');
+  var items = document.querySelectorAll('#empSubNav .view-tab');
   items.forEach(function(item) { item.classList.remove('active'); });
   if (view === 'users') {
     items[0].classList.add('active');
@@ -7378,7 +7440,7 @@ function renderUsersList() {
       });
       roleCell = '<select class="user-role-select" onchange="changeUserRole(\'' + uid + '\', this.value)">' + opts + '</select>';
     } else {
-      roleCell = '<span class="role-badge ' + roleBadgeClass + '">' + (rolesData[role] ? rolesData[role].name : role) + '</span>' +
+      roleCell = '<span class="status-badge role-badge ' + roleBadgeClass + '">' + (rolesData[role] ? rolesData[role].name : role) + '</span>' +
         (isSelf ? ' <span style="font-size:0.72rem;color:var(--warm-gray);">(you)</span>' : '');
     }
 
@@ -7630,7 +7692,7 @@ function openEventModal(eventId) {
     '</div>' +
     '<div class="modal-body">' +
       '<div class="form-group">' +
-        '<label for="evDate">Date *</label>' +
+        '<label for="evDate" class="field-required">Date</label>' +
         '<input type="date" id="evDate" value="' + (ev.date || '') + '" required>' +
       '</div>' +
       '<div class="form-group">' +
@@ -7638,7 +7700,7 @@ function openEventModal(eventId) {
         '<input type="date" id="evDateEnd" value="' + (ev.dateEnd || '') + '">' +
       '</div>' +
       '<div class="form-group">' +
-        '<label for="evName">Event Name *</label>' +
+        '<label for="evName" class="field-required">Event Name</label>' +
         '<input type="text" id="evName" value="' + esc(ev.name || '') + '" required>' +
       '</div>' +
       '<div class="form-group">' +
@@ -7646,7 +7708,7 @@ function openEventModal(eventId) {
         '<textarea id="evDesc">' + esc(ev.description || '') + '</textarea>' +
       '</div>' +
       '<div class="form-group">' +
-        '<label for="evLocation">Location *</label>' +
+        '<label for="evLocation" class="field-required">Location</label>' +
         '<input type="text" id="evLocation" value="' + esc(ev.location || '') + '" required>' +
       '</div>' +
       '<div class="form-group">' +
@@ -7677,7 +7739,11 @@ async function saveEvent(eventId) {
   var location = document.getElementById('evLocation').value.trim();
   var visible = document.getElementById('evVisible').checked;
 
-  if (!date || !name || !location) {
+  if (!validateRequired([
+    { el: 'evName', msg: 'Event name is required' },
+    { el: 'evDate', msg: 'Date is required' },
+    { el: 'evLocation', msg: 'Location is required' }
+  ])) {
     showToast('Please fill in all required fields.', true);
     return;
   }
@@ -8983,7 +9049,7 @@ function renderOrders() {
       '<td>' + esc(o.email || '') + '</td>' +
       '<td>' + getOrderItemsLabel(o) + '</td>' +
       '<td>$' + (o.total || 0).toFixed(2) + '</td>' +
-      '<td><span class="order-status ' + status + '">' + status.replace(/_/g, ' ') + '</span></td>' +
+      '<td><span class="status-badge pill order-status ' + status + '">' + status.replace(/_/g, ' ') + '</span></td>' +
       '<td>' + formatOrderDate(o.placedAt || o.pendingPaymentAt) + '</td>' +
       '</tr>';
   });
@@ -8999,7 +9065,7 @@ function renderOrders() {
     cardHtml += '<div class="order-card" onclick="viewOrder(\'' + esc(key) + '\')">' +
       '<div class="order-card-header">' +
         '<span class="order-card-number">' + num + cardSourceBadge + '</span>' +
-        '<span class="order-status ' + status + '">' + status.replace(/_/g, ' ') + '</span>' +
+        '<span class="status-badge pill order-status ' + status + '">' + status.replace(/_/g, ' ') + '</span>' +
       '</div>' +
       '<div class="order-card-details">' +
         '<span class="order-card-detail">' + esc(o.email || '') + '</span>' +
@@ -9287,7 +9353,7 @@ function renderOrderDetail(orderId) {
       '<div>' +
         '<div class="order-detail-title">' + num + (o.source === 'etsy' ? ' <span class="order-source-badge etsy">Etsy</span>' : '') + '</div>' +
         '<div class="order-detail-meta">' +
-          '<span class="order-status ' + status + '">' + status.replace(/_/g, ' ') + '</span> &middot; ' +
+          '<span class="status-badge pill order-status ' + status + '">' + status.replace(/_/g, ' ') + '</span> &middot; ' +
           formatOrderDateTime(o.placedAt || o.pendingPaymentAt) + ' &middot; ' + esc(o.email || '') +
         '</div>' +
       '</div>' +
@@ -9499,10 +9565,11 @@ function loadBundles() {
 
 function switchFulfillmentSubView(view) {
   fulfillmentSubView = view;
+  document.querySelectorAll('#fulfSubNav .view-tab').forEach(function(b) { b.classList.remove('active'); });
   ['pack', 'scan', 'deliver', 'bundles'].forEach(function(v) {
     var btn = document.getElementById('fulfSub' + v.charAt(0).toUpperCase() + v.slice(1));
     var el = document.getElementById('fulf' + v.charAt(0).toUpperCase() + v.slice(1) + 'View');
-    if (btn) btn.className = 'btn btn-' + (v === view ? 'primary' : 'secondary');
+    if (btn && v === view) btn.classList.add('active');
     if (el) el.style.display = v === view ? '' : 'none';
   });
   // Stop camera if leaving scan/deliver
@@ -9522,7 +9589,7 @@ function renderPackQueue() {
   });
 
   if (packable.length === 0) {
-    el.innerHTML = '<div class="empty-state"><p>No orders ready for packing.</p></div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128230;</div><p>No orders ready for packing.</p></div>';
     return;
   }
 
@@ -9535,7 +9602,7 @@ function renderPackQueue() {
     var custName = o.shipping ? esc(o.shipping.name || '') : '';
     html += '<div style="background:var(--cream);border:1px solid var(--cream-dark);border-radius:8px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">' +
       '<div>' +
-        '<div style="font-weight:600;font-family:monospace;">' + num + ' <span class="order-status ' + status + '">' + status.replace(/_/g, ' ') + '</span></div>' +
+        '<div style="font-weight:600;font-family:monospace;">' + num + ' <span class="status-badge pill order-status ' + status + '">' + status.replace(/_/g, ' ') + '</span></div>' +
         '<div style="font-size:0.85rem;color:var(--warm-gray);">' + custName + ' &mdash; ' + esc(itemNames) + '</div>' +
       '</div>' +
       '<div style="display:flex;gap:6px;">';
@@ -9695,7 +9762,7 @@ function renderBundlesView() {
   });
 
   if (keys.length === 0) {
-    el.innerHTML = '<div class="empty-state"><p>No bundles yet. Bundles are created automatically when you scan packages.</p></div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128230;</div><p>No bundles yet. Bundles are created automatically when you scan packages.</p></div>';
     return;
   }
 
@@ -9710,7 +9777,7 @@ function renderBundlesView() {
     var card = '<div style="background:var(--cream);border:1px solid ' + (isOpen ? 'var(--teal)' : 'var(--cream-dark)') + ';border-radius:8px;padding:12px 16px;margin-bottom:8px;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;">' +
         '<div><strong>' + esc(b.name || 'Unnamed Bundle') + '</strong>' +
-          ' <span class="order-status ' + (isOpen ? 'packing' : 'delivered') + '">' + b.status + '</span></div>' +
+          ' <span class="status-badge pill order-status ' + (isOpen ? 'packing' : 'delivered') + '">' + b.status + '</span></div>' +
         '<div style="font-size:0.85rem;color:var(--warm-gray);">' + total + ' package' + (total !== 1 ? 's' : '') + '</div>' +
       '</div>';
     if (b.carrier) {
@@ -10004,10 +10071,10 @@ function renderDeliverView() {
     // Check for packed orders not in any bundle
     var packedOrders = getOrdersArray().filter(function(o) { return o.status === 'packed'; });
     if (packedOrders.length === 0) {
-      el.innerHTML = '<div class="empty-state" style="margin-top:12px;"><p>No open bundles. Scan packages in Studio Scan first.</p></div>';
+      el.innerHTML = '<div class="empty-state" style="margin-top:12px;"><div class="empty-icon">&#128666;</div><p>No open bundles. Scan packages in Studio Scan first.</p></div>';
       return;
     }
-    el.innerHTML = '<div class="empty-state" style="margin-top:12px;"><p>No open bundles but ' + packedOrders.length + ' packed order(s) found. Go to Studio Scan to create a bundle.</p></div>';
+    el.innerHTML = '<div class="empty-state" style="margin-top:12px;"><div class="empty-icon">&#128666;</div><p>No open bundles but ' + packedOrders.length + ' packed order(s) found. Go to Studio Scan to create a bundle.</p></div>';
     return;
   }
 
@@ -11162,7 +11229,7 @@ function renderSalesEventDetail(eventId) {
       (ev.status === 'planning' ? '<button class="btn btn-primary" onclick="startPackingMode(\'' + eventId + '\')">Start Packing</button>' : '') +
     '</div>';
   } else {
-    html += '<div class="orders-table"><table><thead><tr>' +
+    html += '<div class="orders-table data-table"><table><thead><tr>' +
       '<th>Product</th><th>Packed</th><th>Sold</th><th>Remaining</th>' +
       (ev.status !== 'closed' ? '<th>Actions</th>' : '<th>Sell-Through</th>') +
     '</tr></thead><tbody>';
@@ -11196,7 +11263,7 @@ function renderSalesEventDetail(eventId) {
   // Event sales list
   if (eventSales.length > 0) {
     html += '<h3 style="margin:20px 0 12px;">Event Sales</h3>';
-    html += '<div class="orders-table"><table><thead><tr>' +
+    html += '<div class="orders-table data-table"><table><thead><tr>' +
       '<th>Time</th><th>Items</th><th>Payment</th><th>Amount</th>' +
     '</tr></thead><tbody>';
     eventSales.sort(function(a, b) { return (b.timestamp || '').localeCompare(a.timestamp || ''); });
@@ -12090,34 +12157,28 @@ function getOperatorNames() {
 
 function switchProductionSubView(view) {
   productionSubView = view;
-  var queueBtn = document.getElementById('prodSubQueue');
-  var jobsBtn = document.getElementById('prodSubJobs');
-  var invBtn = document.getElementById('prodSubInventory');
+  // Toggle active tab
+  document.querySelectorAll('#prodSubNav .view-tab').forEach(function(b) { b.classList.remove('active'); });
+  var activeBtn = document.getElementById('prodSub' + view.charAt(0).toUpperCase() + view.slice(1));
+  if (activeBtn) activeBtn.classList.add('active');
+  // Hide all views
   var queueView = document.getElementById('productionQueueView');
   var jobsView = document.getElementById('productionJobsView');
   var detailView = document.getElementById('productionJobDetail');
   var buildView = document.getElementById('productionBuildView');
   var invView = document.getElementById('productionInventoryView');
-  // Reset all buttons
-  queueBtn.className = 'btn btn-secondary';
-  jobsBtn.className = 'btn btn-secondary';
-  invBtn.className = 'btn btn-secondary';
-  // Hide all views
   queueView.style.display = 'none';
   jobsView.style.display = 'none';
   detailView.style.display = 'none';
   buildView.style.display = 'none';
   invView.style.display = 'none';
   if (view === 'queue') {
-    queueBtn.className = 'btn btn-primary';
     queueView.style.display = '';
     renderProductionQueue();
   } else if (view === 'inventory') {
-    invBtn.className = 'btn btn-primary';
     invView.style.display = '';
     renderInventoryOverview();
   } else {
-    jobsBtn.className = 'btn btn-primary';
     jobsView.style.display = '';
     selectedProductionJobId = null;
   }
@@ -12402,7 +12463,7 @@ function renderProductionJobs() {
           '</div>' +
           '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">' +
             '<span class="prod-purpose-badge ' + (j.purpose || '') + '">' + (PURPOSE_LABELS[j.purpose] || j.purpose || '') + '</span>' +
-            '<span class="prod-status-pill ' + (j.status || '') + '">' + (j.status || '').replace('-', ' ') + '</span>' +
+            '<span class="status-badge prod-status-pill ' + (j.status || '') + '">' + (j.status || '').replace('-', ' ') + '</span>' +
             orderBadge +
             deadlineHtml +
           '</div>' +
@@ -12437,7 +12498,7 @@ function openNewJobModal() {
   var html = '<div style="max-width:450px;">' +
     '<h3>New Production Job</h3>' +
     '<div class="form-group">' +
-      '<label>Job Name</label>' +
+      '<label class="field-required">Job Name</label>' +
       '<input type="text" id="newJobName" placeholder="e.g. Spring Craft Fair Prep">' +
     '</div>' +
     '<div class="form-group">' +
@@ -12454,7 +12515,9 @@ function openNewJobModal() {
 async function doCreateJob(purpose) {
   var nameInput = document.getElementById('newJobName');
   var name = nameInput ? nameInput.value.trim() : '';
-  if (!name) { showToast('Enter a job name', true); return; }
+  if (!validateRequired([{ el: 'newJobName', msg: 'Job name is required' }])) {
+    showToast('Enter a job name', true); return;
+  }
   try {
     var jobRef = db.ref(PRODUCTION_JOBS_PATH).push();
     var jobId = jobRef.key;
@@ -12562,7 +12625,7 @@ function renderProductionJobDetail(jobId) {
         '<div>' +
           '<strong>Build #' + (b.buildNumber || '?') + '</strong>' +
           ' &middot; ' + (b.sessionDate || '') +
-          ' &middot; <span class="prod-status-pill ' + bStatus + '">' + bStatus + '</span>' +
+          ' &middot; <span class="status-badge prod-status-pill ' + bStatus + '">' + bStatus + '</span>' +
           ' <span id="buildMediaBadge_' + k + '" class="media-count-badge" style="display:none;"></span>' +
         '</div>' +
         '<div style="font-size:0.82rem;color:var(--warm-gray);">' +
@@ -12593,7 +12656,7 @@ function renderProductionJobDetail(jobId) {
           '<h2 style="margin:0 0 8px 0;font-family:\'Cormorant Garamond\',serif;">' + esc(job.name || 'Untitled') + '</h2>' +
           '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">' +
             '<span class="prod-purpose-badge ' + (job.purpose || '') + '">' + (PURPOSE_LABELS[job.purpose] || '') + '</span>' +
-            '<span class="prod-status-pill ' + status + '">' + status.replace('-', ' ') + '</span>' +
+            '<span class="status-badge prod-status-pill ' + status + '">' + status.replace('-', ' ') + '</span>' +
             '<span class="prod-priority-dot ' + (job.priority || 'medium') + '"></span>' +
             '<span style="font-size:0.82rem;text-transform:capitalize;">' + (job.priority || 'medium') + '</span>' +
             deadlineHtml + eventHtml +
@@ -15126,7 +15189,7 @@ async function saveCoupon(existingCode) {
   var codeEl = document.getElementById('cpCode');
   var code = codeEl ? codeEl.value.trim().toUpperCase() : '';
 
-  if (!isEdit && !code) {
+  if (!isEdit && !validateRequired([{ el: 'cpCode', msg: 'Coupon code is required' }])) {
     showToast('Coupon code is required.', true);
     return;
   }
@@ -15303,7 +15366,7 @@ function renderContacts() {
 
     tr.innerHTML =
       '<td><strong>' + esc(c.name || '') + '</strong></td>' +
-      '<td><span class="contact-cat-badge ' + catClass + '">' + esc(c.category || 'Other') + '</span></td>' +
+      '<td><span class="status-badge contact-cat-badge ' + catClass + '">' + esc(c.category || 'Other') + '</span></td>' +
       '<td>' + lastIntHtml + '</td>' +
       '<td>' + driveHtml + '</td>';
     tbody.appendChild(tr);
@@ -15438,7 +15501,7 @@ function renderContactDetail(contact) {
     '<div class="contact-detail-header">' +
       '<div>' +
         '<h2 class="contact-detail-name">' + esc(contact.name || '') + '</h2>' +
-        '<span class="contact-cat-badge ' + catClass + '">' + esc(contact.category || 'Other') + '</span>' +
+        '<span class="status-badge contact-cat-badge ' + catClass + '">' + esc(contact.category || 'Other') + '</span>' +
         notesHtml +
         (linksHtml ? '<div class="contact-detail-links">' + linksHtml + '</div>' : '') +
       '</div>' +
@@ -15470,7 +15533,7 @@ function renderContactDetail(contact) {
         '<div class="interaction-card">' +
           '<div class="interaction-header">' +
             '<span class="interaction-date">' + esc(inter.date || '') + '</span>' +
-            '<span class="interaction-type-badge ' + typeClass + '">' + esc(inter.type || '') + '</span>' +
+            '<span class="status-badge interaction-type-badge ' + typeClass + '">' + esc(inter.type || '') + '</span>' +
           '</div>' +
           (inter.notes ? '<div class="interaction-notes">' + esc(inter.notes) + '</div>' : '') +
           docsHtml +
@@ -15785,6 +15848,30 @@ async function fetchDriveFileMetadata(driveUrl) {
     showToast('Drive file fetch failed.', true);
     return null;
   }
+}
+
+function validateRequired(fields) {
+  var valid = true;
+  fields.forEach(function(f) {
+    var el = typeof f.el === 'string' ? document.getElementById(f.el) : f.el;
+    var msgEl = f.msgId ? document.getElementById(f.msgId) : null;
+    if (!el) return;
+    var val = (el.value || '').trim();
+    if (!val) {
+      el.classList.add('field-error');
+      if (msgEl) { msgEl.textContent = f.msg || 'This field is required'; msgEl.classList.add('visible'); }
+      valid = false;
+      el.addEventListener('input', function handler() {
+        el.classList.remove('field-error');
+        if (msgEl) msgEl.classList.remove('visible');
+        el.removeEventListener('input', handler);
+      });
+    } else {
+      el.classList.remove('field-error');
+      if (msgEl) msgEl.classList.remove('visible');
+    }
+  });
+  return valid;
 }
 
 function showToast(message, isError) {
