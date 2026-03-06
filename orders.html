@@ -972,6 +972,7 @@
     var url = FUNCTION_BASE + name;
 
     function sendRequest(token) {
+      console.log('[callFunction] sendRequest called for', name, 'token?', !!token);
       var xhr = new XMLHttpRequest();
       xhr.open('POST', url, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
@@ -980,22 +981,27 @@
       }
       xhr.onreadystatechange = function() {
         if (xhr.readyState !== 4) return;
+        console.log('[callFunction] XHR complete for', name, 'status:', xhr.status, 'response:', xhr.responseText.substring(0, 200));
         try {
           var resp = JSON.parse(xhr.responseText);
           callback(resp.result || resp);
         } catch (e) {
+          console.error('[callFunction] Parse error for', name, ':', e.message);
           callback({ success: false, error: 'Network error' });
         }
       };
       xhr.onerror = function() {
+        console.error('[callFunction] XHR onerror for', name, 'status:', xhr.status);
         callback({ success: false, error: 'Network error' });
       };
       xhr.send(JSON.stringify({ data: data }));
     }
 
     var currentUser = auth.currentUser;
+    console.log('[callFunction] called:', name, 'currentUser?', !!currentUser, 'uid:', currentUser ? currentUser.uid : 'none');
     if (currentUser) {
-      currentUser.getIdToken().then(sendRequest).catch(function() {
+      currentUser.getIdToken().then(sendRequest).catch(function(err) {
+        console.error('[callFunction] getIdToken FAILED for', name, ':', err.message);
         sendRequest(null);
       });
     } else {
@@ -1229,6 +1235,7 @@
 
   // ── Auth State (ensureCustomerAccount handled by cart.js) ──
   function handleAuthState(user) {
+    console.log('[handleAuthState] user?', !!user, 'isAnonymous?', user ? user.isAnonymous : 'n/a', 'uid:', user ? user.uid : 'none');
     var signedInSection = document.getElementById('signedInSection');
     var anonymousSection = document.getElementById('anonymousSection');
 
