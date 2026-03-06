@@ -24,3 +24,4 @@
 The only data-scoped role is Guest, which is enforced by query design (customers query only their own records by uid), not by the permission matrix. This is not configurable — Guest data isolation is structural.
 
 Do not implement row-level security, record ownership filters, or per-user data visibility controls for Admin or User roles. If this requirement emerges in the future (e.g. multi-location staff who should only see their location's data), it is a new architectural decision at that time. _(from: Shir Glassworks Website + Storefront)_
+- Vendor Google integration assumes a single shared Google account used by both Ori and Madeline for Drive and Contacts. Domain accounts (shirglassworks.com) are a future goal but not a current blocker — treat as same-account for all integration design now. _(from: Shir Glassworks Website + Storefront)_
