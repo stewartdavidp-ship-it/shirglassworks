@@ -876,6 +876,7 @@
     <li><a href="schedule.html">Events</a></li>
     <li><a href="index.html#process">Process</a></li>
     <li><a href="index.html#contact">Contact</a></li>
+    <li><a href="commission.html">Commissions</a></li>
     <li><a href="orders.html">Orders</a></li>
     <li><a href="#" onclick="event.preventDefault(); siteSignIn();">Sign In</a></li>
     <li><a href="shop.html" class="nav-shop">Shop</a></li>
@@ -892,6 +893,7 @@
   <a href="schedule.html" onclick="closeMobileMenu()">Events</a>
   <a href="index.html#process" onclick="closeMobileMenu()">Process</a>
   <a href="index.html#contact" onclick="closeMobileMenu()">Contact</a>
+  <a href="commission.html" onclick="closeMobileMenu()">Commissions</a>
   <a href="orders.html" onclick="closeMobileMenu()">Orders</a>
   <a href="#" onclick="event.preventDefault(); siteSignIn(); closeMobileMenu();">Sign In</a>
   <a href="shop.html" class="btn-shop" onclick="closeMobileMenu()">Shop</a>
@@ -951,6 +953,7 @@
       <li><a href="shop.html">Shop</a></li>
       <li><a href="schedule.html">Schedule</a></li>
       <li><a href="orders.html">Orders</a></li>
+      <li><a href="commission.html">Commissions</a></li>
     </ul>
     <div class="footer-social">
       <a href="https://www.instagram.com/shirglassworks/" target="_blank" aria-label="Instagram">
@@ -963,6 +966,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 <script>
   // Firebase — load product detail from URL param ?id=pXXX
   (function() {
@@ -970,7 +974,8 @@
       apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
       authDomain: "word-boxing.firebaseapp.com",
       databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
-      projectId: "word-boxing"
+      projectId: "word-boxing",
+      storageBucket: "word-boxing.firebasestorage.app"
     }, 'public-product');
     var db = app.database();
     window._productDb = db;
@@ -1094,7 +1099,21 @@
       // Store images array for gallery switching
       window._productImages = images;
 
-
+      // ── Sold Sculpture: replace cart actions with commission CTA ──
+      if (p.businessLine === 'sculpture' && p.status === 'sold') {
+        document.getElementById('productQtyWrap').style.display = 'none';
+        var actionsEl = document.querySelector('.product-detail-actions');
+        if (actionsEl) {
+          actionsEl.innerHTML =
+            '<div style="margin-bottom:8px;"><span style="display:inline-block;background:#e8e0d4;color:#5C3D2E;font-size:0.82rem;font-weight:600;padding:4px 12px;border-radius:4px;">This piece has been sold</span></div>' +
+            '<button class="btn btn-primary" onclick="toggleCommissionForm()">Request a Commission</button>';
+        }
+        window._commPid = p.pid;
+        window._commPieceName = p.name;
+        // Pre-select this product as inspiration
+        window._commInspirationPids = [p.pid];
+        buildCommissionForm();
+      }
 
       // ── How It Was Made: load story if product has storyId ──
       if (p.storyId) {
@@ -1171,6 +1190,237 @@
   });
 </script>
 <script>
+  // ── Commission Form (sold sculptures) ──
+  window._commInspirationPids = [];
+  window._commUploadFile = null;
+  window._allProducts = null;
+
+  function toggleCommissionForm() {
+    var wrap = document.getElementById('commissionFormWrap');
+    if (!wrap) return;
+    var showing = wrap.style.display === 'none';
+    wrap.style.display = showing ? '' : 'none';
+    if (showing && !window._allProducts) loadProductCatalog();
+  }
+
+  function buildCommissionForm() {
+    var actionsEl = document.querySelector('.product-detail-actions');
+    if (!actionsEl) return;
+    var formHtml =
+      '<div id="commissionFormWrap" style="display:none;margin-top:16px;padding:16px;background:#FAF6F0;border-radius:8px;border:1px solid #e8e0d4;">' +
+        '<p style="font-size:0.88rem;color:#5C3D2E;margin:0 0 12px 0;">Tell us about the piece you\'d like and we\'ll be in touch.</p>' +
+
+        // ── Inspiration picker ──
+        '<div style="margin-bottom:14px;">' +
+          '<label style="display:block;font-size:0.78rem;color:#6B6560;margin-bottom:6px;font-weight:500;">Select pieces for inspiration <span style="font-weight:400;">(optional)</span></label>' +
+          '<div id="commCatalogGrid" style="display:flex;flex-wrap:wrap;gap:8px;max-height:200px;overflow-y:auto;padding:4px;border:1px solid #e8e0d4;border-radius:6px;background:white;">' +
+            '<div style="padding:12px;color:#9B958E;font-size:0.82rem;">Loading catalog...</div>' +
+          '</div>' +
+        '</div>' +
+
+        // ── Image upload ──
+        '<div style="margin-bottom:14px;">' +
+          '<label style="display:block;font-size:0.78rem;color:#6B6560;margin-bottom:4px;font-weight:500;">Upload a reference image <span style="font-weight:400;">(optional)</span></label>' +
+          '<div id="commUploadArea" style="border:2px dashed #e8e0d4;border-radius:6px;padding:16px;text-align:center;cursor:pointer;background:white;transition:border-color 0.2s;" onclick="document.getElementById(\'commFileInput\').click()">' +
+            '<div id="commUploadPreview" style="display:none;margin-bottom:8px;"></div>' +
+            '<div id="commUploadLabel" style="color:#9B958E;font-size:0.82rem;">Click or drag an image here<br><span style="font-size:0.72rem;">Max 5MB · JPG, PNG, WEBP</span></div>' +
+          '</div>' +
+          '<input type="file" id="commFileInput" accept="image/*" style="display:none;" onchange="handleCommFileSelect(this)">' +
+        '</div>' +
+
+        // ── Contact fields ──
+        '<div style="margin-bottom:10px;"><label style="display:block;font-size:0.78rem;color:#6B6560;margin-bottom:4px;">Your Name</label>' +
+          '<input type="text" id="commWebName" style="width:100%;padding:8px;border-radius:6px;border:1px solid #e8e0d4;font-size:0.88rem;box-sizing:border-box;"></div>' +
+        '<div style="margin-bottom:10px;"><label style="display:block;font-size:0.78rem;color:#6B6560;margin-bottom:4px;">Email or Phone</label>' +
+          '<input type="text" id="commWebContact" style="width:100%;padding:8px;border-radius:6px;border:1px solid #e8e0d4;font-size:0.88rem;box-sizing:border-box;"></div>' +
+        '<div style="margin-bottom:12px;"><label style="display:block;font-size:0.78rem;color:#6B6560;margin-bottom:4px;">What are you looking for?</label>' +
+          '<textarea id="commWebNotes" rows="3" style="width:100%;padding:8px;border-radius:6px;border:1px solid #e8e0d4;font-size:0.88rem;resize:vertical;box-sizing:border-box;" placeholder="Describe the size, colors, style you have in mind..."></textarea></div>' +
+        '<button id="commWebSubmitBtn" class="btn btn-primary" style="width:100%;" onclick="submitWebCommission()">Send Inquiry</button>' +
+        '<div id="commWebStatus" style="margin-top:8px;font-size:0.82rem;text-align:center;"></div>' +
+      '</div>';
+    actionsEl.insertAdjacentHTML('beforeend', formHtml);
+
+    // Drag-and-drop support
+    var dropArea = document.getElementById('commUploadArea');
+    if (dropArea) {
+      ['dragenter', 'dragover'].forEach(function(ev) {
+        dropArea.addEventListener(ev, function(e) { e.preventDefault(); dropArea.style.borderColor = '#2A7C6F'; });
+      });
+      ['dragleave', 'drop'].forEach(function(ev) {
+        dropArea.addEventListener(ev, function(e) { e.preventDefault(); dropArea.style.borderColor = '#e8e0d4'; });
+      });
+      dropArea.addEventListener('drop', function(e) {
+        var files = e.dataTransfer.files;
+        if (files.length > 0) handleCommFile(files[0]);
+      });
+    }
+  }
+
+  function loadProductCatalog() {
+    var db = window._productDb;
+    if (!db) return;
+    db.ref('shirglassworks/public/products').once('value').then(function(snap) {
+      var products = [];
+      snap.forEach(function(child) {
+        var p = child.val();
+        if (p && p.name && p.images && p.images.length) {
+          products.push({ pid: p.pid || child.key, name: p.name, image: p.images[0], businessLine: p.businessLine || 'production' });
+        }
+      });
+      window._allProducts = products;
+      renderCatalogGrid();
+    });
+  }
+
+  function renderCatalogGrid() {
+    var grid = document.getElementById('commCatalogGrid');
+    if (!grid || !window._allProducts) return;
+    var selected = window._commInspirationPids || [];
+    var html = '';
+    window._allProducts.forEach(function(p) {
+      var isSelected = selected.indexOf(p.pid) !== -1;
+      html += '<div class="comm-catalog-item' + (isSelected ? ' selected' : '') + '" data-pid="' + p.pid + '" onclick="toggleInspiration(\'' + p.pid + '\')" ' +
+        'style="width:72px;flex-shrink:0;cursor:pointer;border-radius:6px;border:2px solid ' + (isSelected ? '#2A7C6F' : 'transparent') + ';padding:3px;transition:border-color 0.2s;" title="' + (p.name || '') + '">' +
+        '<img src="' + p.image + '" alt="' + (p.name || '') + '" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;display:block;" />' +
+        '<div style="font-size:0.65rem;color:#5C3D2E;margin-top:2px;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' + (p.name || '') + '</div>' +
+        (isSelected ? '<div style="text-align:center;font-size:0.65rem;color:#2A7C6F;font-weight:600;">Selected</div>' : '') +
+      '</div>';
+    });
+    if (!html) html = '<div style="padding:12px;color:#9B958E;font-size:0.82rem;">No products found</div>';
+    grid.innerHTML = html;
+  }
+
+  function toggleInspiration(pid) {
+    var idx = window._commInspirationPids.indexOf(pid);
+    if (idx === -1) {
+      window._commInspirationPids.push(pid);
+    } else {
+      window._commInspirationPids.splice(idx, 1);
+    }
+    renderCatalogGrid();
+  }
+
+  function handleCommFileSelect(input) {
+    if (input.files && input.files[0]) handleCommFile(input.files[0]);
+  }
+
+  function handleCommFile(file) {
+    if (!file.type.match(/^image\//)) {
+      alert('Please select an image file (JPG, PNG, WEBP).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be under 5MB.');
+      return;
+    }
+    window._commUploadFile = file;
+    var preview = document.getElementById('commUploadPreview');
+    var label = document.getElementById('commUploadLabel');
+    if (preview && label) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        preview.innerHTML = '<img src="' + e.target.result + '" style="max-width:120px;max-height:120px;border-radius:6px;object-fit:cover;" />' +
+          '<div style="font-size:0.72rem;color:#5C3D2E;margin-top:4px;">' + file.name + '</div>' +
+          '<div style="font-size:0.68rem;color:#2A7C6F;cursor:pointer;margin-top:2px;" onclick="event.stopPropagation();clearCommUpload();">Remove</div>';
+        preview.style.display = '';
+        label.textContent = 'Change image';
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function clearCommUpload() {
+    window._commUploadFile = null;
+    var preview = document.getElementById('commUploadPreview');
+    var label = document.getElementById('commUploadLabel');
+    if (preview) { preview.innerHTML = ''; preview.style.display = 'none'; }
+    if (label) { label.innerHTML = 'Click or drag an image here<br><span style="font-size:0.72rem;">Max 5MB &middot; JPG, PNG, WEBP</span>'; }
+    document.getElementById('commFileInput').value = '';
+  }
+
+  function submitWebCommission() {
+    var name = document.getElementById('commWebName').value.trim();
+    var contact = document.getElementById('commWebContact').value.trim();
+    var notes = document.getElementById('commWebNotes').value.trim();
+    var statusEl = document.getElementById('commWebStatus');
+
+    if (!name || !contact) {
+      statusEl.textContent = 'Please enter your name and contact info.';
+      statusEl.style.color = '#DC3545';
+      return;
+    }
+
+    var btn = document.getElementById('commWebSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    statusEl.textContent = '';
+
+    var commDb = window._productDb;
+    if (!commDb) { statusEl.textContent = 'Unable to connect.'; statusEl.style.color = '#DC3545'; return; }
+
+    var commRef = commDb.ref('shirglassworks/admin/commissions');
+    var commId = commRef.push().key;
+
+    // Build inspiration list with names
+    var inspirationPieces = [];
+    (window._commInspirationPids || []).forEach(function(pid) {
+      var match = (window._allProducts || []).find(function(p) { return p.pid === pid; });
+      inspirationPieces.push({ pid: pid, name: match ? match.name : pid });
+    });
+
+    // Upload image first if present, then save commission
+    var uploadPromise;
+    if (window._commUploadFile) {
+      var storageApp = firebase.app('public-product');
+      var storageRef = storageApp.storage().ref('shirglassworks/commissions/' + commId + '/reference.' + window._commUploadFile.name.split('.').pop());
+      uploadPromise = storageRef.put(window._commUploadFile).then(function(snapshot) {
+        return snapshot.ref.getDownloadURL();
+      });
+    } else {
+      uploadPromise = Promise.resolve(null);
+    }
+
+    uploadPromise.then(function(imageUrl) {
+      var record = {
+        sourcePieceId: window._commPid || '',
+        sourcePieceName: window._commPieceName || '',
+        inspirationPieces: inspirationPieces.length > 0 ? inspirationPieces : null,
+        referenceImageUrl: imageUrl || null,
+        customerName: name,
+        customerContact: contact,
+        notes: notes || null,
+        status: 'new',
+        channel: 'web',
+        createdAt: new Date().toISOString()
+      };
+
+      return commRef.child(commId).set(record);
+    }).then(function() {
+      // Build piece name string for notification
+      var pieceNames = [];
+      if (window._commPieceName) pieceNames.push(window._commPieceName);
+      inspirationPieces.forEach(function(p) { if (p.name && pieceNames.indexOf(p.name) === -1) pieceNames.push(p.name); });
+      var pieceName = pieceNames.join(', ') || 'Custom Piece';
+
+      // Trigger notification (fire and forget)
+      fetch('https://us-central1-word-boxing.cloudfunctions.net/shirCommissionNotify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commissionId: commId, pieceName: pieceName, customerName: name, customerContact: contact, notes: notes, channel: 'web' })
+      }).catch(function() {});
+
+      btn.textContent = 'Sent!';
+      statusEl.textContent = 'Thank you! We\'ll be in touch soon.';
+      statusEl.style.color = '#2A7C6F';
+    }).catch(function(err) {
+      console.error('Commission submit error:', err);
+      btn.disabled = false;
+      btn.textContent = 'Send Inquiry';
+      statusEl.textContent = 'Something went wrong. Please try again.';
+      statusEl.style.color = '#DC3545';
+    });
+  }
+
   // ── How It Was Made: render story section ──
   function loadProductStory(storyId) {
     var storyDb = window._productDb;

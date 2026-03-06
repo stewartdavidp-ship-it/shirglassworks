@@ -324,6 +324,40 @@ Pulling in contacts that were added directly to the "Shir Glassworks" group in G
 
 ---
 
+## Sculptures & Commissions
+
+### Add a New Sculpture
+**Status:** Live
+
+Bringing a one-of-a-kind sculpture into the system so it can be listed on the website and tracked separately from production pieces.
+
+1. Create the product in the usual way (Studio Companion → Identify & Train, or manually in admin)
+2. In the admin app, go to Manage → Products and open the product
+3. Set the Business Line to **Sculpture**
+4. Set price, add photos, and toggle to Published
+5. In Make → Production → Inventory, set the stock to 1
+6. The product now appears in the shop — sculptures are limited to 1 unit in stock
+7. When the sculpture sells (POS or website), stock goes to 0 and the product is automatically marked **Sold**
+8. On the website, sold sculptures remain visible with a "Sold" badge and a "Request a Commission" link
+
+### Respond to a Commission Inquiry
+**Status:** Live
+
+Handling a customer request for a custom or commission piece — from initial inquiry through to delivery.
+
+1. A notification email arrives with a QR code when a new inquiry comes in (from the website or POS)
+2. Scan the QR code or open the admin app → Sell → Commissions
+3. Review the inquiry: inspiration pieces the customer selected, any reference image they uploaded, their notes, and contact info
+4. Update the status to **In Discussion** and start the conversation
+5. Fill in the Proposal section: price, estimated timeline, and design/spec notes
+6. Click **Send Proposal to Customer** — the customer receives an email with the proposal details and a QR code linking back to the commission
+7. If the customer agrees: update status to **Accepted** and click **Create Production Job** — a linked job appears in Make → Production
+8. Build the piece and mark the production job as complete — update commission status to **Built**
+9. Ship or hand off the piece, then mark the commission as **Completed**
+10. If the customer declines: update status to **Declined**
+
+---
+
 ## Not Yet Built
 
 The following workflows have been identified but not yet designed or built. These are candidates for the next planning session with Ori and Madeline.

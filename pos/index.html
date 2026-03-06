@@ -884,6 +884,9 @@ function saveSale() {
 
     showScreen('successScreen');
 
+    // Check if any sold item was a sculpture — prompt for commission
+    checkSculptureCommission(saleItems);
+
     // Auto-reconcile Square payment in background
     autoReconcileSquare(saleId, now);
   }).catch(function(err) {
@@ -897,14 +900,30 @@ function decrementInventory(productQtys) {
   var promises = [];
   Object.keys(productQtys).forEach(function(pid) {
     var qty = productQtys[pid];
+    var prod = products[pid];
     var stockRef = db.ref('shirglassworks/admin/inventory/' + pid + '/stock');
     promises.push(
       stockRef.once('value').then(function(snap) {
         var current = snap.val();
         if (current !== null && typeof current === 'number') {
-          return stockRef.set(Math.max(0, current - qty));
+          var newVal = Math.max(0, current - qty);
+          return stockRef.set(newVal).then(function() {
+            // Auto-set sold status for sculptures when stock reaches 0
+            if (prod && prod.businessLine === 'sculpture' && newVal <= 0) {
+              return db.ref('shirglassworks/public/products/' + pid + '/status').set('sold');
+            }
+          });
         }
-        // Variant-based or no stock tracking — skip
+        // Object-based stock (e.g. _default.available)
+        if (current && typeof current === 'object' && current._default) {
+          var curAvail = current._default.available || 0;
+          var newAvail = Math.max(0, curAvail - qty);
+          return db.ref('shirglassworks/admin/inventory/' + pid + '/stock/_default/available').set(newAvail).then(function() {
+            if (prod && prod.businessLine === 'sculpture' && newAvail <= 0) {
+              return db.ref('shirglassworks/public/products/' + pid + '/status').set('sold');
+            }
+          });
+        }
       })
     );
   });
@@ -1089,6 +1108,112 @@ async function autoReconcileSquare(saleId, saleTimestamp) {
     }
   } catch (err) {
     console.log('Square reconciliation skipped:', err.message);
+  }
+}
+
+// ============================================================
+// Sculpture Commission Prompt
+// ============================================================
+function checkSculptureCommission(items) {
+  var sculptureItems = items.filter(function(item) {
+    var prod = products[item.productId];
+    return prod && prod.businessLine === 'sculpture';
+  });
+  if (sculptureItems.length === 0) return;
+
+  var piece = sculptureItems[0];
+  var prod = products[piece.productId];
+  setTimeout(function() {
+    showCommissionPrompt(piece.productId, prod.name);
+  }, 500);
+}
+
+function showCommissionPrompt(pid, pieceName) {
+  var modal = document.createElement('div');
+  modal.id = 'commissionModal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;';
+  modal.innerHTML =
+    '<div style="background:var(--card);border-radius:12px;padding:24px;max-width:400px;width:100%;">' +
+      '<h3 style="margin:0 0 8px 0;color:var(--text);font-size:1.1rem;">Commission Opportunity</h3>' +
+      '<p style="margin:0 0 16px 0;color:var(--muted);font-size:0.88rem;">This piece has sold. Would you like to offer the customer a commission for a similar work?</p>' +
+      '<div style="display:flex;gap:8px;">' +
+        '<button onclick="openCommissionForm(\'' + pid.replace(/'/g, "\\'") + '\', \'' + (pieceName || '').replace(/'/g, "\\'") + '\')" style="flex:1;padding:12px;border-radius:6px;border:none;background:var(--gold);color:white;font-weight:600;font-size:0.88rem;cursor:pointer;">Yes — Log Inquiry</button>' +
+        '<button onclick="dismissCommissionModal()" style="flex:1;padding:12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:0.88rem;cursor:pointer;">Skip</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+function dismissCommissionModal() {
+  var modal = document.getElementById('commissionModal');
+  if (modal) modal.remove();
+}
+
+function openCommissionForm(pid, pieceName) {
+  var modal = document.getElementById('commissionModal');
+  if (!modal) return;
+  var inner = modal.querySelector('div');
+  inner.innerHTML =
+    '<h3 style="margin:0 0 12px 0;color:var(--text);font-size:1.1rem;">Log Commission Inquiry</h3>' +
+    '<p style="margin:0 0 12px 0;color:var(--muted);font-size:0.82rem;">For: ' + (pieceName || 'Unknown piece') + '</p>' +
+    '<div style="margin-bottom:12px;"><label style="display:block;font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Customer Name</label>' +
+      '<input type="text" id="commName" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.88rem;box-sizing:border-box;"></div>' +
+    '<div style="margin-bottom:12px;"><label style="display:block;font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Email or Phone</label>' +
+      '<input type="text" id="commContact" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.88rem;box-sizing:border-box;"></div>' +
+    '<div style="margin-bottom:16px;"><label style="display:block;font-size:0.78rem;color:var(--muted);margin-bottom:4px;">Notes (optional)</label>' +
+      '<textarea id="commNotes" rows="2" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.88rem;resize:vertical;box-sizing:border-box;"></textarea></div>' +
+    '<div style="display:flex;gap:8px;">' +
+      '<button id="commSubmitBtn" onclick="submitCommission(\'' + pid.replace(/'/g, "\\'") + '\', \'' + (pieceName || '').replace(/'/g, "\\'") + '\')" style="flex:1;padding:12px;border-radius:6px;border:none;background:var(--gold);color:white;font-weight:600;font-size:0.88rem;cursor:pointer;">Save Inquiry</button>' +
+      '<button onclick="dismissCommissionModal()" style="flex:1;padding:12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:0.88rem;cursor:pointer;">Cancel</button>' +
+    '</div>';
+}
+
+async function submitCommission(pid, pieceName) {
+  var name = document.getElementById('commName').value.trim();
+  var contact = document.getElementById('commContact').value.trim();
+  var notes = document.getElementById('commNotes').value.trim();
+
+  if (!name && !contact) {
+    showToast('Enter at least a name or contact', true);
+    return;
+  }
+
+  var btn = document.getElementById('commSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    var commId = db.ref('shirglassworks/admin/commissions').push().key;
+    var record = {
+      sourcePieceId: pid,
+      sourcePieceName: pieceName,
+      customerName: name || null,
+      customerContact: contact || null,
+      notes: notes || null,
+      status: 'new',
+      channel: 'pos',
+      createdAt: new Date().toISOString()
+    };
+    await db.ref('shirglassworks/admin/commissions/' + commId).set(record);
+
+    // Trigger SendGrid notification via Cloud Function
+    try {
+      var token = currentUser ? await currentUser.getIdToken() : null;
+      if (token) {
+        fetch('https://us-central1-word-boxing.cloudfunctions.net/shirCommissionNotify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ commissionId: commId, pieceName: pieceName, customerName: name, customerContact: contact, notes: notes, channel: 'pos' })
+        }).catch(function() { /* notification failed silently */ });
+      }
+    } catch (e) { /* notification send failed — non-blocking */ }
+
+    dismissCommissionModal();
+    showToast('Commission inquiry saved');
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Save Inquiry';
+    showToast('Error: ' + err.message, true);
   }
 }
 

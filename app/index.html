@@ -2849,7 +2849,6 @@
       <div class="sidebar-items">
         <div class="sidebar-item" data-route="production" onclick="navigateTo('production')">Production</div>
         <div class="sidebar-item muted" data-route="procurement" onclick="navigateTo('procurement')">Procurement <span class="sidebar-badge new">New</span></div>
-        <div class="sidebar-item muted" data-route="commissions" onclick="navigateTo('commissions')">Commissions <span class="sidebar-badge new">New</span></div>
       </div>
     </div>
     <!-- Sell -->
@@ -2863,6 +2862,7 @@
         <div class="sidebar-item" data-route="pos" onclick="navigateTo('pos')">Point of Sale</div>
         <div class="sidebar-item" data-route="events" onclick="navigateTo('events')">Events</div>
         <div class="sidebar-item" data-route="orders" onclick="navigateTo('orders')">Retail Orders</div>
+        <div class="sidebar-item" data-route="commissions" onclick="navigateTo('commissions')">Commissions</div>
         <div class="sidebar-item muted" data-route="wholesale" onclick="navigateTo('wholesale')">Wholesale <span class="sidebar-badge new">New</span></div>
         <div class="sidebar-item muted" data-route="galleries" onclick="navigateTo('galleries')">Galleries &amp; Consignment <span class="sidebar-badge new">New</span></div>
         <div class="sidebar-item" data-route="fulfillment" onclick="navigateTo('fulfillment')">Fulfillment</div>
@@ -3101,6 +3101,48 @@
 
       <!-- Order Detail View -->
       <div id="orderDetailView" class="order-detail"></div>
+    </div>
+
+    <!-- Admin: Commissions Tab -->
+    <div id="commissionsTab" style="display:none;">
+      <div class="section-header">
+        <h2>Commissions</h2>
+        <span id="commissionsCount" style="font-size:0.82rem;color:var(--warm-gray);margin-left:8px;"></span>
+      </div>
+
+      <!-- Commission List View -->
+      <div id="commissionsListView">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+          <select id="commissionsStatusFilter" onchange="renderCommissions()" style="font-size:0.82rem;padding:6px 10px;border-radius:6px;border:1px solid var(--cream-dark);background:white;">
+            <option value="all">All</option>
+            <option value="new" selected>New</option>
+            <option value="in-discussion">In Discussion</option>
+            <option value="accepted">Accepted</option>
+            <option value="declined">Declined</option>
+            <option value="built">Built</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div id="commissionsLoading" class="loading" style="display:none;">Loading commissions...</div>
+        <div id="commissionsEmpty" class="empty-state" style="display:none;"><div class="empty-icon">&#127912;</div><p>No commission inquiries yet.</p></div>
+        <table class="data-table" id="commissionsTable" style="display:none;">
+          <thead>
+            <tr>
+              <th>Piece</th>
+              <th>Customer</th>
+              <th>Contact</th>
+              <th>Notes</th>
+              <th>Status</th>
+              <th>Channel</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="commissionsTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Commission Detail View -->
+      <div id="commissionDetailView" style="display:none;"></div>
     </div>
 
     <!-- Admin: Fulfillment Tab -->
@@ -4066,6 +4108,9 @@ var squarePayments = {};
 var squarePaymentsLoaded = false;
 var squarePaymentsListener = null;
 var showingSquarePayments = false;
+var COMMISSIONS_PATH = 'shirglassworks/admin/commissions';
+var commissionsData = {};
+var commissionsLoaded = false;
 var salesEventsLoaded = false;
 var salesEventsData = {};
 var salesEventsListener = null;
@@ -4565,8 +4610,9 @@ function enterAuthorizedState() {
   document.getElementById('deniedScreen').style.display = 'none';
   document.getElementById('header').style.display = 'flex';
   showSidebar();
-  // Route from hash or default to dashboard
-  var initialRoute = location.hash.replace('#', '') || 'dashboard';
+  // Route from hash, ?view= param, or default to dashboard
+  var viewParam = new URLSearchParams(window.location.search).get('view');
+  var initialRoute = viewParam || location.hash.replace('#', '') || 'dashboard';
   navigateTo(initialRoute);
 }
 
@@ -4664,7 +4710,20 @@ var ROUTE_MAP = {
   'dashboard':   { tab: null, placeholder: { name: 'Dashboard', desc: 'Overview of your studio at a glance.', badge: 'new' } },
   'production':  { tab: 'productionTab', setup: function() { switchProductionSubView('jobs'); } },
   'procurement': { tab: null, placeholder: { name: 'Procurement', desc: 'Track materials, supplies, purchase orders.', badge: 'new' } },
-  'commissions': { tab: null, placeholder: { name: 'Commissions', desc: 'Manage custom orders from inquiry to delivery.', badge: 'new' } },
+  'commissions': { tab: 'commissionsTab', setup: function() {
+    if (!commissionsLoaded) loadCommissions();
+    // Deep link: ?view=commissions&id=xxx
+    var urlParams = new URLSearchParams(window.location.search);
+    var deepId = urlParams.get('id');
+    if (deepId && urlParams.get('view') === 'commissions') {
+      var checkReady = setInterval(function() {
+        if (commissionsData[deepId]) { clearInterval(checkReady); viewCommissionDetail(deepId); }
+      }, 200);
+      setTimeout(function() { clearInterval(checkReady); }, 5000);
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname + '#commissions');
+    }
+  } },
   'pos':         { tab: 'salesTab', setup: function() { if (showingSquarePayments) toggleSquarePayments(); } },
   'events':      { tab: 'salesEventsTab' },
   'orders':      { tab: 'ordersTab' },
@@ -4697,13 +4756,13 @@ var ROUTE_MAP = {
 
 // Section → which routes belong to it (for auto-expanding)
 var SECTION_ROUTES = {
-  'make':   ['production', 'procurement', 'commissions'],
-  'sell':   ['pos', 'events', 'orders', 'wholesale', 'galleries', 'fulfillment', 'receipts'],
+  'make':   ['production', 'procurement'],
+  'sell':   ['pos', 'events', 'orders', 'commissions', 'wholesale', 'galleries', 'fulfillment', 'receipts'],
   'market': ['social', 'newsletter', 'stories', 'website'],
   'manage': ['products', 'inventory', 'customers', 'images', 'employees', 'contacts', 'auditlog', 'financials', 'settings']
 };
 
-var ALL_TAB_IDS = ['scheduleTab', 'galleryTab', 'productsTab', 'ordersTab', 'salesTab', 'salesEventsTab', 'productionTab', 'couponsTab', 'analyticsTab', 'settingsTab', 'imagesTab', 'auditLogTab', 'employeesTab', 'contactsTab', 'fulfillmentTab', 'placeholderTab'];
+var ALL_TAB_IDS = ['scheduleTab', 'galleryTab', 'productsTab', 'ordersTab', 'salesTab', 'salesEventsTab', 'productionTab', 'couponsTab', 'analyticsTab', 'settingsTab', 'imagesTab', 'auditLogTab', 'employeesTab', 'contactsTab', 'fulfillmentTab', 'commissionsTab', 'placeholderTab'];
 
 var currentRoute = 'dashboard';
 
@@ -5438,6 +5497,15 @@ function renderProducts() {
       availBadge = '<span class="status-badge stock-badge out-of-stock" style="font-size:0.7rem;">Discontinued</span> ';
     }
 
+    // Business line badge
+    var blBadge = '';
+    if (p.businessLine === 'sculpture') {
+      blBadge = '<span class="status-badge" style="background:var(--teal);color:white;font-size:0.7rem;margin-right:4px;">Sculpture</span>';
+      if (p.status === 'sold') {
+        blBadge += '<span class="status-badge" style="background:var(--warm-gray);color:white;font-size:0.7rem;">Sold</span> ';
+      }
+    }
+
     // Inventory info — always show on-hand count
     var inv = inventory[p.pid];
     var invHtml = '';
@@ -5476,6 +5544,7 @@ function renderProducts() {
       + '<div class="product-card-body">'
       + '<div class="product-card-name">' + esc(p.name) + '</div>'
       + priceHtml
+      + blBadge
       + availBadge
       + catsHtml
       + optionsHtml
@@ -5889,6 +5958,10 @@ function renderProductDetail(pid) {
           '<option value="available"' + (product.availability !== 'discontinued' ? ' selected' : '') + '>Available</option>' +
           '<option value="discontinued"' + (product.availability === 'discontinued' ? ' selected' : '') + '>Discontinued</option>' +
         '</select></div>' +
+        (isStaff() ? '<div class="form-group" style="min-width:140px;"><label>Business Line</label><select id="pdBusinessLine">' +
+          '<option value="production"' + ((product.businessLine || 'production') === 'production' ? ' selected' : '') + '>Production</option>' +
+          '<option value="sculpture"' + (product.businessLine === 'sculpture' ? ' selected' : '') + '>Sculpture</option>' +
+        '</select></div>' : '') +
       '</div>' +
       '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
         '<div class="form-group" style="min-width:200px;"><label>Slug (URL-safe)</label><input type="text" id="pdSlug" value="' + esc(product.slug || '') + '"></div>' +
@@ -5905,6 +5978,7 @@ function renderProductDetail(pid) {
         '<span style="color:var(--warm-gray);">Category</span><span>' + (product.categories || []).join(', ') + '</span>' +
         '<span style="color:var(--warm-gray);">Slug</span><span>' + esc(product.slug || '—') + '</span>' +
         '<span style="color:var(--warm-gray);">Availability</span><span>' + esc(product.availability || 'available') + '</span>' +
+        '<span style="color:var(--warm-gray);">Business Line</span><span>' + (product.businessLine === 'sculpture' ? '<span class="status-badge" style="background:var(--teal);color:white;font-size:0.72rem;">Sculpture</span>' : 'Production') + '</span>' +
         '<span style="color:var(--warm-gray);">Sort Order</span><span>' + (product.sortOrder !== null && product.sortOrder !== undefined ? product.sortOrder : 'auto') + '</span>' +
         '<span style="color:var(--warm-gray);">Etsy ID</span><span>' + esc(product.etsyListingId || '—') + '</span>' +
         '<span style="color:var(--warm-gray);">Introduced</span><span>' + esc(product.introducedAt || '—') + '</span>' +
@@ -6129,6 +6203,8 @@ async function saveProduct(pid) {
     var shortDesc = document.getElementById('pdShortDesc').value.trim();
     var etsyId = document.getElementById('pdEtsyId').value.trim() || null;
     var introducedAt = document.getElementById('pdIntroducedAt').value || null;
+    var businessLineEl = document.getElementById('pdBusinessLine');
+    var businessLine = businessLineEl ? businessLineEl.value : (existing ? (existing.businessLine || 'production') : 'production');
 
     // Production fields
     var buildTimeEl = document.getElementById('pdBuildTime');
@@ -6183,6 +6259,7 @@ async function saveProduct(pid) {
       materials: materials,
       shippingCategory: shippingCategory,
       weightOz: weightOz,
+      businessLine: businessLine,
       introducedAt: introducedAt,
       discontinuedAt: availability === 'discontinued' ? (existing && existing.discontinuedAt ? existing.discontinuedAt : new Date().toISOString().split('T')[0]) : null
     };
@@ -6194,6 +6271,7 @@ async function saveProduct(pid) {
       productData.url = existing.url || '';
       productData.storyId = existing.storyId || null;
       productData.buildIds = existing.buildIds || [];
+      if (existing.status) productData.status = existing.status;
     } else {
       productData.url = '';
     }
@@ -6424,13 +6502,16 @@ function openAdjustStockModal(pid) {
   var variantInfo = getProductVariantCombos(product);
   var stock = (inv && inv.stock) ? inv.stock : {};
 
+  var isSculpture = product.businessLine === 'sculpture';
   var html = '<div style="max-width:560px;">' +
     '<h3 style="margin:0 0 16px 0;">Adjust Stock: ' + esc(product.name) + '</h3>' +
+    (isSculpture ? '<div style="background:var(--teal-light,#e0f2ef);border:1px solid var(--teal);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:0.82rem;color:var(--teal-deep,var(--teal));">Sculpture — max 1 unit in stock</div>' : '') +
     '<div style="display:flex;gap:0;margin-bottom:16px;">' +
       '<button id="adjModeSet" class="btn btn-primary" style="font-size:0.78rem;padding:5px 14px;border-radius:6px 0 0 6px;" onclick="toggleAdjustMode(\'set\')">Set Count</button>' +
       '<button id="adjModeAdd" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 14px;border-radius:0 6px 6px 0;" onclick="toggleAdjustMode(\'add\')">Add Pieces</button>' +
     '</div>' +
-    '<input type="hidden" id="adjStockMode" value="set">';
+    '<input type="hidden" id="adjStockMode" value="set">' +
+    '<input type="hidden" id="adjIsSculpture" value="' + (isSculpture ? '1' : '0') + '">';
 
   if (variantInfo.combos.length > 0) {
     html += buildVariantTable(pid, variantInfo.labels, variantInfo.combos, inv);
@@ -6495,6 +6576,16 @@ async function saveAdjustStock(pid) {
     }
     updates['updatedAt'] = new Date().toISOString();
 
+    // Sculpture qty cap enforcement
+    var isSculptureAdj = (document.getElementById('adjIsSculpture') || {}).value === '1';
+    if (isSculptureAdj) {
+      var newAvail = updates['stock/_default/available'] || 0;
+      if (newAvail > 1) {
+        showToast('Sculptures are limited to 1 unit in stock', true);
+        return;
+      }
+    }
+
     // Auto-set stockType to 'in-stock' when stock is added (Bug #5 fix)
     if (!inv.stockType || inv.stockType === 'made-to-order') {
       var totalSet = updates['stock/_default/available'] || 0;
@@ -6505,6 +6596,22 @@ async function saveAdjustStock(pid) {
 
     await db.ref(INVENTORY_PATH + '/' + pid).update(updates);
     await writeAudit('update', 'inventory', pid);
+
+    // Auto-set sold status when sculpture stock reaches 0
+    if (isSculptureAdj) {
+      var finalAvail = updates['stock/_default/available'] || 0;
+      if (finalAvail <= 0) {
+        await db.ref(PRODUCTS_PATH + '/' + pid + '/status').set('sold');
+        var localP = productsData.find(function(x) { return x.pid === pid; });
+        if (localP) localP.status = 'sold';
+      } else {
+        // Clear sold status if restocked
+        await db.ref(PRODUCTS_PATH + '/' + pid + '/status').remove();
+        var localP = productsData.find(function(x) { return x.pid === pid; });
+        if (localP) delete localP.status;
+      }
+    }
+
     // Refresh local cache from Firebase to pick up current reserved values
     if (!inventory[pid]) inventory[pid] = { pid: pid };
     var freshSnap = await db.ref(INVENTORY_PATH + '/' + pid + '/stock').once('value');
@@ -16282,6 +16389,305 @@ function validateRequired(fields) {
     }
   });
   return valid;
+}
+
+// ============================================================
+// Commissions
+// ============================================================
+
+function loadCommissions() {
+  var loading = document.getElementById('commissionsLoading');
+  if (loading) loading.style.display = '';
+  db.ref(COMMISSIONS_PATH).limitToLast(200).once('value', function(snap) {
+    commissionsData = snap.val() || {};
+    commissionsLoaded = true;
+    if (loading) loading.style.display = 'none';
+    renderCommissions();
+  });
+}
+
+function renderCommissions() {
+  var filterEl = document.getElementById('commissionsStatusFilter');
+  var filter = filterEl ? filterEl.value : 'new';
+  var items = Object.keys(commissionsData).map(function(k) {
+    var c = commissionsData[k];
+    c.id = k;
+    return c;
+  });
+  if (filter !== 'all') {
+    items = items.filter(function(c) { return c.status === filter; });
+  }
+  items.sort(function(a, b) { return (b.createdAt || '').localeCompare(a.createdAt || ''); });
+
+  var countEl = document.getElementById('commissionsCount');
+  if (countEl) countEl.textContent = items.length + ' inquir' + (items.length === 1 ? 'y' : 'ies');
+
+  var emptyEl = document.getElementById('commissionsEmpty');
+  var tableEl = document.getElementById('commissionsTable');
+
+  if (items.length === 0) {
+    if (emptyEl) emptyEl.style.display = '';
+    if (tableEl) tableEl.style.display = 'none';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (tableEl) tableEl.style.display = '';
+
+  var statusColors = {
+    'new': 'background:var(--gold);color:white;',
+    'in-discussion': 'background:#42a5f5;color:white;',
+    'accepted': 'background:#4caf50;color:white;',
+    'declined': 'background:var(--warm-gray);color:white;',
+    'built': 'background:#7e57c2;color:white;',
+    'completed': 'background:var(--teal);color:white;'
+  };
+
+  var html = '';
+  items.forEach(function(c) {
+    var product = productsData.find(function(p) { return p.pid === c.sourcePieceId; });
+    var imgSrc = product && product.images && product.images.length ? product.images[0] : '';
+    var pieceName = c.sourcePieceName || (product ? product.name : 'Unknown');
+    var statusLabel = (c.status || 'new').replace(/-/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+    var dateStr = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '—';
+    var notes = c.notes || '';
+    if (notes.length > 50) notes = notes.substring(0, 47) + '...';
+
+    html += '<tr style="cursor:pointer;" onclick="viewCommissionDetail(\'' + esc(c.id) + '\')">' +
+      '<td style="display:flex;align-items:center;gap:8px;">' +
+        (imgSrc ? '<img src="' + esc(imgSrc) + '" style="width:32px;height:32px;border-radius:4px;object-fit:cover;">' : '') +
+        '<span style="font-size:0.85rem;">' + esc(pieceName) + '</span>' +
+      '</td>' +
+      '<td style="font-size:0.85rem;">' + esc(c.customerName || '—') + '</td>' +
+      '<td style="font-size:0.82rem;">' + esc(c.customerContact || '—') + '</td>' +
+      '<td style="font-size:0.82rem;color:var(--warm-gray);">' + esc(notes) + '</td>' +
+      '<td><span class="status-badge" style="' + (statusColors[c.status] || '') + 'font-size:0.72rem;">' + esc(statusLabel) + '</span></td>' +
+      '<td style="font-size:0.82rem;">' + esc((c.channel || '').toUpperCase()) + '</td>' +
+      '<td style="font-size:0.82rem;">' + esc(dateStr) + '</td>' +
+    '</tr>';
+  });
+  document.getElementById('commissionsTableBody').innerHTML = html;
+}
+
+function viewCommissionDetail(commId) {
+  var c = commissionsData[commId];
+  if (!c) return;
+  c.id = commId;
+  var product = productsData.find(function(p) { return p.pid === c.sourcePieceId; });
+  var imgSrc = product && product.images && product.images.length ? product.images[0] : '';
+  var pieceName = c.sourcePieceName || (product ? product.name : 'Unknown');
+  var dateStr = c.createdAt ? new Date(c.createdAt).toLocaleString() : '—';
+
+  var statusOptions = ['new', 'in-discussion', 'accepted', 'declined', 'built', 'completed'];
+  var statusSelect = '<select id="commStatusSelect" onchange="updateCommissionStatus(\'' + esc(commId) + '\', this.value)" style="font-size:0.85rem;padding:6px 10px;border-radius:6px;border:1px solid var(--cream-dark);">';
+  statusOptions.forEach(function(s) {
+    var label = s.replace(/-/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+    statusSelect += '<option value="' + s + '"' + (c.status === s ? ' selected' : '') + '>' + label + '</option>';
+  });
+  statusSelect += '</select>';
+
+  // Inspiration pieces section
+  var inspirationHtml = '';
+  if (c.inspirationPieces && c.inspirationPieces.length) {
+    var pieceThumbs = '';
+    c.inspirationPieces.forEach(function(ip) {
+      var inspProduct = productsData.find(function(p) { return p.pid === ip.pid; });
+      var thumb = inspProduct && inspProduct.images && inspProduct.images.length ? inspProduct.images[0] : '';
+      pieceThumbs += '<div style="text-align:center;">' +
+        (thumb ? '<img src="' + esc(thumb) + '" style="width:64px;height:64px;border-radius:6px;object-fit:cover;">' : '') +
+        '<div style="font-size:0.72rem;color:var(--warm-gray);margin-top:2px;">' + esc(ip.name || ip.pid) + '</div>' +
+      '</div>';
+    });
+    inspirationHtml = '<span style="color:var(--warm-gray);">Inspiration</span><div style="display:flex;gap:10px;flex-wrap:wrap;">' + pieceThumbs + '</div>';
+  }
+
+  // Reference image section
+  var refImageHtml = '';
+  if (c.referenceImageUrl) {
+    refImageHtml = '<span style="color:var(--warm-gray);">Reference</span><div><img src="' + esc(c.referenceImageUrl) + '" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;cursor:pointer;" onclick="window.open(this.src,\'_blank\')"></div>';
+  }
+
+  // Proposal section — visible when status is in-discussion or later
+  var proposalSection = '';
+  var showProposal = ['in-discussion', 'accepted', 'built', 'completed'].indexOf(c.status) !== -1;
+  if (showProposal || c.proposalPrice || c.proposalTimeline || c.proposalSpec) {
+    var hasProposal = c.proposalPrice || c.proposalTimeline || c.proposalSpec;
+    proposalSection =
+      '<div style="background:white;border-radius:8px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-top:16px;">' +
+        '<h4 style="margin:0 0 16px 0;font-size:1rem;">Proposal</h4>' +
+        '<div style="display:grid;grid-template-columns:120px 1fr;gap:8px 16px;font-size:0.88rem;">' +
+          '<span style="color:var(--warm-gray);">Price</span>' +
+          '<span><input type="text" id="commProposalPrice" value="' + esc(c.proposalPrice || '') + '" placeholder="e.g. $250" style="width:140px;padding:6px 8px;border-radius:6px;border:1px solid var(--cream-dark);font-size:0.88rem;"></span>' +
+          '<span style="color:var(--warm-gray);">Timeline</span>' +
+          '<span><input type="text" id="commProposalTimeline" value="' + esc(c.proposalTimeline || '') + '" placeholder="e.g. 3-4 weeks" style="width:200px;padding:6px 8px;border-radius:6px;border:1px solid var(--cream-dark);font-size:0.88rem;"></span>' +
+          '<span style="color:var(--warm-gray);">Spec / Design Notes</span>' +
+          '<span><textarea id="commProposalSpec" rows="4" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--cream-dark);font-size:0.88rem;resize:vertical;box-sizing:border-box;" placeholder="Describe the piece, materials, design details...">' + esc(c.proposalSpec || '') + '</textarea></span>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:14px;">' +
+          '<button class="btn btn-secondary" style="font-size:0.82rem;" onclick="saveCommissionProposal(\'' + esc(commId) + '\')">Save Proposal</button>' +
+          (hasProposal && c.customerContact ? '<button class="btn btn-primary" style="font-size:0.82rem;" onclick="sendCommissionProposal(\'' + esc(commId) + '\')">Send Proposal to Customer</button>' : '') +
+        '</div>' +
+        '<div id="commProposalStatus" style="margin-top:8px;font-size:0.82rem;"></div>' +
+        (c.proposalSentAt ? '<div style="margin-top:8px;font-size:0.78rem;color:var(--warm-gray);">Proposal sent: ' + esc(new Date(c.proposalSentAt).toLocaleString()) + '</div>' : '') +
+      '</div>';
+  }
+
+  // Production job link — visible when accepted
+  var jobSection = '';
+  if (c.status === 'accepted' && !c.productionJobId) {
+    jobSection =
+      '<div style="background:white;border-radius:8px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-top:16px;">' +
+        '<h4 style="margin:0 0 8px 0;font-size:1rem;">Production</h4>' +
+        '<p style="font-size:0.85rem;color:var(--warm-gray);margin:0 0 12px 0;">Customer accepted — create a production job to track the build.</p>' +
+        '<button class="btn btn-primary" style="font-size:0.82rem;" onclick="createCommissionJob(\'' + esc(commId) + '\')">Create Production Job</button>' +
+      '</div>';
+  } else if (c.productionJobId) {
+    jobSection =
+      '<div style="background:white;border-radius:8px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-top:16px;">' +
+        '<h4 style="margin:0 0 8px 0;font-size:1rem;">Production</h4>' +
+        '<p style="font-size:0.85rem;margin:0;">Linked to production job. <a href="#" onclick="event.preventDefault();navigateTo(\'production\')" style="color:var(--teal);">View in Production</a></p>' +
+      '</div>';
+  }
+
+  var html = '<div style="margin-bottom:16px;">' +
+    '<button class="btn btn-secondary" style="font-size:0.82rem;" onclick="closeCommissionDetail()">&larr; Back to List</button>' +
+  '</div>' +
+  '<div style="background:white;border-radius:8px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">' +
+    '<div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;">' +
+      (imgSrc ? '<img src="' + esc(imgSrc) + '" style="width:80px;height:80px;border-radius:8px;object-fit:cover;">' : '') +
+      '<div>' +
+        '<h3 style="margin:0 0 4px 0;font-size:1.1rem;">' + esc(pieceName) + '</h3>' +
+        '<div style="font-size:0.82rem;color:var(--warm-gray);">Commission Inquiry</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:120px 1fr;gap:8px 16px;font-size:0.88rem;">' +
+      '<span style="color:var(--warm-gray);">Customer</span><span>' + esc(c.customerName || '—') + '</span>' +
+      '<span style="color:var(--warm-gray);">Contact</span><span>' + esc(c.customerContact || '—') + '</span>' +
+      '<span style="color:var(--warm-gray);">Channel</span><span>' + esc((c.channel || '').toUpperCase()) + '</span>' +
+      '<span style="color:var(--warm-gray);">Date</span><span>' + esc(dateStr) + '</span>' +
+      '<span style="color:var(--warm-gray);">Status</span><span>' + statusSelect + '</span>' +
+      '<span style="color:var(--warm-gray);">Notes</span><span style="white-space:pre-wrap;">' + esc(c.notes || '—') + '</span>' +
+      inspirationHtml +
+      refImageHtml +
+    '</div>' +
+  '</div>' +
+  proposalSection +
+  jobSection;
+
+  document.getElementById('commissionDetailView').innerHTML = html;
+  document.getElementById('commissionDetailView').style.display = '';
+  document.getElementById('commissionsListView').style.display = 'none';
+}
+
+async function saveCommissionProposal(commId) {
+  var price = document.getElementById('commProposalPrice').value.trim();
+  var timeline = document.getElementById('commProposalTimeline').value.trim();
+  var spec = document.getElementById('commProposalSpec').value.trim();
+  var statusEl = document.getElementById('commProposalStatus');
+  try {
+    var updates = {};
+    updates['proposalPrice'] = price || null;
+    updates['proposalTimeline'] = timeline || null;
+    updates['proposalSpec'] = spec || null;
+    await db.ref(COMMISSIONS_PATH + '/' + commId).update(updates);
+    Object.assign(commissionsData[commId], updates);
+    if (statusEl) { statusEl.textContent = 'Proposal saved.'; statusEl.style.color = 'var(--teal)'; }
+    await writeAudit('update', 'commission', commId);
+  } catch (err) {
+    if (statusEl) { statusEl.textContent = 'Error: ' + err.message; statusEl.style.color = '#DC3545'; }
+  }
+}
+
+async function sendCommissionProposal(commId) {
+  var c = commissionsData[commId];
+  if (!c) return;
+  // Save first
+  await saveCommissionProposal(commId);
+  c = commissionsData[commId];
+
+  if (!c.proposalPrice && !c.proposalSpec) {
+    showToast('Add price or spec details before sending', true);
+    return;
+  }
+
+  var contact = c.customerContact || '';
+  var isEmail = contact.indexOf('@') !== -1;
+  if (!isEmail) {
+    showToast('Customer contact is not an email — copy the proposal and send manually', true);
+    return;
+  }
+
+  try {
+    var user = firebase.auth().currentUser;
+    if (!user) { showToast('Sign in required', true); return; }
+    var token = await user.getIdToken();
+
+    var resp = await fetch('https://us-central1-word-boxing.cloudfunctions.net/shirCommissionProposal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({
+        commissionId: commId,
+        customerEmail: contact,
+        customerName: c.customerName,
+        pieceName: c.sourcePieceName || 'Custom Piece',
+        price: c.proposalPrice,
+        timeline: c.proposalTimeline,
+        spec: c.proposalSpec
+      })
+    });
+    var result = await resp.json();
+    if (result.success) {
+      await db.ref(COMMISSIONS_PATH + '/' + commId + '/proposalSentAt').set(new Date().toISOString());
+      commissionsData[commId].proposalSentAt = new Date().toISOString();
+      showToast('Proposal sent to ' + contact);
+      viewCommissionDetail(commId); // Refresh
+    } else {
+      showToast('Failed to send: ' + (result.error || 'Unknown error'), true);
+    }
+  } catch (err) {
+    showToast('Error sending proposal: ' + err.message, true);
+  }
+}
+
+async function createCommissionJob(commId) {
+  var c = commissionsData[commId];
+  if (!c) return;
+  try {
+    var jobRef = db.ref('shirglassworks/admin/production/jobs').push();
+    var jobId = jobRef.key;
+    var jobData = {
+      name: 'Commission: ' + (c.sourcePieceName || 'Custom Piece') + ' for ' + (c.customerName || 'Customer'),
+      status: 'active',
+      type: 'commission',
+      commissionId: commId,
+      items: [],
+      createdAt: new Date().toISOString()
+    };
+    await jobRef.set(jobData);
+    await db.ref(COMMISSIONS_PATH + '/' + commId + '/productionJobId').set(jobId);
+    commissionsData[commId].productionJobId = jobId;
+    showToast('Production job created');
+    await writeAudit('create', 'productionJob', jobId);
+    viewCommissionDetail(commId); // Refresh
+  } catch (err) {
+    showToast('Error creating job: ' + err.message, true);
+  }
+}
+
+function closeCommissionDetail() {
+  document.getElementById('commissionDetailView').style.display = 'none';
+  document.getElementById('commissionDetailView').innerHTML = '';
+  document.getElementById('commissionsListView').style.display = '';
+}
+
+async function updateCommissionStatus(commId, newStatus) {
+  try {
+    await db.ref(COMMISSIONS_PATH + '/' + commId + '/status').set(newStatus);
+    commissionsData[commId].status = newStatus;
+    await writeAudit('update', 'commission', commId);
+    showToast('Status updated');
+  } catch (err) {
+    showToast('Error updating status: ' + err.message, true);
+  }
 }
 
 function showToast(message, isError) {

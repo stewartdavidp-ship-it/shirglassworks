@@ -590,6 +590,7 @@
     <li><a href="schedule.html">Events</a></li>
     <li><a href="index.html#process">Process</a></li>
     <li><a href="index.html#contact">Contact</a></li>
+    <li><a href="commission.html">Commissions</a></li>
     <li><a href="orders.html">Orders</a></li>
     <li><a href="#" id="navSignIn" onclick="event.preventDefault(); siteSignIn();">Sign In</a></li>
     <li><a href="shop.html" class="nav-shop">Shop</a></li>
@@ -606,6 +607,7 @@
   <a href="schedule.html" onclick="closeMobileMenu()">Events</a>
   <a href="index.html#process" onclick="closeMobileMenu()">Process</a>
   <a href="index.html#contact" onclick="closeMobileMenu()">Contact</a>
+  <a href="commission.html" onclick="closeMobileMenu()">Commissions</a>
   <a href="orders.html" onclick="closeMobileMenu()">Orders</a>
   <a href="#" onclick="event.preventDefault(); siteSignIn(); closeMobileMenu();">Sign In</a>
   <a href="shop.html" class="btn-shop" onclick="closeMobileMenu()">Shop</a>
@@ -656,6 +658,7 @@
       <li><a href="shop.html">Shop</a></li>
       <li><a href="schedule.html">Schedule</a></li>
       <li><a href="orders.html">Orders</a></li>
+      <li><a href="commission.html">Commissions</a></li>
     </ul>
     <div class="footer-social">
       <a href="https://www.instagram.com/shirglassworks/" target="_blank" aria-label="Instagram">
@@ -740,13 +743,16 @@
         var img = (product.images && product.images.length > 0) ? product.images[0] : '';
         var link = pid ? 'product.html?id=' + pid : 'shop.html';
         var isLocal = !!pid;
+        var isSoldSculpture = product.businessLine === 'sculpture' && product.status === 'sold';
         html += '<div class="product-card fade-up" style="opacity:1;transform:translateY(0)">' +
-          '<div class="product-image"><a href="' + link + '"' + (isLocal ? '' : ' target="_blank" rel="noopener"') + '>' + (img ? '<img src="' + img + '" alt="' + name + '" loading="lazy" />' : '') + '</a></div>' +
+          '<div class="product-image"' + (isSoldSculpture ? ' style="position:relative;"' : '') + '><a href="' + link + '"' + (isLocal ? '' : ' target="_blank" rel="noopener"') + '>' + (img ? '<img src="' + img + '" alt="' + name + '" loading="lazy" />' : '') + '</a>' +
+            (isSoldSculpture ? '<span style="position:absolute;top:8px;right:8px;background:rgba(92,61,46,0.85);color:white;font-size:0.7rem;font-weight:600;padding:3px 8px;border-radius:4px;">Sold</span>' : '') +
+          '</div>' +
           '<div class="product-info">' +
             '<span class="product-category">' + cat.label + '</span>' +
             '<h3>' + name + '</h3>' +
-            (price ? '<p class="product-price">' + price + '</p>' : '') +
-            (link ? '<a href="' + link + '" class="product-link"' + (isLocal ? '' : ' target="_blank" rel="noopener"') + '>View Details</a>' : '') +
+            (isSoldSculpture ? '<p class="product-price" style="font-size:0.82rem;color:var(--warm-gray,#6B6560);">Commission available</p>' : (price ? '<p class="product-price">' + price + '</p>' : '')) +
+            (link ? '<a href="' + link + '" class="product-link"' + (isLocal ? '' : ' target="_blank" rel="noopener"') + '>' + (isSoldSculpture ? 'Request Commission' : 'View Details') + '</a>' : '') +
           '</div></div>';
       });
       html += '</div>';

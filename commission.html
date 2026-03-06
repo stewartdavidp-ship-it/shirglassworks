@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Custom Commission &mdash; Shir Glassworks</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+  :root {
+    --amber: #C4853C;
+    --amber-light: #E8B679;
+    --amber-glow: #F5D5A8;
+    --teal: #2A7C6F;
+    --teal-deep: #1B5C52;
+    --teal-light: #A8D5CE;
+    --cream: #FAF6F0;
+    --cream-dark: #F0E8DB;
+    --charcoal: #1A1A1A;
+    --warm-gray: #6B6560;
+    --warm-gray-light: #9B958E;
+    --glass-gradient: linear-gradient(135deg, #C4853C 0%, #E8B679 30%, #A8D5CE 70%, #2A7C6F 100%);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--charcoal);
+    background: var(--cream);
+    overflow-x: hidden;
+    font-weight: 300;
+  }
+
+  /* ========= NAV ========= */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 1.25rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.4s ease;
+    background: rgba(26, 26, 26, 0.92);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 2px 40px rgba(0,0,0,0.2);
+  }
+
+  nav.scrolled {
+    padding: 0.8rem 3rem;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+  }
+
+  .nav-logo img {
+    height: 52px;
+    transition: all 0.4s ease;
+  }
+
+  nav.scrolled .nav-logo img {
+    height: 40px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+    align-items: center;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 400;
+    position: relative;
+    transition: color 0.3s;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--amber-light);
+    transition: width 0.3s;
+  }
+
+  .nav-links a:hover { color: var(--amber-light); }
+  .nav-links a:hover::after { width: 100%; }
+
+  .nav-shop {
+    background: var(--amber);
+    color: #fff !important;
+    padding: 0.5rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+
+  .nav-shop:hover {
+    background: var(--amber-light);
+    transform: translateY(-1px);
+  }
+
+  .nav-shop::after { display: none !important; }
+
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .nav-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+
+  /* ========= HERO BANNER ========= */
+  .comm-hero {
+    padding: 140px 3rem 60px;
+    text-align: center;
+    background: linear-gradient(170deg, #1A1A1A 0%, #2d2520 40%, #3a2a1c 100%);
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .comm-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 100%, rgba(196,133,60,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .comm-hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.8rem;
+    position: relative;
+  }
+
+  .comm-hero p {
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.7);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.7;
+    position: relative;
+  }
+
+  /* ========= MAIN CONTENT ========= */
+  .comm-main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* How it works */
+  .comm-steps {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .comm-step {
+    flex: 1;
+    min-width: 180px;
+    max-width: 220px;
+    text-align: center;
+    padding: 20px 12px;
+  }
+
+  .comm-step-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.88rem;
+    margin: 0 auto 12px;
+  }
+
+  .comm-step h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--charcoal);
+  }
+
+  .comm-step p {
+    font-size: 0.82rem;
+    color: var(--warm-gray);
+    line-height: 1.5;
+  }
+
+  /* Form card */
+  .comm-form-card {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    border: 1px solid #e8e0d4;
+  }
+
+  .comm-form-card h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    margin-bottom: 6px;
+    color: var(--charcoal);
+  }
+
+  .comm-form-card .subtitle {
+    font-size: 0.88rem;
+    color: var(--warm-gray);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .form-section {
+    margin-bottom: 20px;
+  }
+
+  .form-section label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--warm-gray);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .form-section label span {
+    font-weight: 400;
+    color: var(--warm-gray-light);
+  }
+
+  .form-section input,
+  .form-section textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #e8e0d4;
+    font-size: 0.92rem;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s;
+    background: var(--cream);
+  }
+
+  .form-section input:focus,
+  .form-section textarea:focus {
+    outline: none;
+    border-color: var(--teal);
+  }
+
+  .form-section textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  /* Catalog grid */
+  .catalog-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 8px;
+    border: 1px solid #e8e0d4;
+    border-radius: 8px;
+    background: var(--cream);
+  }
+
+  .catalog-item {
+    width: 80px;
+    flex-shrink: 0;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    padding: 4px;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+
+  .catalog-item:hover {
+    transform: translateY(-2px);
+  }
+
+  .catalog-item.selected {
+    border-color: var(--teal);
+    background: rgba(42, 124, 111, 0.05);
+  }
+
+  .catalog-item img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 5px;
+    display: block;
+  }
+
+  .catalog-item .item-name {
+    font-size: 0.65rem;
+    color: #5C3D2E;
+    margin-top: 3px;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .catalog-item .item-selected {
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--teal);
+    font-weight: 600;
+  }
+
+  /* Upload area */
+  .upload-area {
+    border: 2px dashed #e8e0d4;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--cream);
+    transition: border-color 0.2s;
+  }
+
+  .upload-area:hover {
+    border-color: var(--teal-light);
+  }
+
+  .upload-area.dragover {
+    border-color: var(--teal);
+    background: rgba(42, 124, 111, 0.03);
+  }
+
+  .upload-label {
+    color: var(--warm-gray-light);
+    font-size: 0.88rem;
+  }
+
+  .upload-label small {
+    font-size: 0.75rem;
+    display: block;
+    margin-top: 4px;
+  }
+
+  /* Submit button */
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'DM Sans', sans-serif;
+    margin-top: 8px;
+  }
+
+  .btn-submit:hover {
+    background: var(--teal-deep);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(42, 124, 111, 0.3);
+  }
+
+  .btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .status-msg {
+    margin-top: 10px;
+    font-size: 0.88rem;
+    text-align: center;
+  }
+
+  /* Success state */
+  .comm-success {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .comm-success .check-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin: 0 auto 16px;
+  }
+
+  .comm-success h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+
+  .comm-success p {
+    color: var(--warm-gray);
+    font-size: 0.95rem;
+    max-width: 400px;
+    margin: 0 auto 24px;
+    line-height: 1.6;
+  }
+
+  .btn-browse {
+    display: inline-block;
+    padding: 10px 24px;
+    background: var(--amber);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+
+  .btn-browse:hover {
+    background: var(--amber-light);
+    transform: translateY(-1px);
+  }
+
+  /* ========= MOBILE MENU ========= */
+  .nav-mobile-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 200;
+    background: rgba(26, 26, 26, 0.97);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.8rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .nav-mobile-menu.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .nav-mobile-menu a {
+    text-decoration: none;
+    color: rgba(255,255,255,0.85);
+    font-size: 1.2rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 300;
+    transition: color 0.3s;
+  }
+
+  .nav-mobile-menu a:hover { color: var(--amber); }
+
+  .nav-mobile-menu .btn-shop {
+    background: var(--amber);
+    color: #fff;
+    padding: 0.6rem 2rem;
+    border-radius: 6px;
+  }
+
+  /* ========= FOOTER ========= */
+  footer {
+    background: var(--charcoal);
+    padding: 2.5rem 3rem;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.72rem;
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .footer-logo img {
+    height: 28px;
+    opacity: 0.4;
+  }
+
+  .footer-logo span {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.08em;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .footer-links a {
+    color: rgba(255,255,255,0.35);
+    font-size: 0.72rem;
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+
+  .footer-links a:hover { color: var(--amber-light); }
+
+  .footer-social {
+    display: flex;
+    gap: 1.2rem;
+  }
+
+  .footer-social a {
+    color: rgba(255,255,255,0.35);
+    transition: color 0.3s;
+  }
+
+  .footer-social a:hover { color: var(--amber-light); }
+  .footer-social svg { width: 18px; height: 18px; fill: currentColor; }
+
+  /* ========= RESPONSIVE ========= */
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    nav.scrolled { padding: 0.6rem 1.5rem; }
+    .nav-links { display: none; }
+    .nav-toggle { display: flex; }
+
+    .comm-hero { padding: 120px 1.5rem 40px; }
+    .comm-hero h1 { font-size: 2rem; }
+    .comm-hero p { font-size: 0.95rem; }
+
+    .comm-main { padding: 32px 16px 60px; }
+    .comm-form-card { padding: 20px; }
+    .comm-steps { gap: 16px; }
+    .comm-step { min-width: 140px; }
+
+    .footer-inner { flex-direction: column; gap: 1.5rem; text-align: center; }
+    .footer-links { flex-wrap: wrap; justify-content: center; gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav id="mainNav">
+  <a href="index.html" class="nav-logo">
+    <img src="logo.png" alt="Shir Glassworks" />
+  </a>
+  <ul class="nav-links">
+    <li><a href="about.html">About</a></li>
+    <li><a href="index.html#gallery">Gallery</a></li>
+    <li><a href="schedule.html">Events</a></li>
+    <li><a href="index.html#process">Process</a></li>
+    <li><a href="index.html#contact">Contact</a></li>
+    <li><a href="orders.html">Orders</a></li>
+    <li><a href="#" onclick="event.preventDefault(); siteSignIn();">Sign In</a></li>
+    <li><a href="shop.html" class="nav-shop">Shop</a></li>
+  </ul>
+  <button class="nav-toggle" onclick="document.getElementById('mobileMenu').classList.toggle('active')">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="nav-mobile-menu" id="mobileMenu">
+  <a href="about.html" onclick="closeMobileMenu()">About</a>
+  <a href="index.html#gallery" onclick="closeMobileMenu()">Gallery</a>
+  <a href="schedule.html" onclick="closeMobileMenu()">Events</a>
+  <a href="index.html#process" onclick="closeMobileMenu()">Process</a>
+  <a href="index.html#contact" onclick="closeMobileMenu()">Contact</a>
+  <a href="orders.html" onclick="closeMobileMenu()">Orders</a>
+  <a href="#" onclick="event.preventDefault(); siteSignIn(); closeMobileMenu();">Sign In</a>
+  <a href="shop.html" class="btn-shop" onclick="closeMobileMenu()">Shop</a>
+</div>
+
+<!-- Hero -->
+<section class="comm-hero">
+  <h1>Custom Commissions</h1>
+  <p>Have a vision for a one-of-a-kind glass piece? Tell us what you're looking for and we'll bring it to life.</p>
+</section>
+
+<!-- Main content -->
+<div class="comm-main">
+
+  <!-- How it works -->
+  <div class="comm-steps">
+    <div class="comm-step">
+      <div class="comm-step-num">1</div>
+      <h3>Share Your Vision</h3>
+      <p>Browse our catalog for inspiration or upload your own reference image.</p>
+    </div>
+    <div class="comm-step">
+      <div class="comm-step-num">2</div>
+      <h3>Get a Proposal</h3>
+      <p>We'll review your request and send a proposal with pricing and timeline.</p>
+    </div>
+    <div class="comm-step">
+      <div class="comm-step-num">3</div>
+      <h3>We Create It</h3>
+      <p>Once approved, we handcraft your piece and ship it to your door.</p>
+    </div>
+  </div>
+
+  <!-- Commission form -->
+  <div class="comm-form-card" id="commFormCard">
+    <h2>Request a Commission</h2>
+    <p class="subtitle">Fill out the form below and we'll get back to you within a few days.</p>
+
+    <!-- Inspiration picker -->
+    <div class="form-section">
+      <label>Select pieces for inspiration <span>(optional)</span></label>
+      <div class="catalog-grid" id="commCatalogGrid">
+        <div style="padding:16px;color:var(--warm-gray-light);font-size:0.88rem;">Loading catalog...</div>
+      </div>
+    </div>
+
+    <!-- Image upload -->
+    <div class="form-section">
+      <label>Upload a reference image <span>(optional)</span></label>
+      <div class="upload-area" id="commUploadArea" onclick="document.getElementById('commFileInput').click()">
+        <div id="commUploadPreview" style="display:none;margin-bottom:8px;"></div>
+        <div class="upload-label" id="commUploadLabel">Click or drag an image here<small>Max 5MB &middot; JPG, PNG, WEBP</small></div>
+      </div>
+      <input type="file" id="commFileInput" accept="image/*" style="display:none;" onchange="handleCommFileSelect(this)">
+    </div>
+
+    <!-- Contact fields -->
+    <div class="form-section">
+      <label>Your Name</label>
+      <input type="text" id="commName" placeholder="Jane Smith">
+    </div>
+
+    <div class="form-section">
+      <label>Email or Phone</label>
+      <input type="text" id="commContact" placeholder="jane@example.com">
+    </div>
+
+    <div class="form-section">
+      <label>What are you looking for?</label>
+      <textarea id="commNotes" placeholder="Describe the size, colors, style, and occasion you have in mind..."></textarea>
+    </div>
+
+    <button class="btn-submit" id="commSubmitBtn" onclick="submitCommission()">Send Inquiry</button>
+    <div class="status-msg" id="commStatus"></div>
+  </div>
+
+  <!-- Success state (shown after submit) -->
+  <div class="comm-success" id="commSuccess">
+    <div class="check-circle">&#10003;</div>
+    <h2>Inquiry Sent!</h2>
+    <p>Thank you for reaching out. We'll review your request and get back to you within a few days with a proposal.</p>
+    <a href="shop.html" class="btn-browse">Browse the Shop</a>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <img src="logo.png" alt="Shir Glassworks" />
+      <span>Shir Glassworks</span>
+    </div>
+    <ul class="footer-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="schedule.html">Schedule</a></li>
+      <li><a href="orders.html">Orders</a></li>
+      <li><a href="commission.html">Commissions</a></li>
+    </ul>
+    <div class="footer-social">
+      <a href="https://www.instagram.com/shirglassworks/" target="_blank" aria-label="Instagram">
+        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+<script>
+(function() {
+  var app = firebase.initializeApp({
+    apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
+    authDomain: "word-boxing.firebaseapp.com",
+    databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
+    projectId: "word-boxing",
+    storageBucket: "word-boxing.firebasestorage.app"
+  }, 'commission-page');
+  var db = app.database();
+  window._commDb = db;
+  window._commApp = app;
+
+  // State
+  window._commInspirationPids = [];
+  window._commUploadFile = null;
+  window._allProducts = null;
+
+  // Pre-select from URL param ?piece=pXXX
+  var params = new URLSearchParams(window.location.search);
+  var preselect = params.get('piece');
+  if (preselect) {
+    window._commInspirationPids.push(preselect);
+  }
+
+  // Load catalog on page load
+  loadProductCatalog();
+})();
+
+function loadProductCatalog() {
+  var db = window._commDb;
+  if (!db) return;
+  db.ref('shirglassworks/public/products').once('value').then(function(snap) {
+    var products = [];
+    snap.forEach(function(child) {
+      var p = child.val();
+      if (p && p.name && p.images && p.images.length) {
+        products.push({ pid: p.pid || child.key, name: p.name, image: p.images[0], businessLine: p.businessLine || 'production' });
+      }
+    });
+    window._allProducts = products;
+    renderCatalogGrid();
+  });
+}
+
+function renderCatalogGrid() {
+  var grid = document.getElementById('commCatalogGrid');
+  if (!grid || !window._allProducts) return;
+  var selected = window._commInspirationPids || [];
+  var html = '';
+  window._allProducts.forEach(function(p) {
+    var isSelected = selected.indexOf(p.pid) !== -1;
+    html += '<div class="catalog-item' + (isSelected ? ' selected' : '') + '" onclick="toggleInspiration(\'' + p.pid + '\')" title="' + (p.name || '') + '">' +
+      '<img src="' + p.image + '" alt="' + (p.name || '') + '" />' +
+      '<div class="item-name">' + (p.name || '') + '</div>' +
+      (isSelected ? '<div class="item-selected">Selected</div>' : '') +
+    '</div>';
+  });
+  if (!html) html = '<div style="padding:16px;color:var(--warm-gray-light);font-size:0.88rem;">No products found</div>';
+  grid.innerHTML = html;
+}
+
+function toggleInspiration(pid) {
+  var idx = window._commInspirationPids.indexOf(pid);
+  if (idx === -1) {
+    window._commInspirationPids.push(pid);
+  } else {
+    window._commInspirationPids.splice(idx, 1);
+  }
+  renderCatalogGrid();
+}
+
+function handleCommFileSelect(input) {
+  if (input.files && input.files[0]) handleCommFile(input.files[0]);
+}
+
+function handleCommFile(file) {
+  if (!file.type.match(/^image\//)) {
+    alert('Please select an image file (JPG, PNG, WEBP).');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Image must be under 5MB.');
+    return;
+  }
+  window._commUploadFile = file;
+  var preview = document.getElementById('commUploadPreview');
+  var label = document.getElementById('commUploadLabel');
+  if (preview && label) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      preview.innerHTML = '<img src="' + e.target.result + '" style="max-width:140px;max-height:140px;border-radius:8px;object-fit:cover;" />' +
+        '<div style="font-size:0.78rem;color:#5C3D2E;margin-top:6px;">' + file.name + '</div>' +
+        '<div style="font-size:0.72rem;color:var(--teal);cursor:pointer;margin-top:3px;" onclick="event.stopPropagation();clearCommUpload();">Remove</div>';
+      preview.style.display = '';
+      label.textContent = 'Change image';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function clearCommUpload() {
+  window._commUploadFile = null;
+  var preview = document.getElementById('commUploadPreview');
+  var label = document.getElementById('commUploadLabel');
+  if (preview) { preview.innerHTML = ''; preview.style.display = 'none'; }
+  if (label) { label.innerHTML = 'Click or drag an image here<small>Max 5MB &middot; JPG, PNG, WEBP</small>'; }
+  document.getElementById('commFileInput').value = '';
+}
+
+function submitCommission() {
+  var name = document.getElementById('commName').value.trim();
+  var contact = document.getElementById('commContact').value.trim();
+  var notes = document.getElementById('commNotes').value.trim();
+  var statusEl = document.getElementById('commStatus');
+
+  if (!name || !contact) {
+    statusEl.textContent = 'Please enter your name and contact info.';
+    statusEl.style.color = '#DC3545';
+    return;
+  }
+
+  var btn = document.getElementById('commSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  statusEl.textContent = '';
+
+  var commDb = window._commDb;
+  if (!commDb) { statusEl.textContent = 'Unable to connect.'; statusEl.style.color = '#DC3545'; return; }
+
+  var commRef = commDb.ref('shirglassworks/admin/commissions');
+  var commId = commRef.push().key;
+
+  // Build inspiration list with names
+  var inspirationPieces = [];
+  (window._commInspirationPids || []).forEach(function(pid) {
+    var match = (window._allProducts || []).find(function(p) { return p.pid === pid; });
+    inspirationPieces.push({ pid: pid, name: match ? match.name : pid });
+  });
+
+  // Upload image first if present, then save commission
+  var uploadPromise;
+  if (window._commUploadFile) {
+    var storageRef = window._commApp.storage().ref('shirglassworks/commissions/' + commId + '/reference.' + window._commUploadFile.name.split('.').pop());
+    uploadPromise = storageRef.put(window._commUploadFile).then(function(snapshot) {
+      return snapshot.ref.getDownloadURL();
+    });
+  } else {
+    uploadPromise = Promise.resolve(null);
+  }
+
+  uploadPromise.then(function(imageUrl) {
+    var record = {
+      inspirationPieces: inspirationPieces.length > 0 ? inspirationPieces : null,
+      referenceImageUrl: imageUrl || null,
+      customerName: name,
+      customerContact: contact,
+      notes: notes || null,
+      status: 'new',
+      channel: 'web',
+      createdAt: new Date().toISOString()
+    };
+
+    return commRef.child(commId).set(record);
+  }).then(function() {
+    // Build piece name string for notification
+    var pieceNames = [];
+    inspirationPieces.forEach(function(p) { if (p.name) pieceNames.push(p.name); });
+    var pieceName = pieceNames.join(', ') || 'Custom Piece';
+
+    // Trigger notification (fire and forget)
+    fetch('https://us-central1-word-boxing.cloudfunctions.net/shirCommissionNotify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commissionId: commId, pieceName: pieceName, customerName: name, customerContact: contact, notes: notes, channel: 'web' })
+    }).catch(function() {});
+
+    // Show success
+    document.getElementById('commFormCard').style.display = 'none';
+    document.getElementById('commSuccess').style.display = '';
+  }).catch(function(err) {
+    console.error('Commission submit error:', err);
+    btn.disabled = false;
+    btn.textContent = 'Send Inquiry';
+    statusEl.textContent = 'Something went wrong. Please try again.';
+    statusEl.style.color = '#DC3545';
+  });
+}
+
+// Drag-and-drop
+(function() {
+  var dropArea = document.getElementById('commUploadArea');
+  if (!dropArea) return;
+  ['dragenter', 'dragover'].forEach(function(ev) {
+    dropArea.addEventListener(ev, function(e) { e.preventDefault(); dropArea.classList.add('dragover'); });
+  });
+  ['dragleave', 'drop'].forEach(function(ev) {
+    dropArea.addEventListener(ev, function(e) { e.preventDefault(); dropArea.classList.remove('dragover'); });
+  });
+  dropArea.addEventListener('drop', function(e) {
+    var files = e.dataTransfer.files;
+    if (files.length > 0) handleCommFile(files[0]);
+  });
+})();
+
+// Nav scroll
+(function() {
+  var nav = document.getElementById('mainNav');
+  window.addEventListener('scroll', function() {
+    nav.classList.toggle('scrolled', window.scrollY > 80);
+  });
+})();
+
+function closeMobileMenu() {
+  document.getElementById('mobileMenu').classList.remove('active');
+}
+
+// Sign in (placeholder — same as other public pages)
+function siteSignIn() {
+  window.location.href = 'app/index.html';
+}
+</script>
+</body>
+</html>

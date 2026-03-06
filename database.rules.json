@@ -466,6 +466,15 @@
           }
         },
 
+        // Commissions — anonymous push-only writes from public website, admin reads inherited
+        "commissions": {
+          ".indexOn": ["status", "createdAt"],
+          "$commissionId": {
+            ".write": "!data.exists()",
+            ".validate": "newData.hasChildren(['customerName', 'customerContact', 'status', 'channel', 'createdAt']) && newData.child('customerName').isString() && newData.child('customerName').val().length >= 1 && newData.child('customerName').val().length <= 200 && newData.child('customerContact').isString() && newData.child('customerContact').val().length >= 1 && newData.child('customerContact').val().length <= 200 && (newData.child('status').val() === 'new') && (newData.child('channel').val() === 'web' || newData.child('channel').val() === 'pos') && newData.child('createdAt').isString()"
+          }
+        },
+
         // Audit trail — global chronological log (Phase E2)
         // Append-only: any authenticated user can create entries, nobody can update/delete
         // Admin-only reads (inherited from parent .read)
