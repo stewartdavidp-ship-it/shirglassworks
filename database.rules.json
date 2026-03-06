@@ -422,43 +422,80 @@
       "admin": {
         // Read: admin always, or any user with a non-guest RBAC role
         ".read": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').exists() && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() !== 'guest')",
-        // Write: admin always, or any user with a non-guest RBAC role
-        ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').exists() && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() !== 'guest')",
 
-        // Invites — any authenticated user can read (first-login lookup), admin-only write
+        // Invites — any authenticated user can read (first-login lookup)
+        // Admin can write all. Authenticated users can accept their own invite (update status).
         "invites": {
           ".read": "auth != null",
-          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() === 'admin')"
-        },
-
-        // RBAC roles — any authenticated user can read (to cache their permission config)
-        "roles": {
-          ".read": "auth != null"
-        },
-
-        // RBAC user records — users can read their own record and create it on first sign-in
-        // (guest auto-provisioning). Cannot update own record (role elevation blocked).
-        // Admin can read/write all (inherited from parent rules).
-        "users": {
-          "$uid": {
-            ".read": "auth.uid === $uid",
-            ".write": "auth.uid === $uid && !data.exists()"
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() === 'admin')",
+          "$inviteKey": {
+            ".write": "auth != null && !data.child('acceptedByUid').exists()"
           }
         },
 
+        // RBAC roles definition — any authenticated user can read (to cache permission config), admin-only write
+        "roles": {
+          ".read": "auth != null",
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72'"
+        },
+
+        // RBAC user records — admin can write all.
+        // Users can create their own record on first sign-in (guest auto-provisioning)
+        // and update lastLoginAt on subsequent sign-ins. Role self-elevation blocked by validate.
+        "users": {
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72'",
+          "$uid": {
+            ".read": "auth.uid === $uid",
+            ".write": "auth.uid === $uid && (!data.exists() || newData.child('role').val() === data.child('role').val())"
+          }
+        },
+
+        // GitHub token — admin-only read/write (sensitive credential)
+        "githubToken": {
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72'",
+          ".read": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72'"
+        },
+
+        // Settings — admin-only write
+        "settings": {
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72'"
+        },
+
+        // Inventory — staff can write (POS needs to decrement stock during sales)
+        "inventory": {
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').exists() && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() !== 'guest')"
+        },
+
+        // Coupons — admin-only write
+        "coupons": {
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() === 'admin')"
+        },
+
+        // Sales — staff with non-guest role can write (POS operators need this)
         "sales": {
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').exists() && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() !== 'guest')",
           ".indexOn": ["timestamp", "status", "paymentType", "eventId"]
         },
+        // SalesEvents — admin manages events, staff can update allocation sold counts (POS)
         "salesEvents": {
-          ".indexOn": ["date", "status"]
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() === 'admin')",
+          ".indexOn": ["date", "status"],
+          "$eventId": {
+            "allocations": {
+              ".write": "auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').exists() && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() !== 'guest'"
+            }
+          }
         },
         "locations": {
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() === 'admin')",
           ".indexOn": ["status", "type", "createdAt"]
         },
         "square-payments": {
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72'",
           ".indexOn": ["createdAt", "matchedSaleId", "status"]
         },
         "contacts": {
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() === 'admin')",
           "$contactId": {
             "interactions": {
               ".indexOn": ["date"]
@@ -475,9 +512,13 @@
           }
         },
 
-        // Audit trail — global chronological log (Phase E2)
+        // Production — admin and operators can write
+        "production": {
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').exists() && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() !== 'guest')"
+        },
+
+        // Audit trail — global chronological log
         // Append-only: any authenticated user can create entries, nobody can update/delete
-        // Admin-only reads (inherited from parent .read)
         "auditLog": {
           ".indexOn": ["time", "event/entity"],
           "$entryId": {
@@ -494,6 +535,34 @@
                 ".write": "auth != null && !data.exists()",
                 ".validate": "newData.hasChildren(['event', 'actor', 'time'])"
               }
+            }
+          }
+        },
+
+        // Default deny for any other admin sub-paths not explicitly listed
+        "$other": {
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72'"
+        }
+      },
+
+      // Market — Social media pipeline, per-user content
+      "market": {
+        "pendingClips": {
+          "$uid": {
+            ".read": "auth.uid === $uid || auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72'",
+            ".write": "auth.uid === $uid || auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72'",
+            "$clipId": {
+              ".validate": "newData.hasChildren(['clipId', 'fileName', 'uploadedAt', 'status', 'fileType'])"
+            }
+          }
+        },
+        "posts": {
+          "$uid": {
+            ".read": "auth.uid === $uid || auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72'",
+            ".write": "auth.uid === $uid || auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72'",
+            ".indexOn": ["postedAt", "treatment"],
+            "$postId": {
+              ".validate": "newData.hasChildren(['postId', 'treatment', 'platforms', 'postedAt'])"
             }
           }
         }

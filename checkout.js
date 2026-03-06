@@ -148,31 +148,47 @@
     }).catch(function () { callback(0); });
   }
 
+  // Ensure we have at least anonymous auth for secure Cloud Function calls
+  function ensureAuth() {
+    var app = window.ShirCart.getFirebaseApp();
+    if (!app) return Promise.reject(new Error('Firebase not available'));
+    var auth = app.auth();
+    if (auth.currentUser) return auth.currentUser.getIdToken();
+    return auth.signInAnonymously().then(function(cred) {
+      return cred.user.getIdToken();
+    });
+  }
+
   function callFunction(name, data, callback) {
     var app = window.ShirCart.getFirebaseApp();
     if (!app) { callback({ success: false, error: 'Firebase not available' }); return; }
 
-    // Use Firebase callable function
+    // Get auth token before calling Cloud Function
     var projectId = 'shir-glassworks';
     var url = 'https://us-central1-' + projectId + '.cloudfunctions.net/' + name;
 
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState !== 4) return;
-      try {
-        var resp = JSON.parse(xhr.responseText);
-        // Firebase callable wraps result in { result: ... }
-        callback(resp.result || resp);
-      } catch (e) {
+    ensureAuth().then(function(token) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', url, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          // Firebase callable wraps result in { result: ... }
+          callback(resp.result || resp);
+        } catch (e) {
+          callback({ success: false, error: 'Network error' });
+        }
+      };
+      xhr.onerror = function () {
         callback({ success: false, error: 'Network error' });
-      }
-    };
-    xhr.onerror = function () {
-      callback({ success: false, error: 'Network error' });
-    };
-    xhr.send(JSON.stringify({ data: data }));
+      };
+      xhr.send(JSON.stringify({ data: data }));
+    }).catch(function(err) {
+      callback({ success: false, error: 'Authentication failed: ' + err.message });
+    });
   }
 
   // ── Step Indicator HTML ──
@@ -753,6 +769,9 @@
     var items = window.ShirCart.getItems();
     var user = window.ShirCart.getCurrentUser();
 
+    // SECURITY: prices are sent for display/logging only.
+    // The Cloud Function (shirSubmitOrder) MUST look up prices from its own
+    // product database and calculate totals server-side. Never trust client prices.
     var payload = {
       email: checkoutData.email,
       shipping: checkoutData.shipping,

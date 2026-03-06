@@ -391,6 +391,38 @@ Use the Forecast view to see what's selling, what's running low, and what to bui
 
 ---
 
+## Market
+
+### Create and Post a Social Media Video
+**Status:** Live
+
+How to take a finished video from your camera roll to a ready-to-post Instagram Reel in Studio.
+
+1. Open the admin app and go to Market → Social Media
+2. Tap "New Post"
+3. Choose "I already have a clip" and pick your edited video from your camera roll
+4. In the Enhancement dialog: link to a product or event (or describe the video), choose a content style (treatment), and select Instagram Reels as the destination
+5. Review the Clip Readiness score — proceed even if amber (it's advisory only)
+6. Review the 3 caption variants and tap the one that fits best — edit inline if needed
+7. Follow the Instagram Posting Guide steps A–E: Open Instagram, select your video, paste the caption, paste hashtags, set your cover frame
+8. Back in Studio, tap "Mark as Posted" to record it
+9. Later, if the post performs well, tap 👍 or 🔥 on the post in your Posted History to log the signal
+
+### Pre-Shoot: Get a Shoot Card Before You Film
+**Status:** Live
+
+Use Studio to get specific shooting guidance before you pick up your camera.
+
+1. Open Market → Social Media and tap "New Post"
+2. Choose "I'm about to shoot"
+3. Select a content style (treatment) and link to the product or event you're about to film
+4. Studio generates a Shoot Card — 4–6 specific instructions for your exact subject and style
+5. Read the card, then tap "Ready to Shoot" and open your camera app
+6. When you return with the edited video, go back to Studio → New Post → "I already have a clip"
+7. The pending post record is waiting — upload your clip and continue from Step 4 in the workflow above
+
+---
+
 ## Not Yet Built
 
 The following workflows have been identified but not yet designed or built. These are candidates for the next planning session with Ori and Madeline.

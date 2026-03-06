@@ -751,6 +751,13 @@
   window._commDb = db;
   window._commApp = app;
 
+  // HTML escape helper — prevent XSS from product data
+  window._commEsc = function(s) {
+    var d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  };
+
   // State
   window._commInspirationPids = [];
   window._commUploadFile = null;
@@ -788,11 +795,12 @@ function renderCatalogGrid() {
   if (!grid || !window._allProducts) return;
   var selected = window._commInspirationPids || [];
   var html = '';
+  var e = window._commEsc;
   window._allProducts.forEach(function(p) {
     var isSelected = selected.indexOf(p.pid) !== -1;
-    html += '<div class="catalog-item' + (isSelected ? ' selected' : '') + '" onclick="toggleInspiration(\'' + p.pid + '\')" title="' + (p.name || '') + '">' +
-      '<img src="' + p.image + '" alt="' + (p.name || '') + '" />' +
-      '<div class="item-name">' + (p.name || '') + '</div>' +
+    html += '<div class="catalog-item' + (isSelected ? ' selected' : '') + '" onclick="toggleInspiration(\'' + e(p.pid) + '\')" title="' + e(p.name) + '">' +
+      '<img src="' + e(p.image) + '" alt="' + e(p.name) + '" />' +
+      '<div class="item-name">' + e(p.name) + '</div>' +
       (isSelected ? '<div class="item-selected">Selected</div>' : '') +
     '</div>';
   });
