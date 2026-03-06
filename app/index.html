@@ -6424,7 +6424,12 @@ function openAdjustStockModal(pid) {
   var stock = (inv && inv.stock) ? inv.stock : {};
 
   var html = '<div style="max-width:560px;">' +
-    '<h3 style="margin:0 0 16px 0;">Adjust Stock: ' + esc(product.name) + '</h3>';
+    '<h3 style="margin:0 0 16px 0;">Adjust Stock: ' + esc(product.name) + '</h3>' +
+    '<div style="display:flex;gap:0;margin-bottom:16px;">' +
+      '<button id="adjModeSet" class="btn btn-primary" style="font-size:0.78rem;padding:5px 14px;border-radius:6px 0 0 6px;" onclick="toggleAdjustMode(\'set\')">Set Count</button>' +
+      '<button id="adjModeAdd" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 14px;border-radius:0 6px 6px 0;" onclick="toggleAdjustMode(\'add\')">Add Pieces</button>' +
+    '</div>' +
+    '<input type="hidden" id="adjStockMode" value="set">';
 
   if (variantInfo.combos.length > 0) {
     html += buildVariantTable(pid, variantInfo.labels, variantInfo.combos, inv);
@@ -6433,7 +6438,7 @@ function openAdjustStockModal(pid) {
     var defReserved = (stock._default) ? (stock._default.reserved || 0) : 0;
     html += '<div style="display:flex;gap:16px;align-items:flex-end;">' +
       '<div class="form-group" style="margin:0;">' +
-        '<label style="font-size:0.78rem;">Available</label>' +
+        '<label style="font-size:0.78rem;" id="adjDefaultLabel">Available</label>' +
         '<input type="number" id="adjDefaultAvail" min="0" value="' + defAvail + '" style="width:80px;">' +
       '</div>' +
       '<div class="form-group" style="margin:0;">' +
@@ -6459,25 +6464,37 @@ async function saveAdjustStock(pid) {
     // Use multi-path update instead of set() to avoid overwriting
     // concurrent reservation changes. Only write 'available' fields;
     // 'reserved' is managed atomically by reserveInventory/releaseInventory/pullFromStock.
+    var adjMode = (document.getElementById('adjStockMode') || {}).value || 'set';
+    var inv = inventory[pid] || {};
+    var curStock = (inv && inv.stock) ? inv.stock : {};
     var updates = {};
     if (variantInfo.combos.length > 0) {
       var totalAvail = 0;
       variantInfo.combos.forEach(function(combo) {
         var key = comboKey(combo);
         var availInput = document.querySelector('.pd-variant-avail[data-combo="' + key + '"]');
-        var avail = availInput ? (parseInt(availInput.value) || 0) : 0;
-        updates['stock/' + key + '/available'] = avail;
-        totalAvail += avail;
+        var inputVal = availInput ? (parseInt(availInput.value) || 0) : 0;
+        var avail = inputVal;
+        if (adjMode === 'add') {
+          var curVal = (curStock[key]) ? (curStock[key].available || 0) : 0;
+          avail = curVal + inputVal;
+        }
+        updates['stock/' + key + '/available'] = Math.max(0, avail);
+        totalAvail += Math.max(0, avail);
       });
       updates['stock/_default/available'] = totalAvail;
     } else {
-      var avail = parseInt(document.getElementById('adjDefaultAvail').value) || 0;
-      updates['stock/_default/available'] = avail;
+      var inputVal = parseInt(document.getElementById('adjDefaultAvail').value) || 0;
+      var avail = inputVal;
+      if (adjMode === 'add') {
+        var curVal = (curStock._default) ? (curStock._default.available || 0) : 0;
+        avail = curVal + inputVal;
+      }
+      updates['stock/_default/available'] = Math.max(0, avail);
     }
     updates['updatedAt'] = new Date().toISOString();
 
     // Auto-set stockType to 'in-stock' when stock is added (Bug #5 fix)
-    var inv = inventory[pid] || {};
     if (!inv.stockType || inv.stockType === 'made-to-order') {
       var totalSet = updates['stock/_default/available'] || 0;
       if (totalSet > 0) {
@@ -6496,6 +6513,36 @@ async function saveAdjustStock(pid) {
     renderProductDetail(pid);
   } catch (err) {
     showToast('Error updating stock: ' + err.message, true);
+  }
+}
+
+function toggleAdjustMode(mode) {
+  document.getElementById('adjStockMode').value = mode;
+  var setBtn = document.getElementById('adjModeSet');
+  var addBtn = document.getElementById('adjModeAdd');
+  if (mode === 'add') {
+    setBtn.className = 'btn btn-secondary';
+    addBtn.className = 'btn btn-primary';
+    var defLabel = document.getElementById('adjDefaultLabel');
+    if (defLabel) defLabel.textContent = 'Pieces to Add';
+    var defInput = document.getElementById('adjDefaultAvail');
+    if (defInput) { defInput.value = '0'; defInput.min = '0'; }
+    // variant inputs
+    document.querySelectorAll('.pd-variant-avail').forEach(function(el) { el.value = '0'; el.min = '0'; });
+  } else {
+    setBtn.className = 'btn btn-primary';
+    addBtn.className = 'btn btn-secondary';
+    var defLabel = document.getElementById('adjDefaultLabel');
+    if (defLabel) defLabel.textContent = 'Available';
+    // Restore current values from inventory
+    var pid = document.querySelector('[onclick*="saveAdjustStock"]').getAttribute('onclick').match(/'([^']+)'/)[1];
+    var inv = inventory[pid] || {};
+    var defInput = document.getElementById('adjDefaultAvail');
+    if (defInput) {
+      var cur = (inv.stock && inv.stock._default) ? (inv.stock._default.available || 0) : 0;
+      defInput.value = cur;
+      defInput.min = '0';
+    }
   }
 }
 
@@ -9781,6 +9828,7 @@ function renderPackQueue() {
       html += '<button class="btn btn-primary" style="font-size:0.78rem;padding:4px 12px;" onclick="transitionOrder(\'' + esc(key) + '\', \'handed_to_carrier\')">Handed to Carrier</button>';
     }
     html += '<button class="btn btn-secondary" style="font-size:0.78rem;padding:4px 12px;" onclick="downloadOrderCSV(\'' + esc(key) + '\')">CSV</button>' +
+      '<a href="https://ship.pirateship.com/import" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:0.78rem;padding:4px 12px;text-decoration:none;">Pirate Ship &rarr;</a>' +
       '<button class="btn btn-secondary" style="font-size:0.78rem;padding:4px 12px;" onclick="viewOrder(\'' + esc(key) + '\')">View</button>' +
       '</div></div>';
   });

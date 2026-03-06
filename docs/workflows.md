@@ -66,7 +66,7 @@ What Ori or Madeline does after a customer places an order online — from confi
 5. If the item needs to be made: a production job is created automatically
 6. Pack the order — scan the QR label to mark it packed in the system
 7. Click Download Shipping CSV on the confirmed order
-8. Open Pirate Ship (pirateships.com) and import the CSV
+8. Open Pirate Ship (ship.pirateship.com) and import the CSV — the admin app has a direct link next to the CSV button
 9. Purchase the shipping label in Pirate Ship
 10. Print the label and attach it to the package
 11. Return to the admin app and scan packages at drop-off to bundle them
@@ -118,8 +118,10 @@ Creating a build job when it's time to make a batch of pieces — whether trigge
 3. Enter the job name (e.g. "Spring restock — small bowls")
 4. Add the pieces to make: search by product name and set the target quantity for each
 5. Set the expected completion date
-6. Save the job — it appears in the Queue
+6. Save the job — it appears in the Jobs list
 7. As work progresses, update the status: In Progress → Ready
+
+> **Note:** The Queue tab shows production requests generated automatically from online orders — these are separate from manually created jobs.
 
 ### Complete a Production Run and Update Inventory
 **Status:** Live
@@ -145,8 +147,8 @@ Closing out a build job once the pieces are finished and ready for sale.
 A quick way to update inventory counts after pieces come out of the kiln, without going through a full production job.
 
 1. Open the admin app and go to Make → Production → Inventory
-2. Find the product you're updating
-3. Enter the new on-hand count or adjust by the number of pieces added
+2. Find the product you're updating and click Adjust Stock
+3. Choose a mode: **Set Count** (enter an absolute number) or **Add Pieces** (enter how many to add to current stock)
 4. Save — the updated count is immediately reflected in the shop
 
 ### Move Inventory Between Locations
@@ -277,7 +279,7 @@ Reviewing a history of who did what and when — useful for reconciliation or tr
 
 1. Open the admin app and go to Manage → Audit Log
 2. Filter by date range, user, or action type
-3. Each entry shows who performed the action, what changed, and whether they were at the studio or a fair
+3. Each entry shows who performed the action, what changed, and whether they were in fair mode or studio mode
 
 ---
 
