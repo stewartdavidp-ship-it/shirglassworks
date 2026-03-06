@@ -26,3 +26,48 @@ The only data-scoped role is Guest, which is enforced by query design (customers
 
 Do not implement row-level security, record ownership filters, or per-user data visibility controls for Admin or User roles. If this requirement emerges in the future (e.g. multi-location staff who should only see their location's data), it is a new architectural decision at that time. _(from: Shir Glassworks Website + Storefront)_
 - Vendor Google integration assumes a single shared Google account used by both Ori and Madeline for Drive and Contacts. Domain accounts (shirglassworks.com) are a future goal but not a current blocker — treat as same-account for all integration design now. _(from: Shir Glassworks Website + Storefront)_
+
+## UI STANDARDS — Follow these in all builds.
+
+### Colours — CSS variables only, no hardcoded values.
+**Admin** (`app/index.html`) `:root`: `--amber` (#C4853C, primary CTA), `--amber-light`, `--amber-glow` (focus ring), `--teal` (#2A7C6F, secondary accent), `--teal-deep`, `--teal-light`, `--cream` (#FAF6F0, page bg), `--cream-dark` (#F0E8DB, hover/dividers), `--charcoal` (#1A1A1A, text), `--warm-gray` (#6B6560, secondary text), `--warm-gray-light` (#9B958E, placeholder), `--danger` (#DC3545), `--danger-hover`, `--gold` (#C4853C), `--dark-brown` (#5C3D2E).
+
+**POS** (`pos/index.html`) dark-first `:root`: `--bg` (#1a1a1a), `--card` (#242424), `--border` (#333), `--text` (#e8e0d4), `--muted` (#9a9089), `--gold` (#c4944a), `--green` (#4caf50), `--yellow` (#ffc107), `--red` (#f44336), `--blue` (#42a5f5), `--safe-top`/`--safe-bottom` (iOS safe area insets).
+
+Never write a hardcoded hex, `rgb()`, or colour name in styles. Common fixes: `#fff` → `var(--cream)`/`var(--card)`, `#666` → `var(--warm-gray)`, `#ddd` border → `var(--cream-dark)`/`var(--border)`, `#4CAF50` → `var(--green)`. If no variable exists, add it to `:root` AND the dark mode block first.
+
+### Typography
+- **Admin body/UI:** `'DM Sans', sans-serif`. **POS body/UI:** `-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif` (system stack).
+- **Display headings (admin only):** `'Cormorant Garamond', serif` — section titles and decorative headings.
+- **Type scale:** `0.72rem` (table headers, badges), `0.75rem` (metadata), `0.78rem` (compact buttons), `0.82rem` (dense lists), `0.85rem` (default body), `0.9rem` (prominent body), `1rem` (paragraphs), `1.1rem` (sub-titles), `1.3rem` (modal titles), `2rem` (large display values). Do not invent new sizes.
+
+### Spacing & Border Radius
+- **Border radius:** `6px` (default: buttons, inputs, cards), `8px` (softer panels), `4px` (badges, small buttons), `12px` (pills, bottom sheets), `50%` (circles). Do not use arbitrary values like 5px, 7px, 10px.
+- **Spacing:** Multiples of 4px (4, 8, 12, 16, 20, 24, 32, 48, 60). Modal body: `20px 24px`. Form group margin-bottom: `16px`.
+
+### Component Patterns
+- **Buttons:** Always use `.btn` + modifier (`.btn-primary`, `.btn-secondary`, `.btn-danger`, `.btn-icon`, `.btn-adj`). Never style buttons from scratch with inline styles. Dark mode variants are automatic.
+- **Modals:** Use `openModal(html)` / `closeModal()`. Structure: `.modal-header` (h3 + `.modal-close`), `.modal-body`, `.modal-footer` (Cancel secondary + action primary). Never build custom overlay markup.
+- **Forms:** Wrap in `.form-group` (16px bottom margin, block label). Required fields: `<span class="field-required">*</span>`. Input border: `var(--cream-dark)` (admin) / `var(--border)` (POS). Border-radius: `6px`. Padding: `8px`.
+- **Status badges:** `.status-badge` base (inline-block, 4px radius, 0.72rem, weight 600). `.status-badge.pill` for rounded variant. Role badges: `.role-badge.admin` (purple), `.role-badge.user` (blue), `.role-badge.guest` (amber).
+- **Tables:** Use `.data-table`. `th`: 0.72rem uppercase, letter-spacing 0.08em, `var(--warm-gray-light)`.
+- **Empty states:** `.empty-state` with `.empty-icon` (contextual emoji, 2.2rem, 0.7 opacity) + `<p>` message. Padding: `60px 20px`.
+- **Loading:** `.loading` class with CSS spinner via `::before`. Same sizing as empty state.
+- **Toasts:** `showToast(message)` for success, `showToast(message, true)` for errors. Never use `alert()`.
+
+### Z-Index Layers
+`98-100` (sticky headers), `200` (dropdowns), `300` (bottom sheets), `1000` (modals), `9999` (toasts), `10000` (critical overlays). Do not invent new layers.
+
+### Shadows
+`0 1px 3px rgba(0,0,0,0.08)` (card), `0 2px 8px rgba(0,0,0,0.12)` (hover), `0 3px 10px rgba(0,0,0,0.15)` (modals), `0 8px 30px rgba(0,0,0,0.2)` (overlays), `0 0 0 3px var(--amber-glow)` (focus ring). Use only these values.
+
+### Dark Mode
+**Admin:** Class-based (`.dark-mode` on body). All component dark variants defined in stylesheet. **POS:** Always dark — `:root` variables are the dark palette, no override needed. All JS-generated HTML must use CSS variables for every colour/background/border. Inline `style="background:#fff"` will break dark mode and is never acceptable.
+
+### POS-Specific
+- Fixed headers/footers must use `padding-top: var(--safe-top)` / `padding-bottom: var(--safe-bottom)` for iPhone notch/home-bar.
+- Bottom sheets: `z-index: 300`, `border-radius: 12px 12px 0 0`, backdrop `rgba(0,0,0,0.7)`.
+- Touch targets: minimum 44×44px for any tappable element.
+
+### Inline Style Policy
+Inline styles are allowed only for dynamic JS-computed values (width%, positioning). Never use inline styles for colours, backgrounds, borders, font sizes, or shadows — use CSS variables or classes. Hardcoded hex in an inline style is a dark mode violation.
