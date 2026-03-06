@@ -18,17 +18,18 @@
     databaseURL: 'https://word-boxing-default-rtdb.firebaseio.com',
     projectId: 'word-boxing'
   };
-  var APP_NAME = 'shir-cart';
   var MAX_QTY = 10;
 
   // ── Firebase App ──
+  // Use the default Firebase app (initialized by the page) so auth state
+  // is shared with siteSignIn() and other page-level Firebase usage.
   var fireApp, fireDb, fireAuth, currentUser = null;
 
   function initFirebase() {
     try {
-      fireApp = firebase.app(APP_NAME);
+      fireApp = firebase.app(); // use default app — shared auth state
     } catch (e) {
-      fireApp = firebase.initializeApp(FIREBASE_CONFIG, APP_NAME);
+      fireApp = firebase.initializeApp(FIREBASE_CONFIG);
     }
     fireDb = fireApp.database();
     if (firebase.auth) {
@@ -241,7 +242,9 @@
   function onAuthChanged(user) {
     currentUser = user;
     updateAuthUI();
-    if (user) {
+    updateNavAuth(user);
+    if (user && !user.isAnonymous) {
+      ensureCustomerAccount(user);
       // Load from Firebase and merge with local
       loadFromFirebase(function (fbItems) {
         if (fbItems.length > 0) {
@@ -269,6 +272,44 @@
     fireAuth.signOut();
     currentUser = null;
     updateAuthUI();
+    updateNavAuth(null);
+  }
+
+  // Create or update customer record in Firebase on sign-in
+  function ensureCustomerAccount(user) {
+    if (!fireDb || !user) return;
+    var ref = fireDb.ref('shirglassworks/customers/' + user.uid);
+    ref.once('value').then(function(snap) {
+      var existing = snap.val();
+      var updates = { email: user.email || '', displayName: user.displayName || '', photoURL: user.photoURL || '', lastSignIn: new Date().toISOString() };
+      if (!existing) { updates.createdAt = new Date().toISOString(); updates.phone = user.phoneNumber || ''; updates.address = { address1: '', address2: '', city: '', state: '', zip: '', country: 'US' }; }
+      ref.update(updates);
+    }).catch(function() { /* silent — RTDB may be unavailable */ });
+  }
+
+  // Update nav sign-in / sign-out links across all pages
+  function updateNavAuth(user) {
+    // Find all clickable elements that invoke siteSignIn
+    var els = document.querySelectorAll('[onclick*="siteSignIn"]');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (user && !user.isAnonymous) {
+        var name = user.displayName || user.email || 'Account';
+        var first = name.split(' ')[0];
+        el.textContent = first;
+        el.setAttribute('onclick', "event.preventDefault(); siteSignOut();" + (el.getAttribute('onclick').indexOf('closeMobileMenu') !== -1 ? ' closeMobileMenu();' : ''));
+      }
+    }
+    // When signed out, find sign-out links and revert to sign-in
+    if (!user || user.isAnonymous) {
+      var outEls = document.querySelectorAll('[onclick*="siteSignOut"]');
+      for (var j = 0; j < outEls.length; j++) {
+        var oel = outEls[j];
+        oel.textContent = 'Sign In';
+        var isMobile = oel.getAttribute('onclick').indexOf('closeMobileMenu') !== -1;
+        oel.setAttribute('onclick', "event.preventDefault(); siteSignIn();" + (isMobile ? ' closeMobileMenu();' : ''));
+      }
+    }
   }
 
   // ── Analytics ──
@@ -626,5 +667,10 @@
     getFirebaseApp: function () { return fireApp; },
     refreshDrawer: function () { renderDrawerItems(); updateBadge(); }
   };
+
+  // Global auth functions — used by nav onclick handlers across all pages.
+  // Centralised here so every page shares the same Firebase Auth instance.
+  window.siteSignIn = signIn;
+  window.siteSignOut = signOut;
 
 })();

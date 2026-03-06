@@ -809,30 +809,6 @@
 <script src="cart.js"></script>
 <script src="checkout.js?v=2"></script>
 
-<script>
-(function() {
-  var app = firebase.app('public-about');
-  var auth = app.auth();
-  var db = app.database();
-  window.siteSignIn = function() {
-    var provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(function(err) {
-      console.error('Sign-in error:', err);
-    });
-  };
-  function ensureCustomerAccount(user) {
-    var ref = db.ref('shirglassworks/customers/' + user.uid);
-    ref.once('value').then(function(snap) {
-      var existing = snap.val();
-      var updates = { email: user.email || '', displayName: user.displayName || '', photoURL: user.photoURL || '', lastSignIn: new Date().toISOString() };
-      if (!existing) { updates.createdAt = new Date().toISOString(); updates.phone = user.phoneNumber || ''; updates.address = { address1: '', address2: '', city: '', state: '', zip: '', country: 'US' }; }
-      ref.update(updates);
-    });
-  }
-  auth.onAuthStateChanged(function(user) {
-    if (user && !user.isAnonymous) ensureCustomerAccount(user);
-  });
-})();
-</script>
+<!-- Auth handled by cart.js (siteSignIn / siteSignOut / ensureCustomerAccount / nav UI) -->
 </body>
 </html>

@@ -913,20 +913,24 @@
 <script>
 // ============ ORDERS PAGE LOGIC ============
 (function() {
-  // Firebase init
+  // Firebase init — named app for data, default app for auth (shared with cart.js)
+  var firebaseConfig = {
+    apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
+    authDomain: "word-boxing.firebaseapp.com",
+    databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
+    projectId: "word-boxing"
+  };
   var firebaseApp;
-  try {
-    firebaseApp = firebase.app('public-orders');
-  } catch (e) {
-    firebaseApp = firebase.initializeApp({
-      apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
-      authDomain: "word-boxing.firebaseapp.com",
-      databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
-      projectId: "word-boxing"
-    }, 'public-orders');
+  try { firebaseApp = firebase.app('public-orders'); } catch (e) {
+    firebaseApp = firebase.initializeApp(firebaseConfig, 'public-orders');
+  }
+  // Ensure default app exists for shared auth
+  var defaultApp;
+  try { defaultApp = firebase.app(); } catch (e) {
+    defaultApp = firebase.initializeApp(firebaseConfig);
   }
   var db = firebaseApp.database();
-  var auth = firebaseApp.auth();
+  var auth = defaultApp.auth();
 
   var FUNCTION_BASE = 'https://us-central1-word-boxing.cloudfunctions.net/';
 
@@ -1223,27 +1227,7 @@
     });
   }
 
-  // ── Customer Account ──
-  function ensureCustomerAccount(user) {
-    var ref = db.ref('shirglassworks/customers/' + user.uid);
-    ref.once('value').then(function(snap) {
-      var existing = snap.val();
-      var updates = {
-        email: user.email || '',
-        displayName: user.displayName || '',
-        photoURL: user.photoURL || '',
-        lastSignIn: new Date().toISOString()
-      };
-      if (!existing) {
-        updates.createdAt = new Date().toISOString();
-        updates.phone = user.phoneNumber || '';
-        updates.address = { address1: '', address2: '', city: '', state: '', zip: '', country: 'US' };
-      }
-      ref.update(updates);
-    });
-  }
-
-  // ── Auth State ──
+  // ── Auth State (ensureCustomerAccount handled by cart.js) ──
   function handleAuthState(user) {
     var signedInSection = document.getElementById('signedInSection');
     var anonymousSection = document.getElementById('anonymousSection');
@@ -1251,7 +1235,6 @@
     if (user && !user.isAnonymous) {
       signedInSection.style.display = 'block';
       anonymousSection.style.display = 'none';
-      ensureCustomerAccount(user);
       fetchSignedInOrders();
     } else {
       signedInSection.style.display = 'none';
@@ -1259,24 +1242,14 @@
     }
   }
 
-  // Sign in
-  window.siteSignIn = function() {
-    var provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(function(err) {
-      console.error('Sign-in error:', err);
-    });
-  };
-
+  // Page sign-in/out buttons (use shared default-app auth)
   document.getElementById('signInLink').addEventListener('click', function() {
-    var provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(function(err) {
-      console.error('Sign-in error:', err);
-    });
+    if (window.siteSignIn) window.siteSignIn();
   });
 
-  // Sign out
   document.getElementById('signOutLink').addEventListener('click', function() {
-    auth.signOut();
+    if (window.siteSignOut) window.siteSignOut();
+    else auth.signOut();
   });
 
   // Listen for auth changes

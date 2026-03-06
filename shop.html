@@ -849,47 +849,16 @@
   }, true);
 })();
 </script>
-<!-- ============ AUTH + ACCOUNT ============ -->
+<script src="cart.js"></script>
+<script src="checkout.js?v=2"></script>
+<!-- Auth (siteSignIn/siteSignOut/ensureCustomerAccount) handled by cart.js -->
 <script>
 (function() {
-  var shopApp = firebase.app('public-shop');
-  var auth = shopApp.auth();
-  var db = shopApp.database();
-
-  // Sign in with Google
-  window.siteSignIn = function() {
-    var provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(function(err) {
-      console.error('Sign-in error:', err);
-    });
-  };
-
-  // Create or update customer account on sign-in
-  function ensureCustomerAccount(user) {
-    var ref = db.ref('shirglassworks/customers/' + user.uid);
-    ref.once('value').then(function(snap) {
-      var existing = snap.val();
-      var updates = {
-        email: user.email || '',
-        displayName: user.displayName || '',
-        photoURL: user.photoURL || '',
-        lastSignIn: new Date().toISOString()
-      };
-      if (!existing) {
-        // New customer — create full record
-        updates.createdAt = new Date().toISOString();
-        updates.phone = user.phoneNumber || '';
-        updates.address = { address1: '', address2: '', city: '', state: '', zip: '', country: 'US' };
-      }
-      ref.update(updates);
-    });
-  }
-
-  // Handle auth state — create account + welcome message, don't touch nav
-  function handleAuthState(user) {
+  // Page-specific: show welcome message when signed in
+  var auth = firebase.app().auth();
+  auth.onAuthStateChanged(function(user) {
     var welcome = document.getElementById('shopWelcome');
     if (user && !user.isAnonymous) {
-      ensureCustomerAccount(user);
       if (welcome) {
         var firstName = (user.displayName || '').split(' ')[0] || 'friend';
         welcome.textContent = 'Welcome back, ' + firstName + '!';
@@ -898,14 +867,9 @@
     } else {
       if (welcome) welcome.style.display = 'none';
     }
-  }
-
-  // Listen for auth state changes
-  auth.onAuthStateChanged(handleAuthState);
+  });
 })();
 </script>
-<script src="cart.js"></script>
-<script src="checkout.js?v=2"></script>
 
 </body>
 </html>
