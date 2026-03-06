@@ -497,9 +497,23 @@
     }
     body.innerHTML = html;
 
-    // Summary
+    // Summary + free shipping reminder
     if (summaryEl) {
-      summaryEl.textContent = count + ' item' + (count !== 1 ? 's' : '') + ' in cart';
+      var subtotal = 0;
+      for (var s = 0; s < cart.length; s++) {
+        var p = parseFloat(String(cart[s].price || '0').replace(/[^0-9.]/g, '')) || 0;
+        subtotal += p * (cart[s].qty || 1);
+      }
+      var summaryText = count + ' item' + (count !== 1 ? 's' : '') + ' in cart';
+      if (subtotal > 0) summaryText += ' \u00B7 $' + subtotal.toFixed(2);
+      var shippingHtml = '';
+      if (subtotal >= 100) {
+        shippingHtml = '<div style="color:#2D7D46;font-size:0.75rem;margin-top:6px;letter-spacing:0.08em;">&#10003; FREE SHIPPING</div>';
+      } else if (subtotal > 0) {
+        var away = (100 - subtotal).toFixed(2);
+        shippingHtml = '<div style="color:var(--warm-gray);font-size:0.75rem;margin-top:6px;letter-spacing:0.08em;">You\'re $' + away + ' away from free shipping!</div>';
+      }
+      summaryEl.innerHTML = summaryText + shippingHtml;
     }
 
     // Auth area

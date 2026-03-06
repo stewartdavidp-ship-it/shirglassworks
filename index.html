@@ -1054,11 +1054,13 @@
     background: var(--glass-gradient);
     opacity: 0.35;
   }
+  .free-ship-banner{background:#1a1714;text-align:center;padding:6px 0;font-family:"DM Sans",sans-serif;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber-light,#E8D5B5);border-bottom:1px solid rgba(196,133,60,0.15);}
 </style>
 </head>
 <body>
 
 <!-- ============ NAV ============ -->
+<div class="free-ship-banner">Free Shipping on Orders $100+</div>
 <nav id="mainNav">
   <a href="#" class="nav-logo">
     <!-- LOGO: Using their actual uploaded logo -->
@@ -1071,6 +1073,7 @@
     <li><a href="#process">Process</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="orders.html">Orders</a></li>
+    <li><a href="#" onclick="event.preventDefault(); siteSignIn();">Sign In</a></li>
     <li><a href="shop.html" class="nav-shop">Shop</a></li>
   </ul>
   <button class="nav-toggle" aria-label="Menu">
@@ -1086,6 +1089,7 @@
   <a href="#process" onclick="closeMobileMenu()">Process</a>
   <a href="#contact" onclick="closeMobileMenu()">Contact</a>
   <a href="orders.html" onclick="closeMobileMenu()">Orders</a>
+  <a href="#" onclick="event.preventDefault(); siteSignIn(); closeMobileMenu();">Sign In</a>
   <a href="shop.html" class="btn-shop" onclick="closeMobileMenu()">Shop</a>
 </div>
 
@@ -1469,6 +1473,7 @@
 (function() {
   const firebaseConfig = {
     apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
+    authDomain: "word-boxing.firebaseapp.com",
     databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
     projectId: "word-boxing"
   };
@@ -1693,5 +1698,30 @@
 <script src="cart.js"></script>
 <script src="checkout.js?v=2"></script>
 
+<script>
+(function() {
+  var app = firebase.app();
+  var auth = app.auth();
+  var db = app.database();
+  window.siteSignIn = function() {
+    var provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch(function(err) {
+      console.error('Sign-in error:', err);
+    });
+  };
+  function ensureCustomerAccount(user) {
+    var ref = db.ref('shirglassworks/customers/' + user.uid);
+    ref.once('value').then(function(snap) {
+      var existing = snap.val();
+      var updates = { email: user.email || '', displayName: user.displayName || '', photoURL: user.photoURL || '', lastSignIn: new Date().toISOString() };
+      if (!existing) { updates.createdAt = new Date().toISOString(); updates.phone = user.phoneNumber || ''; updates.address = { address1: '', address2: '', city: '', state: '', zip: '', country: 'US' }; }
+      ref.update(updates);
+    });
+  }
+  auth.onAuthStateChanged(function(user) {
+    if (user && !user.isAnonymous) ensureCustomerAccount(user);
+  });
+})();
+</script>
 </body>
 </html>
