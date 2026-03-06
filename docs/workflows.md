@@ -340,6 +340,18 @@ Bringing a one-of-a-kind sculpture into the system so it can be listed on the we
 7. When the sculpture sells (POS or website), stock goes to 0 and the product is automatically marked **Sold**
 8. On the website, sold sculptures remain visible with a "Sold" badge and a "Request a Commission" link
 
+### Request a Custom Commission (Customer)
+**Status:** Live
+
+How a customer requests a custom piece — either from the dedicated commission page or from a sold sculpture's product page.
+
+1. Customer navigates to the Commissions page (linked in the site nav on every page) or clicks "Request a Commission" on a sold sculpture's product page
+2. Browse the product catalog and select pieces for inspiration (optional)
+3. Upload a reference image showing what they have in mind (optional, max 5MB)
+4. Enter their name, email or phone, and a description of what they're looking for
+5. Submit the inquiry — a confirmation message appears
+6. The studio receives a notification email with the customer's details and a QR code linking to the commission record
+
 ### Respond to a Commission Inquiry
 **Status:** Live
 
