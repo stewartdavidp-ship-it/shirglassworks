@@ -855,7 +855,7 @@
 <script>
 (function() {
   // Page-specific: show welcome message when signed in
-  var auth = firebase.app().auth();
+  var auth = firebase.app('public-shop').auth();
   auth.onAuthStateChanged(function(user) {
     var welcome = document.getElementById('shopWelcome');
     if (user && !user.isAnonymous) {

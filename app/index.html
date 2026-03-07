@@ -1294,8 +1294,10 @@
       color: #fff;
     }
     body.dark-mode .order-num { color: #888; }
+    body.dark-mode .btn { color: #ccc; }
+    body.dark-mode .btn:hover:not(:disabled) { color: #fff; }
     body.dark-mode .btn-primary { background: #d4a053; color: #1a1a1a; }
-    body.dark-mode .btn-primary:hover { background: #c4903f; }
+    body.dark-mode .btn-primary:hover { background: #c4903f; color: #1a1a1a; }
 
     /* ========== COUPONS ========== */
     .coupon-status {
@@ -3135,7 +3137,6 @@
         <div class="sidebar-item" data-route="social" onclick="navigateTo('social')">Social Media</div>
         <div class="sidebar-item" data-route="newsletter" onclick="navigateTo('newsletter')">Blog &amp; Newsletter</div>
         <div class="sidebar-item" data-route="stories" onclick="navigateTo('stories')">Stories</div>
-        <div class="sidebar-item" data-route="website" onclick="navigateTo('website')">Website Content</div>
       </div>
     </div>
     <!-- Manage -->
@@ -3150,6 +3151,7 @@
         <div class="sidebar-item" data-route="inventory" onclick="navigateTo('inventory')">Inventory</div>
         <div class="sidebar-item muted" data-route="customers" onclick="navigateTo('customers')">Customers <span class="sidebar-badge new">New</span></div>
         <div class="sidebar-item" data-route="images" onclick="navigateTo('images')">Images</div>
+        <div class="sidebar-item" data-route="website" onclick="navigateTo('website')">Website Content</div>
         <div class="sidebar-item" data-route="employees" onclick="navigateTo('employees')">Employees &amp; Permissions</div>
         <div class="sidebar-item" data-route="contacts" onclick="navigateTo('contacts')">Contacts</div>
         <div class="sidebar-item" data-route="auditlog" onclick="navigateTo('auditlog')">Audit Log</div>
@@ -3769,7 +3771,14 @@
       <div class="section-header">
         <h2>Settings</h2>
       </div>
-      <div style="max-width:500px;">
+      <div class="view-tabs" id="settingsSubNav">
+        <button class="view-tab active" onclick="switchSettingsSubView('general')">General</button>
+        <button class="view-tab" onclick="switchSettingsSubView('payments')">Payments</button>
+        <button class="view-tab" onclick="switchSettingsSubView('shipping')">Shipping</button>
+        <button class="view-tab" onclick="switchSettingsSubView('integrations')">Integrations</button>
+        <button class="view-tab" onclick="switchSettingsSubView('workshop')">Workshop</button>
+      </div>
+      <div id="settingsSubGeneral" style="max-width:500px;">
         <div class="form-group">
           <label>GitHub Personal Access Token</label>
           <p style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:8px;">
@@ -3807,8 +3816,8 @@
           </label>
         </div>
 
-        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;margin:32px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--cream-dark);color:var(--charcoal);">Integrations</h3>
-
+      </div>
+      <div id="settingsSubPayments" style="display:none;max-width:500px;">
         <div class="form-group">
           <label style="font-size:1.1rem;font-weight:600;">Square Payments</label>
           <p style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:16px;">
@@ -3880,9 +3889,8 @@
           </div>
           <div id="squareConfigStatus" style="margin-top:8px;font-size:0.85rem;"></div>
         </div>
-
-        <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
-
+      </div>
+      <div id="settingsSubShipping" style="display:none;max-width:500px;">
         <div class="form-group">
           <label style="font-size:1.1rem;font-weight:600;">Shipping Configuration</label>
           <p style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:16px;">
@@ -3964,9 +3972,8 @@
           </div>
           <div id="shippingConfigStatus" style="margin-top:8px;font-size:0.85rem;"></div>
         </div>
-
-        <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
-
+      </div>
+      <div id="settingsSubIntegrations" style="display:none;max-width:500px;">
         <div class="form-group">
           <label style="font-size:1.1rem;font-weight:600;">Google Maps API Key</label>
           <p style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:16px;">
@@ -4012,9 +4019,8 @@
             </div>
           </div>
         </div>
-
-        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;margin:32px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--cream-dark);color:var(--charcoal);">Workshop</h3>
-
+      </div>
+      <div id="settingsSubWorkshop" style="display:none;max-width:500px;">
         <div class="form-group">
           <label style="font-size:1.1rem;font-weight:600;">Operators</label>
           <p style="font-size:0.85rem;color:var(--warm-gray);margin-bottom:16px;">
@@ -4988,7 +4994,19 @@ auth.onAuthStateChanged(async function(user) {
 // Route → tab element + optional setup
 var ROUTE_MAP = {
   'dashboard':   { tab: null, placeholder: { name: 'Dashboard', desc: 'Overview of your studio at a glance.', badge: 'new' } },
-  'production':  { tab: 'productionTab', setup: function() { switchProductionSubView('jobs'); } },
+  'production':  { tab: 'productionTab', setup: function() {
+    switchProductionSubView('jobs');
+    // Restore header if coming from Stories context
+    var header = document.querySelector('#productionTab .section-header');
+    if (header) {
+      header.querySelector('h2').textContent = 'Production';
+      header.querySelector('.btn-primary').style.display = '';
+    }
+    var subNav = document.getElementById('prodSubNav');
+    if (subNav) subNav.style.display = '';
+    var storiesMsg = document.getElementById('storiesContextMsg');
+    if (storiesMsg) storiesMsg.remove();
+  } },
   'procurement': { tab: null, placeholder: { name: 'Procurement', desc: 'Track materials, supplies, purchase orders.', badge: 'new' } },
   'commissions': { tab: 'commissionsTab', setup: function() {
     if (!commissionsLoaded) loadCommissions();
@@ -5013,10 +5031,41 @@ var ROUTE_MAP = {
   'receipts':    { tab: 'salesTab', setup: function() { if (!showingSquarePayments) toggleSquarePayments(); } },
   'social':      { tab: 'socialMediaTab' },
   'newsletter':  { tab: 'newsletterTab' },
-  'stories':     { tab: 'productionTab', setup: function() { switchProductionSubView('jobs'); } },
+  'stories':     { tab: 'productionTab', setup: function() {
+    switchProductionSubView('jobs');
+    // Override header for Stories context
+    var header = document.querySelector('#productionTab .section-header');
+    if (header) {
+      header.querySelector('h2').textContent = 'Stories';
+      header.querySelector('.btn-primary').style.display = 'none';
+    }
+    var subNav = document.getElementById('prodSubNav');
+    if (subNav) subNav.style.display = 'none';
+    // Add stories context message
+    var jobsView = document.getElementById('productionJobsView');
+    if (jobsView && !document.getElementById('storiesContextMsg')) {
+      var msg = document.createElement('div');
+      msg.id = 'storiesContextMsg';
+      msg.style.cssText = 'padding:12px 16px;background:var(--cream-dark);border-radius:8px;margin-bottom:16px;font-size:0.85rem;color:var(--warm-gray);';
+      msg.innerHTML = 'Stories are curated from production jobs. Open a job and click <strong>Curate Story</strong> to create or edit its story.';
+      jobsView.insertBefore(msg, jobsView.firstChild);
+    }
+  } },
   'website':     { tab: 'galleryTab' },
   'products':    { tab: 'productsTab' },
-  'inventory':   { tab: 'productionTab', setup: function() { switchProductionSubView('inventory'); } },
+  'inventory':   { tab: 'productionTab', setup: function() {
+    switchProductionSubView('inventory');
+    // Restore header if coming from Stories context
+    var header = document.querySelector('#productionTab .section-header');
+    if (header) {
+      header.querySelector('h2').textContent = 'Production';
+      header.querySelector('.btn-primary').style.display = '';
+    }
+    var subNav = document.getElementById('prodSubNav');
+    if (subNav) subNav.style.display = '';
+    var storiesMsg = document.getElementById('storiesContextMsg');
+    if (storiesMsg) storiesMsg.remove();
+  } },
   'customers':   { tab: null, placeholder: { name: 'Customers', desc: 'Contacts, collectors, purchase history.', badge: 'new' } },
   'images':      { tab: 'imagesTab' },
   'employees':   { tab: 'employeesTab', setup: function() { switchEmployeesView('users'); } },
@@ -5038,8 +5087,8 @@ var ROUTE_MAP = {
 var SECTION_ROUTES = {
   'make':   ['production', 'procurement'],
   'sell':   ['pos', 'events', 'orders', 'commissions', 'wholesale', 'galleries', 'fulfillment', 'receipts'],
-  'market': ['social', 'newsletter', 'stories', 'website'],
-  'manage': ['products', 'inventory', 'customers', 'images', 'employees', 'contacts', 'auditlog', 'financials', 'settings']
+  'market': ['social', 'newsletter', 'stories'],
+  'manage': ['products', 'inventory', 'customers', 'images', 'website', 'employees', 'contacts', 'auditlog', 'financials', 'settings']
 };
 
 var ALL_TAB_IDS = ['scheduleTab', 'galleryTab', 'productsTab', 'ordersTab', 'salesTab', 'salesEventsTab', 'productionTab', 'couponsTab', 'analyticsTab', 'settingsTab', 'imagesTab', 'auditLogTab', 'employeesTab', 'contactsTab', 'fulfillmentTab', 'commissionsTab', 'socialMediaTab', 'newsletterTab', 'placeholderTab'];
@@ -5223,6 +5272,29 @@ function hideSidebar() {
   var main = document.querySelector('.main');
   if (sidebar) sidebar.classList.remove('visible');
   if (main) main.classList.remove('with-sidebar');
+}
+
+// ============================================================
+// Settings Sub-Tabs
+// ============================================================
+var settingsSubViews = ['general', 'payments', 'shipping', 'integrations', 'workshop'];
+function switchSettingsSubView(view) {
+  // Hide all sub-views
+  settingsSubViews.forEach(function(v) {
+    var el = document.getElementById('settingsSub' + v.charAt(0).toUpperCase() + v.slice(1));
+    if (el) el.style.display = 'none';
+  });
+  // Show selected
+  var target = document.getElementById('settingsSub' + view.charAt(0).toUpperCase() + view.slice(1));
+  if (target) target.style.display = '';
+  // Update tab styles
+  document.querySelectorAll('#settingsSubNav .view-tab').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+  // Find the matching tab button by text content
+  document.querySelectorAll('#settingsSubNav .view-tab').forEach(function(btn) {
+    if (btn.textContent.toLowerCase().trim() === view) btn.classList.add('active');
+  });
 }
 
 // ============================================================
@@ -8505,12 +8577,29 @@ async function changeUserRole(uid, newRole) {
   }
 }
 
+var auditLogFromEmployees = false;
 function viewUserAudit(uid) {
   // Set actor filter and switch to audit log
+  auditLogFromEmployees = true;
   navigateTo('auditlog');
   setTimeout(function() {
     document.getElementById('auditFilterActor').value = uid;
     renderAuditLog();
+    // Show back-to-employees link
+    var header = document.querySelector('#auditLogTab .section-header');
+    if (header && !document.getElementById('auditBackToEmployees')) {
+      var backBtn = document.createElement('button');
+      backBtn.id = 'auditBackToEmployees';
+      backBtn.className = 'btn btn-secondary';
+      backBtn.style.cssText = 'font-size:0.82rem;padding:5px 12px;margin-bottom:12px;';
+      backBtn.innerHTML = '&#8592; Back to Employees';
+      backBtn.onclick = function() {
+        auditLogFromEmployees = false;
+        backBtn.remove();
+        navigateTo('employees');
+      };
+      header.parentNode.insertBefore(backBtn, header);
+    }
   }, 100);
 }
 
@@ -13869,7 +13958,8 @@ function renderProductionJobDetail(jobId) {
   var transitions = PROD_JOB_TRANSITIONS[status] || [];
   var statusBtns = transitions.map(function(t) {
     var btnClass = t === 'cancelled' ? 'btn-danger' : (t === 'completed' ? 'btn-primary' : 'btn-secondary');
-    return '<button class="btn ' + btnClass + '" style="font-size:0.78rem;padding:4px 12px;" onclick="transitionProductionJob(\'' + esc(jobId) + '\', \'' + t + '\')">' + t.replace('-', ' ') + '</button>';
+    var label = t === 'cancelled' ? '✕ Cancel Job' : t === 'completed' ? '✓ Mark Complete' : t === 'in-progress' ? '▶ Start Work' : t === 'on-hold' ? '⏸ Put On Hold' : t.replace('-', ' ');
+    return '<button class="btn ' + btnClass + '" style="font-size:0.78rem;padding:4px 12px;" onclick="transitionProductionJob(\'' + esc(jobId) + '\', \'' + t + '\')">' + label + '</button>';
   }).join(' ');
 
   // Line items
@@ -13971,6 +14061,12 @@ function renderProductionJobDetail(jobId) {
         '</div>' +
       '</div>' +
       (job.description ? '<p style="margin-top:8px;font-size:0.85rem;color:var(--warm-gray);">' + esc(job.description) + '</p>' : '') +
+      '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:0.82rem;color:var(--warm-gray);">' +
+        (job.workType ? '<span><strong style="color:var(--text-secondary);">Type:</strong> ' + esc(job.workType.charAt(0).toUpperCase() + job.workType.slice(1)) + '</span>' : '') +
+        (job.createdAt ? '<span><strong style="color:var(--text-secondary);">Created:</strong> ' + new Date(job.createdAt).toLocaleDateString() + '</span>' : '') +
+        (job.startedAt ? '<span><strong style="color:var(--text-secondary);">Started:</strong> ' + new Date(job.startedAt).toLocaleDateString() + '</span>' : '') +
+        (job.completedAt ? '<span><strong style="color:var(--text-secondary);">Completed:</strong> ' + new Date(job.completedAt).toLocaleDateString() + '</span>' : '') +
+      '</div>' +
       (progress.total > 0 ? '<div class="prod-progress-bar" style="margin-top:12px;height:8px;"><div class="prod-progress-fill" style="width:' + progress.pct + '%;"></div></div>' +
         '<div style="font-size:0.78rem;color:var(--warm-gray);margin-top:4px;">' + progress.completed + ' / ' + progress.total + ' (' + Math.round(progress.pct) + '%)</div>' : '') +
     '</div>' +
@@ -17861,7 +17957,13 @@ function smGetUid() {
 
 async function loadSocialMedia() {
   var uid = smGetUid();
-  if (!uid) return;
+  if (!uid) {
+    // Render empty home view even without auth
+    socialMediaLoaded = true;
+    smCurrentView = 'home';
+    renderSocialMedia();
+    return;
+  }
   try {
     var clipSnap = await db.ref('shirglassworks/market/pendingClips/' + uid).once('value');
     var clipVal = clipSnap.val();
@@ -18871,7 +18973,12 @@ function nlGetUid() { return currentUser ? currentUser.uid : null; }
 
 async function loadNewsletter() {
   var uid = nlGetUid();
-  if (!uid) return;
+  if (!uid) {
+    // Render empty UI even without auth
+    newsletterLoaded = true;
+    renderNewsletter();
+    return;
+  }
   try {
     var issueSnap = await db.ref('shirglassworks/newsletter/issues').orderByChild('issueNumber').limitToLast(50).once('value');
     var issueVal = issueSnap.val();
