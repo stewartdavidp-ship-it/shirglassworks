@@ -370,6 +370,20 @@
       background: var(--danger-hover);
     }
 
+    .btn-small {
+      font-size: 0.78rem;
+      padding: 5px 12px;
+      white-space: nowrap;
+    }
+
+    .btn-success {
+      background: #4CAF50;
+      color: white;
+    }
+    .btn-success:hover:not(:disabled) {
+      background: #388E3C;
+    }
+
     .btn-icon {
       background: none;
       border: 1px solid #ddd;
@@ -1298,6 +1312,11 @@
     body.dark-mode .btn:hover:not(:disabled) { color: #fff; }
     body.dark-mode .btn-primary { background: #d4a053; color: #1a1a1a; }
     body.dark-mode .btn-primary:hover { background: #c4903f; color: #1a1a1a; }
+    body.dark-mode .btn-success { background: #43A047; }
+    body.dark-mode .btn-success:hover { background: #2E7D32; }
+    body.dark-mode .btn-danger { background: #C62828; }
+    body.dark-mode .btn-danger:hover { background: #B71C1C; }
+    body.dark-mode .detail-back { color: #6fc; }
 
     /* ========== COUPONS ========== */
     .coupon-status {
@@ -1608,11 +1627,11 @@
 
     /* Order Detail View */
     .order-detail { display: none; }
-    .order-detail-back {
+    .detail-back, .order-detail-back {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       color: var(--teal);
       cursor: pointer;
       background: none;
@@ -1621,7 +1640,7 @@
       padding: 0;
       margin-bottom: 16px;
     }
-    .order-detail-back:hover { color: var(--teal-deep); text-decoration: underline; }
+    .detail-back:hover, .order-detail-back:hover { color: var(--teal-deep); text-decoration: underline; }
     .order-detail-header {
       display: flex;
       justify-content: space-between;
@@ -2455,7 +2474,7 @@
     .btn-adj:hover { background: var(--cream-dark); }
 
     /* Product detail dark mode */
-    body.dark-mode .product-detail-back { color: #6fc; }
+    body.dark-mode .product-detail-back, body.dark-mode .detail-back { color: #6fc; }
     body.dark-mode .product-detail-name { color: #e0e0e0; }
     body.dark-mode .product-detail-img { background: #222; }
     body.dark-mode .product-detail-section { background: #2a2a2a; border-color: #3a3a3a; }
@@ -3390,7 +3409,7 @@
             <option value="built">Built</option>
             <option value="completed">Completed</option>
           </select>
-          <button onclick="openNewCommissionModal()" style="font-size:0.82rem;padding:6px 14px;border-radius:6px;background:var(--teal);color:white;border:none;cursor:pointer;">+ New Commission</button>
+          <button class="btn btn-primary btn-small" onclick="openNewCommissionModal()">+ New Commission</button>
         </div>
         <div id="commissionsLoading" class="loading" style="display:none;">Loading commissions...</div>
         <div id="commissionsEmpty" class="empty-state" style="display:none;"><div class="empty-icon">&#127912;</div><p>No commission inquiries yet.</p></div>
@@ -4026,7 +4045,7 @@
 
           <div id="etsyConnected" style="display:none;">
             <div style="display:flex;gap:8px;">
-              <button class="btn" style="background:#f44336;color:white;" onclick="disconnectEtsy()">Disconnect Etsy</button>
+              <button class="btn btn-danger" onclick="disconnectEtsy()">Disconnect Etsy</button>
             </div>
           </div>
         </div>
@@ -4299,9 +4318,7 @@
 
       <!-- Contact Detail View -->
       <div id="contactDetailView" style="display:none;">
-        <div style="margin-bottom:16px;">
-          <button class="btn btn-secondary" style="font-size:0.82rem;padding:5px 12px;" onclick="backToContactsList()">&#8592; Back to Contacts</button>
-        </div>
+        <button class="detail-back" onclick="backToContactsList()">&#8592; Back to Contacts</button>
         <div id="contactDetailContent"></div>
       </div>
     </div>
@@ -7186,7 +7203,7 @@ function renderProductDetail(pid) {
   if (isEditing) {
     actionHtml = '<div style="display:flex;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--cream-dark);">' +
       '<button class="btn btn-primary" onclick="saveProduct(\'' + esc(pid || '') + '\')">' + (isCreate ? 'Create Product' : 'Save Changes') + '</button>' +
-      '<button class="btn btn-secondary" onclick="' + (isCreate ? 'backToProducts()' : 'productEditMode=false;renderProductDetail(\\\'' + esc(pid) + '\\\')') + '">Cancel</button>' +
+      '<button class="btn btn-secondary" onclick="' + (isCreate ? 'backToProducts()' : 'productEditMode=false;renderProductDetail(\'' + esc(pid) + '\')') + '">Cancel</button>' +
     '</div>';
   }
 
@@ -12057,9 +12074,7 @@ function viewSaleDetail(saleId) {
   var statusColor = s.status === 'voided' ? 'var(--danger)' : s.status === 'reconciled' ? 'var(--teal)' : 'var(--warm-gray)';
 
   detailEl.innerHTML =
-    '<div style="margin-bottom:16px;">' +
-      '<button class="btn btn-secondary" onclick="closeSaleDetail()" style="font-size:0.85rem;padding:6px 12px;">&larr; Back to Sales</button>' +
-    '</div>' +
+    '<button class="detail-back" onclick="closeSaleDetail()">&larr; Back to Sales</button>' +
     '<div style="background:var(--cream);border:1px solid var(--cream-dark);border-radius:8px;padding:20px;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
         '<h3 style="margin:0;">Sale Detail</h3>' +
@@ -12575,9 +12590,7 @@ function renderSalesEventDetail(eventId) {
     }
   });
 
-  var html = '<div style="margin-bottom:16px;">' +
-    '<a href="#" onclick="closeSalesEventDetail(); return false;" style="color:var(--teal);text-decoration:none;font-size:0.85rem;">← Back to Events</a>' +
-    '</div>';
+  var html = '<button class="detail-back" onclick="closeSalesEventDetail()">&larr; Back to Events</button>';
 
   // Header
   html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px;">' +
@@ -12620,16 +12633,16 @@ function renderSalesEventDetail(eventId) {
   if (ev.status === 'planning') {
     html += '<button class="btn btn-primary" onclick="startPackingMode(\'' + eventId + '\')">📦 Start Packing</button>';
     html += '<button class="btn btn-secondary" onclick="openCreateEventModal(\'' + eventId + '\')">✏️ Edit</button>';
-    html += '<button class="btn btn-secondary" style="color:#E53935;" onclick="deleteEvent(\'' + eventId + '\')">🗑️ Delete</button>';
+    html += '<button class="btn btn-danger btn-small" onclick="deleteEvent(\'' + eventId + '\')">🗑️ Delete</button>';
   } else if (ev.status === 'packed') {
     html += '<button class="btn btn-primary" onclick="startPackingMode(\'' + eventId + '\')">📦 Add More Items</button>';
-    html += '<button class="btn btn-primary" style="background:#4CAF50;" onclick="startFairMode(\'' + eventId + '\')">🎪 Start Fair</button>';
+    html += '<button class="btn btn-success" onclick="startFairMode(\'' + eventId + '\')">🎪 Start Fair</button>';
     html += '<button class="btn btn-secondary" onclick="revertToPlanningStatus(\'' + eventId + '\')">↩️ Back to Planning</button>';
   } else if (ev.status === 'active') {
     html += '<button class="btn btn-primary" onclick="window.open(\'../pos/?eventId=' + eventId + '\', \'_blank\')">💰 Open PoS</button>';
     html += '<button class="btn btn-primary" onclick="startPackingMode(\'' + eventId + '\')">📦 Add More Items</button>';
     html += '<button class="btn btn-secondary" onclick="showManualSaleModal(\'' + eventId + '\')" title="Record a cash or offline sale that wasn\'t captured through the PoS">+ Manual Sale</button>';
-    html += '<button class="btn btn-secondary" style="background:#E53935;color:white;border-color:#E53935;" onclick="closeEvent(\'' + eventId + '\')">🏁 Close Event</button>';
+    html += '<button class="btn btn-danger" onclick="closeEvent(\'' + eventId + '\')">🏁 Close Event</button>';
   } else if (ev.status === 'closed') {
     html += '<button class="btn btn-secondary" onclick="showManualSaleModal(\'' + eventId + '\')" title="Record a missed sale (e.g. cash sale not captured during the event)">+ Manual Sale</button>';
     html += '<button class="btn btn-secondary" onclick="openCreateEventModal(\'' + eventId + '\')">✏️ Edit Details</button>';
@@ -17707,9 +17720,7 @@ function viewCommissionDetail(commId) {
       '</div>';
   }
 
-  var html = '<div style="margin-bottom:16px;">' +
-    '<button class="btn btn-secondary" style="font-size:0.82rem;" onclick="closeCommissionDetail()">&larr; Back to List</button>' +
-  '</div>' +
+  var html = '<button class="detail-back" onclick="closeCommissionDetail()">&larr; Back to Commissions</button>' +
   '<div style="background:var(--cream,#f5f0e8);border-radius:8px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">' +
     '<div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;">' +
       (imgSrc ? '<img src="' + esc(imgSrc) + '" style="width:80px;height:80px;border-radius:8px;object-fit:cover;">' : '') +
@@ -18024,8 +18035,8 @@ function openNewCommissionModal() {
     '<div id="newCommError" style="color:#DC3545;font-size:0.82rem;margin-bottom:8px;display:none;"></div>' +
 
     '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
-      '<button onclick="closeNewCommissionModal()" style="padding:8px 16px;border-radius:6px;border:1px solid var(--cream-dark);background:transparent;cursor:pointer;font-size:0.88rem;">Cancel</button>' +
-      '<button id="newCommSaveBtn" onclick="saveNewCommission()" style="padding:8px 16px;border-radius:6px;background:var(--teal);color:white;border:none;cursor:pointer;font-size:0.88rem;">Create Commission</button>' +
+      '<button class="btn btn-secondary" onclick="closeNewCommissionModal()">Cancel</button>' +
+      '<button class="btn btn-primary" id="newCommSaveBtn" onclick="saveNewCommission()">Create Commission</button>' +
     '</div>' +
   '</div>';
   document.body.appendChild(modal);
