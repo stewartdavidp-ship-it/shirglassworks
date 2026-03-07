@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog — Shir Glassworks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --amber: #C4853C;
+      --amber-light: #D4A574;
+      --teal: #4A90A4;
+      --cream: #F5F0EB;
+      --charcoal: #2C2C2C;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      color: var(--charcoal);
+      background: var(--cream);
+      min-height: 100vh;
+    }
+
+    /* Nav */
+    nav {
+      background: var(--charcoal);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    nav a.logo {
+      font-family: 'Cormorant Garamond', serif;
+      color: var(--cream);
+      font-size: 1.4rem;
+      font-weight: 300;
+      text-decoration: none;
+      letter-spacing: 0.05em;
+    }
+    nav .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+    nav .nav-links a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+    nav .nav-links a:hover { color: var(--amber-light); }
+
+    /* Main */
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 300;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: rgba(44,44,44,0.5);
+      font-size: 0.9rem;
+      margin-bottom: 2.5rem;
+    }
+
+    /* Post cards */
+    .post-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: box-shadow 0.2s, transform 0.2s;
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .post-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transform: translateY(-1px);
+    }
+    .post-card-num {
+      font-size: 0.7rem;
+      color: var(--amber);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .post-card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .post-card-date {
+      font-size: 0.8rem;
+      color: rgba(44,44,44,0.45);
+      margin-bottom: 10px;
+    }
+    .post-card-excerpt {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: rgba(44,44,44,0.7);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: rgba(44,44,44,0.4);
+    }
+    .empty-state-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+
+    /* Footer */
+    footer {
+      background: var(--charcoal);
+      color: rgba(245,240,235,0.5);
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.8rem;
+    }
+    footer a { color: rgba(245,240,235,0.5); }
+
+    .loading { text-align: center; padding: 3rem; color: rgba(44,44,44,0.4); }
+
+    @media (max-width: 600px) {
+      nav .nav-links { display: none; }
+      .container { padding: 2rem 1rem; }
+      h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Shir Glassworks</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/shop.html">Shop</a></li>
+    <li><a href="/commission.html">Commissions</a></li>
+    <li><a href="/blog/">Blog</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+  <h1>From the Studio</h1>
+  <p class="subtitle">News, stories, and behind-the-scenes from Shir Glassworks.</p>
+  <div id="postList">
+    <div class="loading">Loading posts...</div>
+  </div>
+</div>
+
+<footer>
+  <p>Shir Glassworks &bull; Western Massachusetts</p>
+  <p style="margin-top:6px;"><a href="/">Home</a> &bull; <a href="/shop.html">Shop</a> &bull; <a href="/commission.html">Commissions</a></p>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+(function() {
+  var firebaseConfig = {
+    apiKey: "AIzaSyDZevV_F87F1AKGqUPKuNIrHMybOc61D7s",
+    authDomain: "shir-glassworks.firebaseapp.com",
+    databaseURL: "https://shir-glassworks-default-rtdb.firebaseio.com",
+    projectId: "shir-glassworks"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var db = firebase.database();
+
+  db.ref('shirglassworks/newsletter/published').orderByChild('publishedAt').limitToLast(50).once('value').then(function(snap) {
+    var val = snap.val();
+    var posts = val ? Object.keys(val).map(function(k) { var p = val[k]; p._id = k; return p; }) : [];
+    posts.sort(function(a, b) {
+      return new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0);
+    });
+
+    var container = document.getElementById('postList');
+    if (posts.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📰</div><p>No posts yet. Check back soon!</p></div>';
+      return;
+    }
+
+    var html = '';
+    posts.forEach(function(post) {
+      var date = post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+      var excerpt = '';
+      if (post.sections && post.sections.length > 0) {
+        var firstContent = post.sections[0].content || '';
+        excerpt = firstContent.substring(0, 200);
+        if (firstContent.length > 200) excerpt += '...';
+      }
+      html += '<a class="post-card" href="/blog/post.html?id=' + post._id + '">' +
+        '<div class="post-card-num">Issue #' + (post.issueNumber || '?') + '</div>' +
+        '<div class="post-card-title">' + escHtml(post.title || 'Untitled') + '</div>' +
+        '<div class="post-card-date">' + date + '</div>' +
+        '<div class="post-card-excerpt">' + escHtml(excerpt) + '</div>' +
+        '</a>';
+    });
+    container.innerHTML = html;
+  }).catch(function(err) {
+    console.error('Error loading posts:', err);
+    document.getElementById('postList').innerHTML = '<div class="empty-state"><p>Unable to load posts. Please try again later.</p></div>';
+  });
+
+  function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+})();
+</script>
+</body>
+</html>

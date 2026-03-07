@@ -423,6 +423,40 @@ Use Studio to get specific shooting guidance before you pick up your camera.
 
 ---
 
+## Newsletter & Blog
+
+### Compose and Publish a Newsletter Issue
+**Status:** Live
+
+How to create a newsletter issue in Studio — from blank template to published blog post or HTML export for email.
+
+1. Open the admin app and go to Market → Blog & Newsletter
+2. Click "New Issue" — a new draft is created with 7 default sections pre-populated
+3. Enter the issue title at the top of the compose screen
+4. Expand each section and write your content in the text area
+5. Optionally click "Polish with AI" to get a cleaned-up version — compare side-by-side and pick your preferred version
+6. Add images from the Studio image library (up to 3 per section)
+7. Toggle off any sections you want to skip for this issue
+8. To send via email: click "Export HTML" — downloads a styled email file ready for your email tool
+9. To publish on the website: click "Publish to Website" — the issue appears on shirglassworks.com/blog
+10. After sending the email externally, click "Mark as Sent" to record the send date and subscriber count
+
+### Manage Newsletter Subscribers
+**Status:** Live
+
+Adding, removing, and exporting the mailing list for the Shir Glassworks newsletter.
+
+1. Open the admin app and go to Market → Blog & Newsletter
+2. Click the "Subscribers" tab
+3. View all active subscribers — name, email, source (Website or Manual), and date
+4. To add someone manually: click "+ Add Subscriber" and enter their name and email
+5. To remove someone: click "Remove" on their row — they're marked as unsubscribed (not deleted)
+6. To export the list for an email tool: click "Export CSV" — downloads a CSV with name, email, and subscribe date
+7. Customers can also sign up via the newsletter form on the website footer — those appear with a "Website" source badge
+8. Customers can unsubscribe via the link in newsletter emails — their status updates automatically
+
+---
+
 ## Not Yet Built
 
 The following workflows have been identified but not yet designed or built. These are candidates for the next planning session with Ori and Madeline.

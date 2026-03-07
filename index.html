@@ -1073,6 +1073,7 @@
     <li><a href="#process">Process</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="commission.html">Commissions</a></li>
+    <li><a href="blog/">Blog</a></li>
     <li><a href="orders.html">Orders</a></li>
     <li><a href="#" onclick="event.preventDefault(); siteSignIn();">Sign In</a></li>
     <li><a href="shop.html" class="nav-shop">Shop</a></li>
@@ -1365,12 +1366,13 @@
 </section>
 
 <!-- ============ NEWSLETTER ============ -->
-<div class="newsletter-bar">
+<div class="newsletter-bar" id="newsletterSignup">
   <h3>Stay in the Loop</h3>
   <p>Events, new collections, classes &amp; studio updates — no spam, ever.</p>
-  <div class="newsletter-form">
-    <input type="email" placeholder="Your email address" />
-    <button>Subscribe</button>
+  <div class="newsletter-form" id="nlSignupForm">
+    <input type="text" id="nlSignupName" placeholder="Your name" style="max-width:160px;" />
+    <input type="email" id="nlSignupEmail" placeholder="Your email address" />
+    <button type="button" onclick="nlSubmitSignup()">Subscribe</button>
   </div>
 </div>
 
@@ -1697,6 +1699,36 @@
     if (action) track('ev', action);
   }, true);
 })();
+</script>
+<script>
+// Newsletter sign-up (public — no auth required)
+function nlSubmitSignup() {
+  var name = document.getElementById('nlSignupName').value.trim();
+  var email = document.getElementById('nlSignupEmail').value.trim();
+  if (!name) { alert('Please enter your name.'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Please enter a valid email address.'); return; }
+
+  var btn = document.querySelector('#nlSignupForm button');
+  btn.disabled = true;
+  btn.textContent = 'Subscribing...';
+
+  var db = firebase.database();
+  var subRef = db.ref('shirglassworks/newsletter/subscribers').push();
+  var token = subRef.key + '-' + Date.now().toString(36);
+  subRef.set({
+    id: subRef.key, name: name, email: email, notes: null,
+    subscribedAt: new Date().toISOString(), source: 'website-form',
+    status: 'active', unsubscribeToken: token, unsubscribedAt: null
+  }).then(function() {
+    document.getElementById('nlSignupForm').innerHTML =
+      '<p style="color:var(--amber-light);font-size:0.95rem;">You\'re subscribed! Thanks for joining.</p>';
+  }).catch(function(err) {
+    console.error('Signup error:', err);
+    btn.disabled = false;
+    btn.textContent = 'Subscribe';
+    alert('Something went wrong. Please try again.');
+  });
+}
 </script>
 <script src="cart.js"></script>
 <script src="checkout.js?v=2"></script>

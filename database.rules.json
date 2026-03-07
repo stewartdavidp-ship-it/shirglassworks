@@ -545,6 +545,57 @@
         }
       },
 
+      // Newsletter & Blog — issue composition, subscribers, blog posts
+      "newsletter": {
+        // Issues — admin auth required
+        "issues": {
+          ".read": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').exists() && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() !== 'guest')",
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() === 'admin')",
+          ".indexOn": ["status", "issueNumber", "publishedAt"],
+          "$issueId": {
+            ".validate": "newData.hasChildren(['issueNumber', 'status', 'createdAt'])",
+            "sections": {
+              "$sectionId": {
+                ".validate": "newData.hasChildren(['type', 'title', 'order', 'included'])"
+              }
+            }
+          }
+        },
+        // Issue counter — admin-only, atomic increment
+        "meta": {
+          ".read": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').exists() && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() !== 'guest')",
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() === 'admin')"
+        },
+        // Subscribers — admin can read/write all.
+        // Public sign-up form: unauthenticated push-only writes with forced source.
+        // Unsubscribe: update status to unsubscribed using token match.
+        "subscribers": {
+          ".read": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() === 'admin')",
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() === 'admin')",
+          ".indexOn": ["email", "status", "unsubscribeToken"],
+          "$subscriberId": {
+            // Public push: anyone can create a new subscriber record (sign-up form)
+            ".write": "!data.exists() && newData.hasChildren(['email', 'name', 'subscribedAt', 'source', 'status', 'unsubscribeToken']) && newData.child('source').val() === 'website-form' && newData.child('status').val() === 'active' && newData.child('email').isString() && newData.child('email').val().length >= 3 && newData.child('email').val().length <= 254 && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 200",
+            // Unsubscribe: allow status update if token matches
+            "status": {
+              ".write": "newData.val() === 'unsubscribed' && data.parent().child('unsubscribeToken').val() === newData.parent().child('unsubscribeToken').val()"
+            },
+            "unsubscribedAt": {
+              ".write": "data.parent().child('status').val() === 'active' || newData.parent().child('status').val() === 'unsubscribed'"
+            }
+          }
+        },
+        // Published blog posts — public read for blog pages
+        "published": {
+          ".read": true,
+          ".write": "auth.uid === 'Y8RX1PIzccfT95WIIFl4I37VZZ72' || (auth != null && root.child('shirglassworks/admin/users').child(auth.uid).child('role').val() === 'admin')",
+          ".indexOn": ["publishedAt"],
+          "$postId": {
+            ".validate": "newData.hasChildren(['issueNumber', 'title', 'slug', 'publishedAt', 'sections'])"
+          }
+        }
+      },
+
       // Market — Social media pipeline, per-user content
       "market": {
         "pendingClips": {

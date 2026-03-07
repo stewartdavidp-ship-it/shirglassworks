@@ -2970,6 +2970,104 @@
     body.dark-mode .sm-dest-chip.selected { border-color:var(--amber); color:#eee; }
     body.dark-mode .sm-caption-edit { background:#2a2a2a; border-color:#444; color:#eee; }
     body.dark-mode .sm-clip-thumb-placeholder { background:#333; }
+
+    /* ============================================================ */
+    /* NEWSLETTER & BLOG                                            */
+    /* ============================================================ */
+    .nl-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+    .nl-header h2 { font-size:1.4rem; font-weight:600; margin:0; }
+    .nl-sub-nav { display:flex; gap:4px; background:var(--surface); border-radius:8px; padding:3px; margin-bottom:20px; }
+    .nl-sub-nav button { padding:8px 16px; border:none; background:transparent; color:var(--text-secondary); border-radius:6px; cursor:pointer; font-size:0.85rem; font-weight:500; transition:all 0.15s; }
+    .nl-sub-nav button.active { background:var(--amber); color:#fff; }
+    .nl-sub-nav button:hover:not(.active) { background:rgba(196,133,60,0.1); }
+
+    /* Issue List */
+    .nl-issue-row { display:flex; align-items:center; padding:14px 16px; background:var(--card-bg); border:1px solid var(--border); border-radius:8px; margin-bottom:8px; cursor:pointer; transition:border-color 0.15s; gap:14px; }
+    .nl-issue-row:hover { border-color:var(--amber); }
+    .nl-issue-num { font-size:0.75rem; color:var(--text-secondary); font-weight:600; min-width:40px; }
+    .nl-issue-title { flex:1; font-weight:500; }
+    .nl-issue-date { font-size:0.8rem; color:var(--text-secondary); min-width:90px; text-align:right; }
+    .nl-status-badge { font-size:0.7rem; padding:3px 8px; border-radius:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em; }
+    .nl-status-badge.draft { background:rgba(196,133,60,0.15); color:var(--amber); }
+    .nl-status-badge.ready { background:rgba(74,144,164,0.15); color:var(--teal); }
+    .nl-status-badge.sent { background:rgba(139,111,94,0.15); color:#8B6F5E; }
+    .nl-status-badge.published { background:rgba(90,122,90,0.15); color:#5A7A5A; }
+
+    /* Compose Screen */
+    .nl-compose-header { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+    .nl-compose-header input { flex:1; font-size:1.1rem; padding:10px 14px; border:1px solid var(--border); border-radius:6px; background:var(--card-bg); color:var(--text); font-weight:500; }
+    .nl-compose-actions { display:flex; gap:8px; flex-wrap:wrap; padding:16px 0; border-top:1px solid var(--border); margin-top:16px; }
+
+    .nl-section-card { background:var(--card-bg); border:1px solid var(--border); border-radius:8px; margin-bottom:10px; overflow:hidden; }
+    .nl-section-header { display:flex; align-items:center; padding:12px 16px; cursor:pointer; gap:10px; }
+    .nl-section-header:hover { background:rgba(196,133,60,0.04); }
+    .nl-section-drag { cursor:grab; color:var(--text-secondary); font-size:1.1rem; }
+    .nl-section-title-input { flex:1; border:none; background:transparent; font-size:0.95rem; font-weight:500; color:var(--text); padding:0; }
+    .nl-section-title-input:focus { outline:none; border-bottom:1px solid var(--amber); }
+    .nl-section-status { font-size:0.65rem; padding:2px 6px; border-radius:8px; font-weight:600; text-transform:uppercase; }
+    .nl-section-status.empty { background:rgba(150,150,150,0.15); color:var(--text-secondary); }
+    .nl-section-status.has-draft { background:rgba(196,133,60,0.15); color:var(--amber); }
+    .nl-section-status.ready { background:rgba(90,122,90,0.15); color:#5A7A5A; }
+    .nl-section-toggle { font-size:0.7rem; color:var(--text-secondary); transition:transform 0.15s; }
+    .nl-section-toggle.open { transform:rotate(90deg); }
+    .nl-section-include { width:16px; height:16px; accent-color:var(--amber); cursor:pointer; }
+
+    .nl-section-body { padding:0 16px 16px; }
+    .nl-section-prompt { font-size:0.8rem; color:var(--text-secondary); font-style:italic; margin-bottom:10px; padding:8px 12px; background:rgba(196,133,60,0.05); border-radius:6px; border-left:3px solid var(--amber); }
+    .nl-section-textarea { width:100%; min-height:100px; padding:10px; border:1px solid var(--border); border-radius:6px; background:var(--card-bg); color:var(--text); font-family:inherit; font-size:0.9rem; resize:vertical; }
+    .nl-section-textarea:focus { outline:none; border-color:var(--amber); }
+
+    /* AI Polish side-by-side */
+    .nl-ai-compare { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+    .nl-ai-panel { padding:12px; border:1px solid var(--border); border-radius:6px; font-size:0.85rem; line-height:1.5; }
+    .nl-ai-panel-label { font-size:0.7rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; color:var(--text-secondary); }
+    .nl-ai-panel.original { border-left:3px solid var(--text-secondary); }
+    .nl-ai-panel.polished { border-left:3px solid var(--teal); }
+    .nl-ai-actions { display:flex; gap:8px; margin-top:12px; }
+
+    /* Section images */
+    .nl-section-images { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+    .nl-section-img-thumb { width:60px; height:60px; object-fit:cover; border-radius:4px; border:1px solid var(--border); }
+    .nl-section-img-add { width:60px; height:60px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--border); border-radius:4px; cursor:pointer; color:var(--text-secondary); font-size:1.2rem; }
+    .nl-section-img-add:hover { border-color:var(--amber); color:var(--amber); }
+
+    /* Image picker modal */
+    .nl-img-picker-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center; }
+    .nl-img-picker { background:var(--card-bg); border-radius:10px; padding:20px; max-width:600px; width:90%; max-height:70vh; overflow-y:auto; }
+    .nl-img-picker-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:8px; margin-top:12px; }
+    .nl-img-picker-item { cursor:pointer; border-radius:6px; overflow:hidden; border:2px solid transparent; transition:border-color 0.15s; }
+    .nl-img-picker-item:hover { border-color:var(--amber); }
+    .nl-img-picker-item.selected { border-color:var(--amber); }
+    .nl-img-picker-item img { width:100%; aspect-ratio:1; object-fit:cover; display:block; }
+
+    /* Subscriber list */
+    .nl-sub-table { width:100%; border-collapse:collapse; }
+    .nl-sub-table th { text-align:left; padding:10px 12px; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-secondary); border-bottom:1px solid var(--border); }
+    .nl-sub-table td { padding:10px 12px; border-bottom:1px solid var(--border); font-size:0.9rem; }
+    .nl-sub-table tr:hover td { background:rgba(196,133,60,0.04); }
+    .nl-source-badge { font-size:0.65rem; padding:2px 6px; border-radius:8px; font-weight:600; text-transform:uppercase; }
+    .nl-source-badge.website { background:rgba(74,144,164,0.15); color:var(--teal); }
+    .nl-source-badge.manual { background:rgba(196,133,60,0.15); color:var(--amber); }
+
+    /* Empty states */
+    .nl-empty { text-align:center; padding:40px 20px; color:var(--text-secondary); }
+    .nl-empty-icon { font-size:2.5rem; margin-bottom:10px; }
+    .nl-empty-text { font-size:0.95rem; margin-bottom:16px; }
+
+    /* Loading spinner for AI */
+    .nl-ai-loading { display:inline-flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--teal); }
+    .nl-ai-loading::before { content:''; width:14px; height:14px; border:2px solid var(--teal); border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite; }
+
+    /* Dark mode */
+    body.dark-mode .nl-issue-row { background:#1e1e1e; border-color:#333; }
+    body.dark-mode .nl-issue-row:hover { border-color:var(--amber); }
+    body.dark-mode .nl-section-card { background:#1e1e1e; border-color:#333; }
+    body.dark-mode .nl-section-textarea { background:#2a2a2a; border-color:#444; color:#eee; }
+    body.dark-mode .nl-compose-header input { background:#2a2a2a; border-color:#444; color:#eee; }
+    body.dark-mode .nl-sub-nav { background:#1a1a1a; }
+    body.dark-mode .nl-ai-panel { background:#1e1e1e; border-color:#444; }
+    body.dark-mode .nl-img-picker { background:#1e1e1e; }
+    body.dark-mode .nl-section-prompt { background:rgba(196,133,60,0.08); }
   </style>
 </head>
 <body>
@@ -3035,7 +3133,7 @@
       </div>
       <div class="sidebar-items">
         <div class="sidebar-item" data-route="social" onclick="navigateTo('social')">Social Media</div>
-        <div class="sidebar-item muted" data-route="newsletter" onclick="navigateTo('newsletter')">Blog &amp; Newsletter <span class="sidebar-badge new">New</span></div>
+        <div class="sidebar-item" data-route="newsletter" onclick="navigateTo('newsletter')">Blog &amp; Newsletter</div>
         <div class="sidebar-item" data-route="stories" onclick="navigateTo('stories')">Stories</div>
         <div class="sidebar-item" data-route="website" onclick="navigateTo('website')">Website Content</div>
       </div>
@@ -3072,6 +3170,11 @@
   <!-- ===== SOCIAL MEDIA TAB ===== -->
   <div id="socialMediaTab" style="display:none;">
     <div id="socialMediaContent"></div>
+  </div>
+
+  <!-- ===== NEWSLETTER TAB ===== -->
+  <div id="newsletterTab" style="display:none;">
+    <div id="newsletterContent"></div>
   </div>
 
   <!-- ===== PLACEHOLDER CONTAINER ===== -->
@@ -4909,7 +5012,7 @@ var ROUTE_MAP = {
   'fulfillment': { tab: 'fulfillmentTab', setup: function() { switchFulfillmentSubView('pack'); } },
   'receipts':    { tab: 'salesTab', setup: function() { if (!showingSquarePayments) toggleSquarePayments(); } },
   'social':      { tab: 'socialMediaTab' },
-  'newsletter':  { tab: null, placeholder: { name: 'Blog & Newsletter', desc: 'Subscriber management, compose, send.', badge: 'new' } },
+  'newsletter':  { tab: 'newsletterTab' },
   'stories':     { tab: 'productionTab', setup: function() { switchProductionSubView('jobs'); } },
   'website':     { tab: 'galleryTab' },
   'products':    { tab: 'productsTab' },
@@ -4939,7 +5042,7 @@ var SECTION_ROUTES = {
   'manage': ['products', 'inventory', 'customers', 'images', 'employees', 'contacts', 'auditlog', 'financials', 'settings']
 };
 
-var ALL_TAB_IDS = ['scheduleTab', 'galleryTab', 'productsTab', 'ordersTab', 'salesTab', 'salesEventsTab', 'productionTab', 'couponsTab', 'analyticsTab', 'settingsTab', 'imagesTab', 'auditLogTab', 'employeesTab', 'contactsTab', 'fulfillmentTab', 'commissionsTab', 'socialMediaTab', 'placeholderTab'];
+var ALL_TAB_IDS = ['scheduleTab', 'galleryTab', 'productsTab', 'ordersTab', 'salesTab', 'salesEventsTab', 'productionTab', 'couponsTab', 'analyticsTab', 'settingsTab', 'imagesTab', 'auditLogTab', 'employeesTab', 'contactsTab', 'fulfillmentTab', 'commissionsTab', 'socialMediaTab', 'newsletterTab', 'placeholderTab'];
 
 var currentRoute = 'dashboard';
 
@@ -5009,6 +5112,7 @@ function lazyLoadForRoute(route) {
   if (route === 'employees') { loadAdminUsers(); loadRoles(); }
   if (route === 'contacts' && !contactsLoaded) loadContacts();
   if (route === 'social') { if (!socialMediaLoaded) loadSocialMedia(); if (!productsLoaded) loadProducts(); }
+  if (route === 'newsletter') { if (!newsletterLoaded) loadNewsletter(); }
   if (route === 'fulfillment') {
     if (!ordersLoaded) loadOrders();
     if (!bundlesLoaded) loadBundles();
@@ -18737,6 +18841,724 @@ async function smMarkPosted() {
   } catch (err) {
     showToast('Error: ' + err.message, true);
   }
+}
+
+// ============================================================
+// NEWSLETTER & BLOG
+// ============================================================
+
+var newsletterLoaded = false;
+var nlIssues = [];
+var nlSubscribers = [];
+var nlCurrentView = 'issues'; // issues | compose | subscribers
+var nlCurrentIssueId = null;
+var nlCurrentIssue = null;
+var nlExpandedSections = {};
+var nlAiResults = {};
+var nlImagePickerSection = null;
+
+var NL_DEFAULT_SECTIONS = [
+  { type: 'studio-update', title: 'What We\'ve Been Making', guidedPrompt: 'What has the studio been working on lately? Any new techniques, materials, or directions?' },
+  { type: 'new-products', title: 'New Products', guidedPrompt: 'What new pieces have been added to the shop? What\'s special about them?' },
+  { type: 'event-recap', title: 'Event Recap', guidedPrompt: 'What happened at the most recent show or fair? How did it go, what sold well, any memorable moments?' },
+  { type: 'upcoming-events', title: 'Upcoming Events', guidedPrompt: 'What fairs, shows, or events are coming up? Where can people find you?' },
+  { type: 'behind-process', title: 'Behind the Process', guidedPrompt: 'Walk us through how a specific piece or technique is made. What makes it interesting?' },
+  { type: 'featured-piece', title: 'Featured Piece', guidedPrompt: 'Spotlight one piece from the current collection. What\'s the story behind it?' },
+  { type: 'from-studio', title: 'From the Studio', guidedPrompt: 'A personal note from Ori or Madeline. What\'s on your mind this month?' }
+];
+
+function nlGetUid() { return currentUser ? currentUser.uid : null; }
+
+async function loadNewsletter() {
+  var uid = nlGetUid();
+  if (!uid) return;
+  try {
+    var issueSnap = await db.ref('shirglassworks/newsletter/issues').orderByChild('issueNumber').limitToLast(50).once('value');
+    var issueVal = issueSnap.val();
+    nlIssues = issueVal ? Object.values(issueVal).sort(function(a, b) { return (b.issueNumber || 0) - (a.issueNumber || 0); }) : [];
+
+    var subSnap = await db.ref('shirglassworks/newsletter/subscribers').orderByChild('subscribedAt').limitToLast(200).once('value');
+    var subVal = subSnap.val();
+    nlSubscribers = subVal ? Object.values(subVal).sort(function(a, b) { return (b.subscribedAt || 0) - (a.subscribedAt || 0); }) : [];
+
+    newsletterLoaded = true;
+    renderNewsletter();
+  } catch (err) {
+    console.error('Error loading newsletter:', err);
+    document.getElementById('newsletterContent').innerHTML = '<p style="color:var(--danger);padding:20px;">Error loading newsletter data: ' + err.message + '</p>';
+  }
+}
+
+function renderNewsletter() {
+  if (nlCurrentView === 'compose' && nlCurrentIssueId) { renderNLCompose(); return; }
+  if (nlCurrentView === 'subscribers') { renderNLSubscribers(); return; }
+  renderNLIssueList();
+}
+
+// ===== ISSUE LIST SCREEN =====
+function renderNLIssueList() {
+  nlCurrentView = 'issues';
+  var html = '<div class="nl-sub-nav">' +
+    '<button class="active" onclick="nlSwitchView(\'issues\')">Issues</button>' +
+    '<button onclick="nlSwitchView(\'subscribers\')">Subscribers</button>' +
+    '</div>' +
+    '<div class="nl-header"><h2>Newsletter Issues</h2>' +
+    '<button class="btn btn-primary" onclick="nlCreateIssue()">+ New Issue</button></div>';
+
+  if (nlIssues.length === 0) {
+    html += '<div class="nl-empty"><div class="nl-empty-icon">📰</div>' +
+      '<div class="nl-empty-text">No newsletter issues yet</div>' +
+      '<p style="font-size:0.85rem;color:var(--text-secondary);">Create your first issue to start composing.</p></div>';
+  } else {
+    nlIssues.forEach(function(issue) {
+      var dateStr = issue.createdAt ? new Date(issue.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+      html += '<div class="nl-issue-row" onclick="nlOpenIssue(\'' + issue.id + '\')">' +
+        '<span class="nl-issue-num">#' + (issue.issueNumber || '?') + '</span>' +
+        '<span class="nl-issue-title">' + (issue.title || 'Untitled Issue') + '</span>' +
+        '<span class="nl-status-badge ' + (issue.status || 'draft') + '">' + (issue.status || 'draft') + '</span>' +
+        '<span class="nl-issue-date">' + dateStr + '</span>' +
+        '</div>';
+    });
+  }
+  document.getElementById('newsletterContent').innerHTML = html;
+}
+
+function nlSwitchView(view) {
+  nlCurrentView = view;
+  renderNewsletter();
+}
+
+// ===== CREATE NEW ISSUE =====
+async function nlCreateIssue() {
+  try {
+    // Atomic increment of issue counter
+    var counterRef = db.ref('shirglassworks/newsletter/meta/issueCounter');
+    var result = await counterRef.transaction(function(current) {
+      return (current || 0) + 1;
+    });
+    var issueNumber = result.snapshot.val();
+
+    var issueId = db.ref('shirglassworks/newsletter/issues').push().key;
+    var issueData = {
+      id: issueId,
+      issueNumber: issueNumber,
+      title: '',
+      slug: '',
+      status: 'draft',
+      sentAt: null,
+      publishedAt: null,
+      sentSubscriberCount: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Pre-populate default sections
+    var sections = {};
+    NL_DEFAULT_SECTIONS.forEach(function(def, idx) {
+      var secId = db.ref().push().key;
+      sections[secId] = {
+        id: secId,
+        type: def.type,
+        title: def.title,
+        guidedPrompt: def.guidedPrompt,
+        rawInput: '',
+        aiVersion: null,
+        finalContent: '',
+        usedAI: false,
+        images: [],
+        order: idx,
+        included: true
+      };
+    });
+
+    issueData.sections = sections;
+    await db.ref('shirglassworks/newsletter/issues/' + issueId).set(issueData);
+
+    nlIssues.unshift(issueData);
+    showToast('Issue #' + issueNumber + ' created');
+    nlOpenIssue(issueId);
+  } catch (err) {
+    showToast('Error creating issue: ' + err.message, true);
+  }
+}
+
+// ===== OPEN ISSUE FOR EDITING =====
+function nlOpenIssue(issueId) {
+  nlCurrentIssueId = issueId;
+  nlCurrentIssue = nlIssues.find(function(i) { return i.id === issueId; });
+  if (!nlCurrentIssue) { showToast('Issue not found', true); return; }
+  nlCurrentView = 'compose';
+  nlExpandedSections = {};
+  nlAiResults = {};
+  renderNLCompose();
+}
+
+// ===== COMPOSE SCREEN =====
+function renderNLCompose() {
+  var issue = nlCurrentIssue;
+  if (!issue) { renderNLIssueList(); return; }
+
+  var sections = issue.sections ? Object.keys(issue.sections).map(function(k) { var s = issue.sections[k]; s.id = s.id || k; return s; }).sort(function(a, b) { return (a.order || 0) - (b.order || 0); }) : [];
+
+  var html = '<div style="margin-bottom:16px;">' +
+    '<button class="btn btn-outline" onclick="nlBackToList()" style="font-size:0.85rem;">← Back to Issues</button>' +
+    '<span class="nl-status-badge ' + (issue.status || 'draft') + '" style="margin-left:12px;">' + (issue.status || 'draft') + '</span>' +
+    '</div>' +
+    '<div class="nl-compose-header">' +
+    '<span style="font-weight:600;color:var(--text-secondary);white-space:nowrap;">#' + (issue.issueNumber || '?') + '</span>' +
+    '<input type="text" value="' + (issue.title || '').replace(/"/g, '&quot;') + '" placeholder="Issue title..." onchange="nlUpdateTitle(this.value)" />' +
+    '</div>';
+
+  // Section cards
+  sections.forEach(function(sec) {
+    var isExpanded = nlExpandedSections[sec.id];
+    var contentStatus = sec.finalContent ? 'ready' : (sec.rawInput ? 'has-draft' : 'empty');
+    var statusLabel = sec.finalContent ? 'Ready' : (sec.rawInput ? 'Draft' : 'Empty');
+    var aiResult = nlAiResults[sec.id];
+
+    html += '<div class="nl-section-card">' +
+      '<div class="nl-section-header" onclick="nlToggleSection(\'' + sec.id + '\')">' +
+      '<span class="nl-section-drag">⠿</span>' +
+      '<input type="checkbox" class="nl-section-include" ' + (sec.included ? 'checked' : '') +
+      ' onclick="event.stopPropagation(); nlToggleInclude(\'' + sec.id + '\', this.checked)" title="Include in issue" />' +
+      '<input type="text" class="nl-section-title-input" value="' + (sec.title || '').replace(/"/g, '&quot;') + '"' +
+      ' onclick="event.stopPropagation()" onchange="nlUpdateSectionTitle(\'' + sec.id + '\', this.value)" />' +
+      '<span class="nl-section-status ' + contentStatus + '">' + statusLabel + '</span>' +
+      '<span class="nl-section-toggle ' + (isExpanded ? 'open' : '') + '">▶</span>' +
+      '</div>';
+
+    if (isExpanded) {
+      html += '<div class="nl-section-body">';
+      if (sec.guidedPrompt) {
+        html += '<div class="nl-section-prompt">' + sec.guidedPrompt + '</div>';
+      }
+
+      // Check if we're showing AI comparison
+      if (aiResult && !sec.finalContent) {
+        html += '<div class="nl-ai-compare">' +
+          '<div class="nl-ai-panel original"><div class="nl-ai-panel-label">Your Original</div>' + nlEscHtml(sec.rawInput) + '</div>' +
+          '<div class="nl-ai-panel polished"><div class="nl-ai-panel-label">AI Polished</div>' + nlEscHtml(aiResult) + '</div>' +
+          '</div>' +
+          '<div class="nl-ai-actions">' +
+          '<button class="btn btn-outline" onclick="nlPickVersion(\'' + sec.id + '\', \'original\')">Use Original</button>' +
+          '<button class="btn btn-primary" onclick="nlPickVersion(\'' + sec.id + '\', \'ai\')">Use AI Version</button>' +
+          '</div>';
+      } else if (sec.finalContent) {
+        // Final content editing
+        html += '<textarea class="nl-section-textarea" id="nlFinal_' + sec.id + '" onchange="nlUpdateFinalContent(\'' + sec.id + '\', this.value)">' +
+          nlEscHtml(sec.finalContent) + '</textarea>';
+        html += '<div style="margin-top:8px;"><button class="btn btn-outline" style="font-size:0.8rem;" onclick="nlResetSection(\'' + sec.id + '\')">Reset to Draft</button></div>';
+      } else {
+        // Raw input
+        html += '<textarea class="nl-section-textarea" id="nlRaw_' + sec.id + '" placeholder="Write your content here..." onchange="nlUpdateRawInput(\'' + sec.id + '\', this.value)">' +
+          nlEscHtml(sec.rawInput || '') + '</textarea>';
+        var hasContent = !!(sec.rawInput && sec.rawInput.trim());
+        html += '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;">' +
+          '<button class="btn btn-outline" style="font-size:0.8rem;" ' + (hasContent ? '' : 'disabled') +
+          ' onclick="nlPolishSection(\'' + sec.id + '\')">✨ Polish with AI</button>';
+        if (hasContent) {
+          html += '<button class="btn btn-outline" style="font-size:0.8rem;" onclick="nlUseAsIs(\'' + sec.id + '\')">Use as-is</button>';
+        }
+        html += '</div>';
+      }
+
+      // Section images
+      var images = sec.images || [];
+      html += '<div class="nl-section-images">';
+      images.forEach(function(imgId, idx) {
+        var img = imageLibrary ? imageLibrary[imgId] : null;
+        if (img) {
+          html += '<div style="position:relative;"><img class="nl-section-img-thumb" src="' + img.url + '" alt="" />' +
+            '<span style="position:absolute;top:-4px;right:-4px;cursor:pointer;background:var(--danger);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;" onclick="nlRemoveImage(\'' + sec.id + '\',' + idx + ')">×</span></div>';
+        }
+      });
+      if (images.length < 3) {
+        html += '<div class="nl-section-img-add" onclick="nlOpenImagePicker(\'' + sec.id + '\')">+</div>';
+      }
+      html += '</div>';
+      html += '</div>'; // end section body
+    }
+    html += '</div>'; // end section card
+  });
+
+  // Add section button
+  html += '<div style="text-align:center;margin:16px 0;">' +
+    '<button class="btn btn-outline" onclick="nlAddSection()">+ Add Section</button></div>';
+
+  // Actions bar
+  html += '<div class="nl-compose-actions">' +
+    '<button class="btn btn-primary" onclick="nlExportHTML()">📥 Export HTML</button>' +
+    '<button class="btn btn-outline" onclick="nlPublishToWebsite()">🌐 Publish to Website</button>' +
+    '<button class="btn btn-outline" onclick="nlMarkAsSent()">✉️ Mark as Sent</button>' +
+    '</div>';
+
+  document.getElementById('newsletterContent').innerHTML = html;
+}
+
+function nlEscHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/\n/g, '<br>');
+}
+
+function nlBackToList() {
+  nlCurrentIssueId = null;
+  nlCurrentIssue = null;
+  nlCurrentView = 'issues';
+  renderNLIssueList();
+}
+
+function nlToggleSection(secId) {
+  nlExpandedSections[secId] = !nlExpandedSections[secId];
+  renderNLCompose();
+}
+
+async function nlUpdateTitle(val) {
+  if (!nlCurrentIssue) return;
+  nlCurrentIssue.title = val;
+  nlCurrentIssue.slug = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').substring(0, 60);
+  nlCurrentIssue.updatedAt = new Date().toISOString();
+  try {
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId).update({
+      title: val, slug: nlCurrentIssue.slug, updatedAt: nlCurrentIssue.updatedAt
+    });
+  } catch (err) { showToast('Error saving title: ' + err.message, true); }
+}
+
+async function nlUpdateSectionTitle(secId, val) {
+  if (!nlCurrentIssue || !nlCurrentIssue.sections || !nlCurrentIssue.sections[secId]) return;
+  nlCurrentIssue.sections[secId].title = val;
+  try {
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId + '/sections/' + secId + '/title').set(val);
+  } catch (err) { showToast('Error saving: ' + err.message, true); }
+}
+
+async function nlToggleInclude(secId, checked) {
+  if (!nlCurrentIssue || !nlCurrentIssue.sections || !nlCurrentIssue.sections[secId]) return;
+  nlCurrentIssue.sections[secId].included = checked;
+  try {
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId + '/sections/' + secId + '/included').set(checked);
+  } catch (err) { showToast('Error saving: ' + err.message, true); }
+}
+
+async function nlUpdateRawInput(secId, val) {
+  if (!nlCurrentIssue || !nlCurrentIssue.sections || !nlCurrentIssue.sections[secId]) return;
+  nlCurrentIssue.sections[secId].rawInput = val;
+  try {
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId + '/sections/' + secId + '/rawInput').set(val);
+  } catch (err) { showToast('Error saving: ' + err.message, true); }
+}
+
+async function nlUpdateFinalContent(secId, val) {
+  if (!nlCurrentIssue || !nlCurrentIssue.sections || !nlCurrentIssue.sections[secId]) return;
+  nlCurrentIssue.sections[secId].finalContent = val;
+  try {
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId + '/sections/' + secId + '/finalContent').set(val);
+  } catch (err) { showToast('Error saving: ' + err.message, true); }
+}
+
+async function nlUseAsIs(secId) {
+  if (!nlCurrentIssue || !nlCurrentIssue.sections || !nlCurrentIssue.sections[secId]) return;
+  var sec = nlCurrentIssue.sections[secId];
+  sec.finalContent = sec.rawInput;
+  sec.usedAI = false;
+  try {
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId + '/sections/' + secId).update({
+      finalContent: sec.rawInput, usedAI: false
+    });
+    renderNLCompose();
+  } catch (err) { showToast('Error saving: ' + err.message, true); }
+}
+
+// AI Polish
+async function nlPolishSection(secId) {
+  if (!nlCurrentIssue || !nlCurrentIssue.sections || !nlCurrentIssue.sections[secId]) return;
+  var sec = nlCurrentIssue.sections[secId];
+  if (!sec.rawInput || !sec.rawInput.trim()) { showToast('Write some content first', true); return; }
+
+  // Show loading
+  var btn = event.target;
+  var origText = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="nl-ai-loading">Polishing...</span>';
+
+  try {
+    var polishFn = firebase.functions().httpsCallable('shirSocialAI');
+    var result = await polishFn({ action: 'newsletterPolish', rawInput: sec.rawInput, sectionType: sec.type });
+    var polished = result.data && result.data.polished ? result.data.polished : sec.rawInput;
+
+    nlAiResults[secId] = polished;
+    sec.aiVersion = polished;
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId + '/sections/' + secId + '/aiVersion').set(polished);
+    renderNLCompose();
+  } catch (err) {
+    console.error('AI polish error:', err);
+    showToast('AI polish unavailable — use content as-is', true);
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+async function nlPickVersion(secId, version) {
+  if (!nlCurrentIssue || !nlCurrentIssue.sections || !nlCurrentIssue.sections[secId]) return;
+  var sec = nlCurrentIssue.sections[secId];
+  var content = version === 'ai' ? (nlAiResults[secId] || sec.rawInput) : sec.rawInput;
+  sec.finalContent = content;
+  sec.usedAI = version === 'ai';
+  delete nlAiResults[secId];
+  try {
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId + '/sections/' + secId).update({
+      finalContent: content, usedAI: sec.usedAI
+    });
+    renderNLCompose();
+  } catch (err) { showToast('Error saving: ' + err.message, true); }
+}
+
+async function nlResetSection(secId) {
+  if (!nlCurrentIssue || !nlCurrentIssue.sections || !nlCurrentIssue.sections[secId]) return;
+  var sec = nlCurrentIssue.sections[secId];
+  sec.finalContent = '';
+  sec.usedAI = false;
+  sec.aiVersion = null;
+  delete nlAiResults[secId];
+  try {
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId + '/sections/' + secId).update({
+      finalContent: '', usedAI: false, aiVersion: null
+    });
+    renderNLCompose();
+  } catch (err) { showToast('Error saving: ' + err.message, true); }
+}
+
+// Add custom section
+async function nlAddSection() {
+  if (!nlCurrentIssue) return;
+  var secId = db.ref().push().key;
+  var sections = nlCurrentIssue.sections ? Object.values(nlCurrentIssue.sections) : [];
+  var maxOrder = sections.reduce(function(m, s) { return Math.max(m, s.order || 0); }, -1);
+  var newSec = {
+    id: secId, type: 'custom', title: 'New Section', guidedPrompt: '',
+    rawInput: '', aiVersion: null, finalContent: '', usedAI: false,
+    images: [], order: maxOrder + 1, included: true
+  };
+  if (!nlCurrentIssue.sections) nlCurrentIssue.sections = {};
+  nlCurrentIssue.sections[secId] = newSec;
+  nlExpandedSections[secId] = true;
+  try {
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId + '/sections/' + secId).set(newSec);
+    renderNLCompose();
+  } catch (err) { showToast('Error adding section: ' + err.message, true); }
+}
+
+// Image picker
+function nlOpenImagePicker(secId) {
+  nlImagePickerSection = secId;
+  var images = imageLibrary ? Object.values(imageLibrary) : [];
+  var sec = nlCurrentIssue && nlCurrentIssue.sections ? nlCurrentIssue.sections[secId] : null;
+  var currentImages = sec ? (sec.images || []) : [];
+
+  var html = '<div class="nl-img-picker-overlay" onclick="nlCloseImagePicker()">' +
+    '<div class="nl-img-picker" onclick="event.stopPropagation()">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+    '<h3 style="margin:0;">Select Image</h3>' +
+    '<button class="btn btn-outline" onclick="nlCloseImagePicker()" style="font-size:0.8rem;">Close</button></div>' +
+    '<div class="nl-img-picker-grid">';
+  images.forEach(function(img) {
+    var isSelected = currentImages.indexOf(img.id || img.imageId) !== -1;
+    html += '<div class="nl-img-picker-item ' + (isSelected ? 'selected' : '') + '" onclick="nlSelectImage(\'' + (img.id || img.imageId) + '\')">' +
+      '<img src="' + img.url + '" alt="' + (img.alt || '') + '" /></div>';
+  });
+  if (images.length === 0) {
+    html += '<p style="grid-column:1/-1;text-align:center;color:var(--text-secondary);">No images in library. Upload images in Manage → Images first.</p>';
+  }
+  html += '</div></div></div>';
+
+  var picker = document.createElement('div');
+  picker.id = 'nlImagePickerModal';
+  picker.innerHTML = html;
+  document.body.appendChild(picker);
+}
+
+function nlCloseImagePicker() {
+  var el = document.getElementById('nlImagePickerModal');
+  if (el) el.remove();
+  nlImagePickerSection = null;
+}
+
+async function nlSelectImage(imgId) {
+  var secId = nlImagePickerSection;
+  if (!secId || !nlCurrentIssue || !nlCurrentIssue.sections || !nlCurrentIssue.sections[secId]) return;
+  var sec = nlCurrentIssue.sections[secId];
+  if (!sec.images) sec.images = [];
+  if (sec.images.indexOf(imgId) !== -1) return; // already added
+  if (sec.images.length >= 3) { showToast('Max 3 images per section', true); return; }
+  sec.images.push(imgId);
+  try {
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId + '/sections/' + secId + '/images').set(sec.images);
+    nlCloseImagePicker();
+    renderNLCompose();
+  } catch (err) { showToast('Error adding image: ' + err.message, true); }
+}
+
+async function nlRemoveImage(secId, idx) {
+  if (!nlCurrentIssue || !nlCurrentIssue.sections || !nlCurrentIssue.sections[secId]) return;
+  var sec = nlCurrentIssue.sections[secId];
+  if (!sec.images) return;
+  sec.images.splice(idx, 1);
+  try {
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId + '/sections/' + secId + '/images').set(sec.images.length > 0 ? sec.images : []);
+    renderNLCompose();
+  } catch (err) { showToast('Error removing image: ' + err.message, true); }
+}
+
+// ===== HTML EXPORT =====
+function nlExportHTML() {
+  if (!nlCurrentIssue) return;
+  if (!nlCurrentIssue.title || !nlCurrentIssue.title.trim()) { showToast('Add an issue title before exporting', true); return; }
+
+  var sections = nlCurrentIssue.sections ? Object.values(nlCurrentIssue.sections)
+    .filter(function(s) { return s.included; })
+    .sort(function(a, b) { return (a.order || 0) - (b.order || 0); }) : [];
+
+  var sectionsHtml = '';
+  sections.forEach(function(sec) {
+    var content = sec.finalContent || sec.rawInput || '';
+    if (!content.trim()) return;
+    sectionsHtml += '<tr><td style="padding:0 30px 30px;">' +
+      '<h2 style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:22px;color:#2C2C2C;margin:0 0 12px;font-weight:600;">' + nlEscHtml(sec.title) + '</h2>' +
+      '<p style="font-size:15px;line-height:1.7;color:#444;margin:0;">' + content.replace(/\n/g, '<br>') + '</p>';
+
+    // Images
+    var images = sec.images || [];
+    images.forEach(function(imgId) {
+      var img = imageLibrary ? imageLibrary[imgId] : null;
+      if (img) {
+        sectionsHtml += '<img src="' + img.url + '" alt="' + (img.alt || '') + '" style="max-width:100%;height:auto;border-radius:4px;margin-top:16px;" />';
+      }
+    });
+    sectionsHtml += '</td></tr><tr><td style="padding:0 30px;"><hr style="border:none;border-top:1px solid #E8DDD0;margin:10px 0 20px;" /></td></tr>';
+  });
+
+  var emailHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' +
+    '<title>Shir Glassworks — Issue #' + nlCurrentIssue.issueNumber + '</title></head>' +
+    '<body style="margin:0;padding:0;background:#F5F0EB;font-family:\'DM Sans\',Arial,sans-serif;">' +
+    '<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0EB;"><tr><td align="center" style="padding:30px 10px;">' +
+    '<table width="600" cellpadding="0" cellspacing="0" style="background:#FFFFFF;border-radius:8px;overflow:hidden;max-width:600px;">' +
+    '<!-- Header -->' +
+    '<tr><td style="background:#2C2C2C;padding:30px;text-align:center;">' +
+    '<h1 style="font-family:\'Cormorant Garamond\',Georgia,serif;color:#F5F0EB;font-size:28px;margin:0;font-weight:300;">Shir Glassworks</h1>' +
+    '<p style="color:rgba(245,240,235,0.6);font-size:12px;margin:8px 0 0;letter-spacing:0.1em;text-transform:uppercase;">Issue #' + nlCurrentIssue.issueNumber + '</p>' +
+    '</td></tr>' +
+    '<!-- Title -->' +
+    '<tr><td style="padding:30px 30px 10px;"><h1 style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:26px;color:#2C2C2C;margin:0;font-weight:400;">' + nlEscHtml(nlCurrentIssue.title) + '</h1></td></tr>' +
+    '<!-- Sections -->' +
+    sectionsHtml +
+    '<!-- Footer -->' +
+    '<tr><td style="background:#2C2C2C;padding:24px 30px;text-align:center;">' +
+    '<p style="color:rgba(245,240,235,0.6);font-size:12px;margin:0;">Shir Glassworks &bull; Western Massachusetts</p>' +
+    '<p style="margin:10px 0 0;"><a href="https://shirglassworks.com/newsletter/unsubscribe?token={SUBSCRIBER_TOKEN}" style="color:rgba(245,240,235,0.4);font-size:11px;">Unsubscribe</a></p>' +
+    '<p style="color:rgba(245,240,235,0.3);font-size:10px;margin:8px 0 0;font-style:italic;">Note: The unsubscribe link above contains a placeholder token. When sending via an email tool, replace {SUBSCRIBER_TOKEN} with each subscriber\'s unique token.</p>' +
+    '</td></tr></table></td></tr></table></body></html>';
+
+  var blob = new Blob([emailHtml], { type: 'text/html' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'shir-glassworks-' + nlCurrentIssue.issueNumber + '-' + (nlCurrentIssue.slug || 'newsletter') + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('HTML email exported! 📥');
+}
+
+// ===== PUBLISH TO WEBSITE =====
+async function nlPublishToWebsite() {
+  if (!nlCurrentIssue) return;
+  if (!nlCurrentIssue.title || !nlCurrentIssue.title.trim()) { showToast('Add an issue title before publishing', true); return; }
+
+  var sections = nlCurrentIssue.sections ? Object.values(nlCurrentIssue.sections)
+    .filter(function(s) { return s.included && (s.finalContent || s.rawInput); })
+    .sort(function(a, b) { return (a.order || 0) - (b.order || 0); })
+    .map(function(s) {
+      return { title: s.title, content: s.finalContent || s.rawInput, images: s.images || [] };
+    }) : [];
+
+  if (sections.length === 0) { showToast('Add content to at least one section before publishing', true); return; }
+
+  var publishedAt = new Date().toISOString();
+  var postData = {
+    issueNumber: nlCurrentIssue.issueNumber,
+    title: nlCurrentIssue.title,
+    slug: nlCurrentIssue.slug,
+    publishedAt: publishedAt,
+    sections: sections
+  };
+
+  try {
+    await db.ref('shirglassworks/newsletter/published/' + nlCurrentIssueId).set(postData);
+    nlCurrentIssue.status = 'published';
+    nlCurrentIssue.publishedAt = publishedAt;
+    nlCurrentIssue.updatedAt = new Date().toISOString();
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId).update({
+      status: 'published', publishedAt: publishedAt, updatedAt: nlCurrentIssue.updatedAt
+    });
+    showToast('Published to website! 🌐');
+    renderNLCompose();
+  } catch (err) { showToast('Error publishing: ' + err.message, true); }
+}
+
+// ===== MARK AS SENT =====
+async function nlMarkAsSent() {
+  if (!nlCurrentIssue) return;
+  var sentAt = new Date().toISOString();
+  var activeSubs = nlSubscribers.filter(function(s) { return s.status === 'active'; }).length;
+
+  try {
+    nlCurrentIssue.status = 'sent';
+    nlCurrentIssue.sentAt = sentAt;
+    nlCurrentIssue.sentSubscriberCount = activeSubs;
+    nlCurrentIssue.updatedAt = new Date().toISOString();
+    await db.ref('shirglassworks/newsletter/issues/' + nlCurrentIssueId).update({
+      status: 'sent', sentAt: sentAt, sentSubscriberCount: activeSubs, updatedAt: nlCurrentIssue.updatedAt
+    });
+    showToast('Marked as sent to ' + activeSubs + ' subscribers ✉️');
+    renderNLCompose();
+  } catch (err) { showToast('Error: ' + err.message, true); }
+}
+
+// ===== SUBSCRIBERS SCREEN =====
+function renderNLSubscribers() {
+  nlCurrentView = 'subscribers';
+  var showAll = window.nlShowAllSubs || false;
+  var filtered = showAll ? nlSubscribers : nlSubscribers.filter(function(s) { return s.status === 'active'; });
+  var activeCount = nlSubscribers.filter(function(s) { return s.status === 'active'; }).length;
+
+  var html = '<div class="nl-sub-nav">' +
+    '<button onclick="nlSwitchView(\'issues\')">Issues</button>' +
+    '<button class="active" onclick="nlSwitchView(\'subscribers\')">Subscribers</button>' +
+    '</div>' +
+    '<div class="nl-header"><h2>Subscribers <span style="font-weight:400;font-size:0.9rem;color:var(--text-secondary);">(' + activeCount + ' active)</span></h2>' +
+    '<div style="display:flex;gap:8px;">' +
+    '<button class="btn btn-outline" onclick="nlExportSubscribersCSV()">📤 Export CSV</button>' +
+    '<button class="btn btn-primary" onclick="nlAddSubscriber()">+ Add Subscriber</button>' +
+    '</div></div>' +
+    '<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;">' +
+    '<label style="font-size:0.85rem;color:var(--text-secondary);display:flex;align-items:center;gap:6px;">' +
+    '<input type="checkbox" ' + (showAll ? 'checked' : '') + ' onchange="window.nlShowAllSubs=this.checked; renderNLSubscribers();" /> Show unsubscribed</label></div>';
+
+  if (filtered.length === 0) {
+    html += '<div class="nl-empty"><div class="nl-empty-icon">📬</div>' +
+      '<div class="nl-empty-text">No subscribers yet</div>' +
+      '<p style="font-size:0.85rem;color:var(--text-secondary);">Add subscribers manually or share the sign-up form on your website.</p></div>';
+  } else {
+    html += '<table class="nl-sub-table"><thead><tr>' +
+      '<th>Name</th><th>Email</th><th>Source</th><th>Subscribed</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody>';
+    filtered.forEach(function(sub) {
+      var dateStr = sub.subscribedAt ? new Date(sub.subscribedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+      var sourceClass = sub.source === 'website-form' ? 'website' : 'manual';
+      var sourceLabel = sub.source === 'website-form' ? 'Website' : 'Manual';
+      html += '<tr>' +
+        '<td>' + nlEscHtml(sub.name) + '</td>' +
+        '<td>' + nlEscHtml(sub.email) + '</td>' +
+        '<td><span class="nl-source-badge ' + sourceClass + '">' + sourceLabel + '</span></td>' +
+        '<td>' + dateStr + '</td>' +
+        '<td>' + (sub.status === 'active' ? '<span style="color:#5A7A5A;">Active</span>' : '<span style="color:var(--text-secondary);">Unsubscribed</span>') + '</td>' +
+        '<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + nlEscHtml(sub.notes || '') + '</td>' +
+        '<td>';
+      if (sub.status === 'active') {
+        html += '<button class="btn btn-outline" style="font-size:0.7rem;padding:2px 6px;" onclick="nlUnsubscribe(\'' + sub.id + '\')">Remove</button>';
+      }
+      html += '</td></tr>';
+    });
+    html += '</tbody></table>';
+  }
+  document.getElementById('newsletterContent').innerHTML = html;
+}
+
+// Add subscriber modal
+function nlAddSubscriber() {
+  var modal = document.createElement('div');
+  modal.id = 'nlAddSubModal';
+  modal.innerHTML = '<div class="nl-img-picker-overlay" onclick="nlCloseSubModal()">' +
+    '<div class="nl-img-picker" style="max-width:420px;" onclick="event.stopPropagation()">' +
+    '<h3 style="margin:0 0 16px;">Add Subscriber</h3>' +
+    '<div style="margin-bottom:12px;"><label style="font-size:0.85rem;display:block;margin-bottom:4px;">Name *</label>' +
+    '<input type="text" id="nlSubName" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);" /></div>' +
+    '<div style="margin-bottom:12px;"><label style="font-size:0.85rem;display:block;margin-bottom:4px;">Email *</label>' +
+    '<input type="email" id="nlSubEmail" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);" /></div>' +
+    '<div style="margin-bottom:16px;"><label style="font-size:0.85rem;display:block;margin-bottom:4px;">Notes</label>' +
+    '<input type="text" id="nlSubNotes" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);" /></div>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+    '<button class="btn btn-outline" onclick="nlCloseSubModal()">Cancel</button>' +
+    '<button class="btn btn-primary" onclick="nlSaveSubscriber()">Add</button></div></div></div>';
+  document.body.appendChild(modal);
+}
+
+function nlCloseSubModal() {
+  var el = document.getElementById('nlAddSubModal');
+  if (el) el.remove();
+}
+
+async function nlSaveSubscriber() {
+  var name = document.getElementById('nlSubName').value.trim();
+  var email = document.getElementById('nlSubEmail').value.trim();
+  var notes = document.getElementById('nlSubNotes').value.trim();
+
+  if (!name || !email) { showToast('Name and email are required', true); return; }
+  // Simple email validation
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Invalid email address', true); return; }
+  // Check for duplicate
+  var exists = nlSubscribers.some(function(s) { return s.email.toLowerCase() === email.toLowerCase() && s.status === 'active'; });
+  if (exists) { showToast('This email is already subscribed', true); return; }
+
+  var subId = db.ref('shirglassworks/newsletter/subscribers').push().key;
+  var token = subId + '-' + Date.now().toString(36);
+  var subData = {
+    id: subId, name: name, email: email, notes: notes || null,
+    subscribedAt: new Date().toISOString(), source: 'manual',
+    status: 'active', unsubscribeToken: token, unsubscribedAt: null
+  };
+
+  try {
+    await db.ref('shirglassworks/newsletter/subscribers/' + subId).set(subData);
+    nlSubscribers.unshift(subData);
+    nlCloseSubModal();
+    showToast('Subscriber added');
+    renderNLSubscribers();
+  } catch (err) { showToast('Error adding subscriber: ' + err.message, true); }
+}
+
+async function nlUnsubscribe(subId) {
+  var sub = nlSubscribers.find(function(s) { return s.id === subId; });
+  if (!sub) return;
+  if (!confirm('Remove ' + sub.name + ' (' + sub.email + ') from the mailing list?')) return;
+  try {
+    sub.status = 'unsubscribed';
+    sub.unsubscribedAt = new Date().toISOString();
+    await db.ref('shirglassworks/newsletter/subscribers/' + subId).update({
+      status: 'unsubscribed', unsubscribedAt: sub.unsubscribedAt
+    });
+    showToast('Subscriber removed');
+    renderNLSubscribers();
+  } catch (err) { showToast('Error: ' + err.message, true); }
+}
+
+function nlExportSubscribersCSV() {
+  var active = nlSubscribers.filter(function(s) { return s.status === 'active'; });
+  if (active.length === 0) { showToast('No active subscribers to export', true); return; }
+  var csv = 'Name,Email,Subscribed At\n';
+  active.forEach(function(s) {
+    csv += '"' + (s.name || '').replace(/"/g, '""') + '","' + (s.email || '').replace(/"/g, '""') + '","' + (s.subscribedAt || '') + '"\n';
+  });
+  var blob = new Blob([csv], { type: 'text/csv' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'shir-subscribers-' + new Date().toISOString().split('T')[0] + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('CSV exported with ' + active.length + ' subscribers 📤');
 }
 
 function showToast(message, isError) {

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unsubscribe — Shir Glassworks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --amber: #C4853C;
+      --cream: #F5F0EB;
+      --charcoal: #2C2C2C;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      color: var(--charcoal);
+      background: var(--cream);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    nav {
+      background: var(--charcoal);
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+    nav a {
+      font-family: 'Cormorant Garamond', serif;
+      color: var(--cream);
+      font-size: 1.4rem;
+      font-weight: 300;
+      text-decoration: none;
+      letter-spacing: 0.05em;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem;
+      text-align: center;
+      flex: 1;
+    }
+    .icon { font-size: 3rem; margin-bottom: 1rem; }
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      margin-bottom: 1rem;
+    }
+    p {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: rgba(44,44,44,0.65);
+      margin-bottom: 1rem;
+    }
+    a.home-link {
+      color: var(--amber);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    a.home-link:hover { text-decoration: underline; }
+    footer {
+      background: var(--charcoal);
+      color: rgba(245,240,235,0.5);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+<nav><a href="/">Shir Glassworks</a></nav>
+
+<div class="container" id="content">
+  <div class="icon">...</div>
+  <h1>Processing...</h1>
+  <p>Please wait while we process your request.</p>
+</div>
+
+<footer><p>Shir Glassworks</p></footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+(function() {
+  var firebaseConfig = {
+    apiKey: "AIzaSyDZevV_F87F1AKGqUPKuNIrHMybOc61D7s",
+    authDomain: "shir-glassworks.firebaseapp.com",
+    databaseURL: "https://shir-glassworks-default-rtdb.firebaseio.com",
+    projectId: "shir-glassworks"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var db = firebase.database();
+
+  var params = new URLSearchParams(window.location.search);
+  var token = params.get('token');
+
+  if (!token) {
+    showResult('error', 'Invalid Link', 'This unsubscribe link appears to be invalid. If you need help, please contact us directly.');
+    return;
+  }
+
+  // Find subscriber by token
+  db.ref('shirglassworks/newsletter/subscribers').orderByChild('unsubscribeToken').equalTo(token).once('value').then(function(snap) {
+    var val = snap.val();
+    if (!val) {
+      showResult('error', 'Link Not Found', 'This unsubscribe link is not valid or has already been used.');
+      return;
+    }
+
+    var subId = Object.keys(val)[0];
+    var sub = val[subId];
+
+    if (sub.status === 'unsubscribed') {
+      showResult('info', 'Already Unsubscribed', 'You\'ve already been unsubscribed from our newsletter. No further action needed.');
+      return;
+    }
+
+    // Unsubscribe
+    var updates = {};
+    updates['shirglassworks/newsletter/subscribers/' + subId + '/status'] = 'unsubscribed';
+    updates['shirglassworks/newsletter/subscribers/' + subId + '/unsubscribedAt'] = new Date().toISOString();
+
+    db.ref().update(updates).then(function() {
+      showResult('success', 'You\'ve Been Unsubscribed', 'You will no longer receive newsletters from Shir Glassworks. We\'re sorry to see you go!');
+    }).catch(function(err) {
+      console.error('Unsubscribe error:', err);
+      showResult('error', 'Something Went Wrong', 'We couldn\'t process your request. Please try again or contact us directly.');
+    });
+  }).catch(function(err) {
+    console.error('Lookup error:', err);
+    showResult('error', 'Something Went Wrong', 'We couldn\'t process your request. Please try again later.');
+  });
+
+  function showResult(type, title, message) {
+    var icons = { success: '&#x2714;', error: '&#x26A0;', info: '&#x2139;' };
+    document.getElementById('content').innerHTML =
+      '<div class="icon">' + (icons[type] || '') + '</div>' +
+      '<h1>' + title + '</h1>' +
+      '<p>' + message + '</p>' +
+      '<a href="/" class="home-link">Back to Shir Glassworks</a>';
+  }
+})();
+</script>
+</body>
+</html>

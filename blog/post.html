@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shir Glassworks Blog</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --amber: #C4853C;
+      --amber-light: #D4A574;
+      --teal: #4A90A4;
+      --cream: #F5F0EB;
+      --charcoal: #2C2C2C;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      color: var(--charcoal);
+      background: var(--cream);
+      min-height: 100vh;
+    }
+
+    nav {
+      background: var(--charcoal);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    nav a.logo {
+      font-family: 'Cormorant Garamond', serif;
+      color: var(--cream);
+      font-size: 1.4rem;
+      font-weight: 300;
+      text-decoration: none;
+      letter-spacing: 0.05em;
+    }
+    nav .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+    nav .nav-links a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+    nav .nav-links a:hover { color: var(--amber-light); }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--amber);
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+    .back-link:hover { color: var(--amber-light); }
+
+    .post-meta {
+      color: rgba(44,44,44,0.45);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+
+    .post-date {
+      color: rgba(44,44,44,0.45);
+      font-size: 0.85rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .post-section {
+      margin-bottom: 2.5rem;
+    }
+    .post-section h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+      color: var(--charcoal);
+    }
+    .post-section p {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: rgba(44,44,44,0.8);
+      margin-bottom: 0.8rem;
+    }
+    .post-section img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+      margin: 1rem 0;
+    }
+
+    .post-divider {
+      border: none;
+      border-top: 1px solid rgba(44,44,44,0.1);
+      margin: 2rem 0;
+    }
+
+    footer {
+      background: var(--charcoal);
+      color: rgba(245,240,235,0.5);
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.8rem;
+    }
+    footer a { color: rgba(245,240,235,0.5); }
+
+    .loading { text-align: center; padding: 3rem; color: rgba(44,44,44,0.4); }
+    .error { text-align: center; padding: 3rem; color: rgba(44,44,44,0.4); }
+
+    @media (max-width: 600px) {
+      nav .nav-links { display: none; }
+      .container { padding: 2rem 1rem; }
+      h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Shir Glassworks</a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/shop.html">Shop</a></li>
+    <li><a href="/commission.html">Commissions</a></li>
+    <li><a href="/blog/">Blog</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+  <a href="/blog/" class="back-link">&larr; Back to Blog</a>
+  <div id="postContent">
+    <div class="loading">Loading post...</div>
+  </div>
+</div>
+
+<footer>
+  <p>Shir Glassworks &bull; Western Massachusetts</p>
+  <p style="margin-top:6px;"><a href="/">Home</a> &bull; <a href="/shop.html">Shop</a> &bull; <a href="/commission.html">Commissions</a></p>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+(function() {
+  var firebaseConfig = {
+    apiKey: "AIzaSyDZevV_F87F1AKGqUPKuNIrHMybOc61D7s",
+    authDomain: "shir-glassworks.firebaseapp.com",
+    databaseURL: "https://shir-glassworks-default-rtdb.firebaseio.com",
+    projectId: "shir-glassworks"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  var db = firebase.database();
+
+  var params = new URLSearchParams(window.location.search);
+  var postId = params.get('id');
+
+  if (!postId) {
+    document.getElementById('postContent').innerHTML = '<div class="error"><p>Post not found. <a href="/blog/">Back to blog</a></p></div>';
+    return;
+  }
+
+  db.ref('shirglassworks/newsletter/published/' + postId).once('value').then(function(snap) {
+    var post = snap.val();
+    if (!post) {
+      document.getElementById('postContent').innerHTML = '<div class="error"><p>Post not found. <a href="/blog/">Back to blog</a></p></div>';
+      return;
+    }
+
+    document.title = post.title + ' — Shir Glassworks Blog';
+
+    var date = post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+    var html = '<div class="post-meta">Issue #' + (post.issueNumber || '?') + '</div>' +
+      '<h1>' + escHtml(post.title || 'Untitled') + '</h1>' +
+      '<div class="post-date">' + date + '</div>';
+
+    var sections = post.sections || [];
+    sections.forEach(function(sec, idx) {
+      if (!sec.content || !sec.content.trim()) return;
+      html += '<div class="post-section">';
+      if (sec.title) {
+        html += '<h2>' + escHtml(sec.title) + '</h2>';
+      }
+      // Split content into paragraphs
+      var paragraphs = sec.content.split('\n').filter(function(p) { return p.trim(); });
+      paragraphs.forEach(function(p) {
+        html += '<p>' + escHtml(p) + '</p>';
+      });
+      // Section images
+      var images = sec.images || [];
+      images.forEach(function(imgId) {
+        // Try to load image from the image library
+        db.ref('shirglassworks/images/' + imgId).once('value').then(function(imgSnap) {
+          var img = imgSnap.val();
+          if (img && img.url) {
+            var imgEl = document.createElement('img');
+            imgEl.src = img.url;
+            imgEl.alt = img.alt || '';
+            var sectionDiv = document.querySelectorAll('.post-section')[idx];
+            if (sectionDiv) sectionDiv.appendChild(imgEl);
+          }
+        });
+      });
+      html += '</div>';
+      if (idx < sections.length - 1) {
+        html += '<hr class="post-divider">';
+      }
+    });
+
+    document.getElementById('postContent').innerHTML = html;
+  }).catch(function(err) {
+    console.error('Error loading post:', err);
+    document.getElementById('postContent').innerHTML = '<div class="error"><p>Unable to load post. <a href="/blog/">Back to blog</a></p></div>';
+  });
+
+  function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+})();
+</script>
+</body>
+</html>
