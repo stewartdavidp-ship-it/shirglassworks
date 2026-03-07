@@ -2942,8 +2942,8 @@
     @keyframes smSpin { to { transform:rotate(360deg); } }
 
     /* Back button */
-    .sm-back-btn { background:none; border:none; font-size:0.9rem; color:var(--warm-gray); cursor:pointer; padding:4px 0; margin-bottom:16px; display:inline-flex; align-items:center; gap:4px; }
-    .sm-back-btn:hover { color:var(--charcoal); }
+    .sm-back-btn { background:none; border:none; font-size:0.9rem; color:var(--warm-gray-light); cursor:pointer; padding:6px 0; margin-bottom:16px; display:inline-flex; align-items:center; gap:4px; }
+    .sm-back-btn:hover { color:var(--amber); }
 
     /* Enhancement form sections */
     .sm-enhance-section { margin-bottom:24px; }
@@ -3001,13 +3001,13 @@
     .nl-compose-actions { display:flex; gap:8px; flex-wrap:wrap; padding:16px 0; border-top:1px solid var(--border); margin-top:16px; }
 
     .nl-section-card { background:var(--card-bg); border:1px solid var(--border); border-radius:8px; margin-bottom:10px; overflow:hidden; }
-    .nl-section-header { display:flex; align-items:center; padding:12px 16px; cursor:pointer; gap:10px; }
+    .nl-section-header { display:flex; align-items:center; padding:14px 16px; cursor:pointer; gap:10px; min-height:48px; }
     .nl-section-header:hover { background:rgba(196,133,60,0.04); }
     .nl-section-drag { cursor:grab; color:var(--text-secondary); font-size:1.1rem; }
-    .nl-section-title-input { flex:1; border:none; background:transparent; font-size:0.95rem; font-weight:500; color:var(--text); padding:0; }
+    .nl-section-title-input { flex:1; border:none; background:transparent; font-size:0.95rem; font-weight:600; color:var(--text); padding:4px 0; letter-spacing:0.01em; }
     .nl-section-title-input:focus { outline:none; border-bottom:1px solid var(--amber); }
-    .nl-section-status { font-size:0.65rem; padding:2px 6px; border-radius:8px; font-weight:600; text-transform:uppercase; }
-    .nl-section-status.empty { background:rgba(150,150,150,0.15); color:var(--text-secondary); }
+    .nl-section-status { font-size:0.68rem; padding:3px 8px; border-radius:8px; font-weight:600; text-transform:uppercase; white-space:nowrap; }
+    .nl-section-status.empty { background:rgba(150,150,150,0.12); color:var(--text-secondary); }
     .nl-section-status.has-draft { background:rgba(196,133,60,0.15); color:var(--amber); }
     .nl-section-status.ready { background:rgba(90,122,90,0.15); color:#5A7A5A; }
     .nl-section-toggle { font-size:0.7rem; color:var(--text-secondary); transition:transform 0.15s; }
@@ -18349,8 +18349,8 @@ function smStartNewPost() {
 }
 
 function renderSMNewPost(container) {
-  var html = '<button class="sm-back-btn" onclick="smGoHome()">← Back</button>';
-  html += '<div class="sm-intent-screen">';
+  var html = '<div class="sm-intent-screen">';
+  html += '<div style="text-align:left;margin-bottom:16px;"><button class="sm-back-btn" onclick="smGoHome()" style="font-size:0.9rem;color:var(--warm-gray-light);">← Back to Social Media</button></div>';
   html += '<div class="sm-intent-title">What would you like to do?</div>';
 
   html += '<div class="sm-intent-option" onclick="smPreShoot()">' +
