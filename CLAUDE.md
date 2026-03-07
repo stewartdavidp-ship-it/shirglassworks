@@ -10,6 +10,47 @@
 - generate_claude_md runs on job creation only when stale. Chat must call generate_claude_md(action="get") to check staleness before creating a draft job — if _stale: true, call generate_claude_md(action="push") to regenerate and deliver. If not stale, skip. Rules and constraints change infrequently — regenerating on every job is wasteful. The stale signal is the trigger, not the job creation event itself. _(from: Shir Glassworks Website + Storefront)_
 - Shipping address entered at checkout must be validated via Google Places API before Square payment is taken and before CSV is generated for Pirate Ship. Invalid or unvalidated addresses must be corrected before the order can proceed. This prevents failed USPS deliveries on fragile glass shipments. _(from: Shir Glassworks Website + Storefront)_
 - After every major build job (any job that adds new Firebase writes, new user inputs, new Firebase paths, new auth flows, new external API calls, or new UI that renders data from Firebase), Claude Code must create a follow-on Security Posture Review maintenance job before marking the build complete. The review must check: (1) Firebase rules for any new paths, (2) hasPermission() guards on all new writes, (3) esc() usage on all new innerHTML injections, (4) input validation on all new user-supplied values, (5) no sensitive data persisted beyond its immediate use. Critical and High findings must be fixed inline. Medium and Low findings must be captured as OPENs. The security job may be batched across multiple small builds but must not be skipped. _(from: Shir Glassworks Website + Storefront)_
+- Market — Anti-Pattern: "Feels Helpful But Isn't" (finalized).
+
+The Market feature must not create the illusion of help while leaving all the real work to the user. This is the primary design guardrail for every Market feature decision.
+
+**The failure mode:**
+A tool that generates a caption template with "[PRODUCT NAME]" placeholders, or produces a generic "beautiful handmade glass" caption that Madeline still has to rewrite from scratch, or shows an Instagram button that just opens the app home screen — these create friction theater. They look like automation but are just a clipboard with extra steps.
+
+**The test for every feature:**
+"After using this, has Madeline done less work than if she'd just opened Instagram directly?"
+
+If the answer is no — cut the feature or don't build it.
+
+**What "real help" looks like:**
+- Caption uses the actual product name, actual price, actual materials from the catalog — not placeholders
+- Hashtags are pre-selected and ready to paste — not a list Madeline still has to choose from
+- Platform output is sized and formatted for the target platform — not generic text she has to trim
+- "Open Instagram" means the caption is already on the clipboard before the app opens
+- Content calendar shows real upcoming events and recently listed products as suggested posts — not empty slots Madeline has to fill
+
+**Implication for AI vs templates:**
+Template captions with real data injected are acceptable only if the output quality is high enough that Madeline would post it with minor edits. If templates produce generic output that requires significant rewriting, the Claude API approach becomes necessary — not a nice-to-have. _(from: Shir Glassworks Website + Storefront)_
+- Market — Core Insight: Video-First, Capture-to-Post Pipeline (finalized).
+
+Ori and Madeline have found that **video creates the most attention**. This is the most important product signal for the Market feature.
+
+**What this means:**
+
+The bottleneck is not caption writing. The bottleneck is **capture friction** — video feels like a "big production" so it doesn't happen. When it does happen, getting it from phone to published is enough steps that it either gets delayed or dropped.
+
+The Market feature's primary job is:
+1. **Remove the psychological barrier to capture** — make picking up the phone and shooting a video feel like a small, normal act, not a content production event
+2. **Compress the path from captured video to published post** — every step between "I just shot this" and "it's live" is an opportunity to drop off
+3. **Close the feedback loop** — help them identify when something is working so they do more of it, not just more of everything
+
+**What this is NOT:**
+- A caption generator bolted onto Instagram
+- A content calendar that creates more planning overhead
+- A tool that requires them to think about social media strategy to use
+
+**The right mental model:**
+Think of it as a **video post assistant** that lives in the moment of creation — capture → quick edit → platform-optimized output → publish → track what lands. The caption and hashtag tools exist to serve that pipeline, not as the pipeline themselves. _(from: Shir Glassworks Website + Storefront)_
 
 ## CONSTRAINTs — External realities. Work within these.
 
