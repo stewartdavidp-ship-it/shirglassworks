@@ -18222,7 +18222,7 @@ function renderSMHome(container) {
   html += '<div class="sm-section">';
   html += '<div class="sm-section-label">Pending <span class="sm-count-badge">' + pendingActive.length + '</span></div>';
   if (pendingActive.length === 0) {
-    html += '<div class="sm-empty"><div class="sm-empty-icon">📱</div>No pending clips — tap "New Post" to add one</div>';
+    html += '<div class="sm-empty"><div class="sm-empty-icon">📱</div>No pending clips yet.<div style="margin-top:12px;"><button class="btn btn-primary" onclick="smStartNewPost()">+ New Post</button></div></div>';
   } else {
     pendingActive.forEach(function(clip) {
       var dateStr = clip.uploadedAt ? new Date(clip.uploadedAt).toLocaleDateString() : '';
